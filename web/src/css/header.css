@@ -1,0 +1,99 @@
+.header {
+    position: fixed;
+        /* або fixed, якщо хочеш, щоб він взагалі не “їхав” */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-bottom: 1px solid #ececec;
+    background-color: #ffffff;
+}
+
+.header-navigation {
+    display: flex;
+    align-items: center;
+    padding: 16px 8px;
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 22px;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.search-bar {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 72px;
+}
+
+.search-bar-input {
+    width: 650px;
+    height: 40px;
+    border: 1.5px solid #ebebeb;
+    border-radius: 5px;
+    background-color: #fafafa;
+    padding-left: 39px;
+    font-weight: 400;
+    line-height: 20px;
+    color: #909090;
+}
+
+.icon-search {
+    position: absolute;
+    left: 8px;
+    color: #909090;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-left: auto;
+}
+
+.notifications {
+    position: relative;
+    width: 36px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: transparent;
+}
+
+.icon-bell {
+    fill: #3d3d3e;
+    transition: all 150ms ease-in-out;
+}
+
+.icon-bell-has-new {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.icon-bell:hover,
+.icon-bell:focus {
+    fill: #b4adad;
+}
+
+.header-actions-profile {
+    display: flex;
+}
+
+.header-actions-profile img {
+    border: 1px solid #e4e4e7;
+    border-radius: 9999px;
+    width: 48px;
+    height: 48px;
+}

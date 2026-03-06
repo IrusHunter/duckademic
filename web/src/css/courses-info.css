@@ -1,0 +1,261 @@
+.courses-info {
+    display: flex;
+    flex-direction: column;
+    background-color: #F3F4F6;
+    flex: 1;
+    padding: 20px 0 20px 20px;
+    min-height: calc(100vh - 80px);
+}
+
+.courses-info-header {
+    margin-bottom: 20px;
+}
+
+.courses-info-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #111827;
+    line-height: 133%;
+    margin-bottom: 8px;
+}
+
+.course-card {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    transition: box-shadow 250ms ease-in-out, transform 250ms ease-in-out;
+}
+
+.course-card:hover {
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.05);
+    transform: translateY(-4px);
+}
+
+.course-card-blue::before {
+    content: "";
+    position: absolute;
+    inset: 20px 0 0 0;
+    height: 30px;
+    background-color: #EFF6FF;
+    z-index: 0;
+}
+
+.course-card-mint::before {
+    content: "";
+    position: absolute;
+    inset: 20px 0 0 0;
+    height: 30px;
+    background-color: #DCFCE7;
+    z-index: 0;
+}
+
+.course-card-rose::before {
+    content: "";
+    position: absolute;
+    inset: 20px 0 0 0;
+    height: 30px;
+    background-color: #FEE2E2;
+    z-index: 0;
+}
+
+.course-card-header,
+.course-description,
+.course-meta,
+.course-deadline,
+.course-actions {
+    position: relative;
+    z-index: 1;
+}
+
+.courses-info-subtitle {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 150%;
+    color: #4b5563;
+}
+
+/* Сітка карток */
+
+.courses-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* Базова картка курсу */
+
+.course-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #E4E4E7;
+    padding: 24px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* .course-card-mint {
+    background-color: #DCFCE7;
+} */
+
+/* Верх картки: назва + бейдж з оцінкою */
+
+.course-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.course-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    line-height: 150%;
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+}
+
+.course-teacher {
+    font-size: 14px;
+    line-height: 143%;
+    color: #374151;
+    margin-bottom: 12px;
+}
+
+/* Бейдж оцінки */
+
+.course-grade {
+    min-width: 36px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 14px;
+    color: #18181b;
+    text-align: center;
+    background-color: #ffffff;
+}
+
+
+/* Опис */
+
+.course-description {
+    font-size: 14px;
+    line-height: 143%;
+    color: #374151;
+    margin-bottom: 12px;
+}
+
+/* Метадані: асайменти / студенти */
+
+.course-meta {
+    display: flex;
+    gap: 48px;
+    font-size: 13px;
+    color: #4b5563;
+    margin-bottom: 19px;
+}
+
+.course-meta-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.course-meta-icon {
+    color: #4B5563;
+}
+
+.course-meta-text {
+    font-size: 14px;
+    line-height: 16px;
+    color: #4b5563;
+}
+
+/* Дедлайн */
+
+.course-deadline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.course-deadline-text {
+    font-size: 14px;
+    line-height: 16px;
+}
+
+/* варіанти кольору дедлайну, як на макеті */
+
+.course-deadline-warning .course-deadline-icon {
+    color: #EA7F0C;
+}
+
+.course-deadline-warning .course-deadline-text {
+    color: #EA7F0C;
+}
+
+.course-deadline-info .course-deadline-icon {
+    color: #2563EB;
+}
+
+.course-deadline-info .course-deadline-text {
+    color: #2563EB;
+}
+
+.course-deadline-danger .course-deadline-icon {
+    color: #EF4444;
+}
+
+.course-deadline-danger .course-deadline-text {
+    color: #EF4444;
+}
+
+/* Кнопки */
+
+.course-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 20px;
+}
+
+.course-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 16px;
+    border: none;
+}
+
+.course-btn-primary {
+    background-color: #111827;
+    color: #ffffff;
+    transition: 250ms ease-in-out;
+    
+}
+
+.course-btn-secondary {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #e4e4e7;
+    padding: 9px 12px;
+    transition: 250ms ease-in-out;
+}
+
+/* невеликий ховер */
+
+.course-btn-primary:hover {
+    background-color: #61708C;
+}
+
+.course-btn-secondary:hover {
+    background-color: #EFF6FF;
+    color: #2563EB;
+    border: 1px solid #EFF6FF;
+}

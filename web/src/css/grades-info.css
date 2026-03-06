@@ -1,0 +1,498 @@
+/* ===== Загальне оточення ===== */
+
+.grades-info {
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f4f6;
+  flex: 1;
+  padding: 20px 0 20px 20px;
+  min-height: calc(100vh - 80px);
+}
+
+.grades-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.grades-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+  padding: 24px 24px 48px;
+}
+
+.grades-info,
+.grades-content {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* ===== Titles ===== */
+
+.grades-section-title {
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 28px;
+  letter-spacing: -0.6px;
+  color: #09090b;
+}
+
+.grades-details .grades-section-title {
+  margin-top: 48px;
+  margin-bottom: 40px;
+}
+
+/* ===== Rating ===== */
+
+.grades-rating {
+  border-radius: 16px;
+}
+
+.grades-rating-header {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.grades-rating-filters {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 48px;
+}
+
+/* ===== Dropdown (FIX) ===== */
+
+/* контейнер dropdown = 303px, щоб menu (width:100%) був правильний */
+.grades-filter.schedule-view-dd {
+  width: 303px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.grades-filter-label {
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 16px;
+  color: #111827;
+}
+
+/* кнопка */
+.grades-filter-select.schedule-view-select {
+  width: 100%;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* текст значення (Course/Year) */
+.grades-filter-select-span.schedule-view-label {
+  flex: 1 1 auto;
+  min-width: 0; /* КРИТИЧНО для ellipsis у flex */
+  padding: 12px 12px;
+
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  margin: 0; /* прибрали margin: 0 auto; */
+}
+
+/* caret справа */
+.grades-filter-caret.schedule-view-caret {
+  flex: 0 0 auto;
+  padding: 12px 16px;
+
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* dropdown menu */
+.schedule-view-dd {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-top: none;
+
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+  box-shadow: 0 16px 24px rgba(15, 23, 42, 0.08);
+  z-index: 50;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: transform 0.25s ease, opacity 0.2s ease, visibility 0s linear 0.25s;
+}
+
+.is-open > .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: transform 0.25s ease, opacity 0.2s ease, visibility 0s;
+}
+
+/* caret flip */
+.is-open .schedule-view-caret {
+  transform: scaleY(-1);
+  transform-origin: center;
+}
+
+/* ===== Слайдер рейтингу ===== */
+
+.grades-rating-slider {
+  padding: 72px 32px;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 1260px;
+}
+
+.grades-swiper-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 28px 40px rgb(255, 255, 255);
+  z-index: 10;
+  flex: 0 0 auto; /* щоб кнопки не “з’їдали” ширину */
+}
+
+.grades-swiper {
+  flex: 1 1 auto;
+  min-width: 0; /* MUST */
+  overflow: hidden;
+}
+
+.grades-swiper-viewport {
+  padding-top: 36px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-behavior: smooth;
+  width: 100%;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.grades-swiper-viewport:has(.rating-card--current) {
+  padding-top: 40px;
+}
+
+.grades-swiper-viewport::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.swiper-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: end;
+}
+
+.grades-swiper-viewport .swiper-wrapper {
+  width: max-content;
+  flex-wrap: nowrap;
+  display: flex;
+}
+
+/* ===== Cards ===== */
+
+.rating-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  padding: 48px 0 18px;
+  width: 96px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.rating-card-avatar {
+  width: 72px;
+  height: 72px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  object-fit: cover;
+  position: absolute;
+  top: -36px;
+}
+
+.rating-card-medal {
+  position: absolute;
+  top: 16px;
+  right: 12px;
+  fill: #ffc931;
+}
+
+.second-place {
+  fill: #e0e3ea;
+}
+
+.third-place {
+  fill: #eeac93;
+}
+
+.rating-card--current {
+  background-color: #eff6ff;
+  border-color: #dbeafe;
+  padding: 56px 0 30px;
+  width: 112px;
+}
+
+.rating-card--current .rating-card-avatar {
+  width: 80px;
+  height: 80px;
+  top: -40px;
+}
+
+.rating-card-name {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 12px;
+  text-align: center;
+  color: #374151;
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+
+.rating-card--current .rating-card-name {
+  font-size: 16px;
+  line-height: 14px;
+}
+
+.rating-card-group {
+  font-size: 14px;
+  line-height: 12px;
+  text-align: center;
+  color: #9ca3af;
+  margin-bottom: 18px;
+}
+
+.rating-card--current .rating-card-group {
+  font-size: 16px;
+  line-height: 14px;
+  color: #2563eb;
+  margin-bottom: 28px;
+}
+
+.rating-card-position {
+  font-size: 36px;
+  line-height: 32px;
+  color: #374151;
+}
+
+.rating-card--current .rating-card-position {
+  font-size: 44px;
+}
+
+.rating-card--current .rating-card-medal {
+  width: 22px;
+  height: 30px;
+  top: 20px;
+  right: 16px;
+}
+
+.rating-card-score {
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.rating-card-score--accent {
+  color: #2563eb;
+  font-size: 20px;
+}
+
+/* ===== Details ===== */
+
+.grades-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.grades-stat-card {
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+  background-color: #ffffff;
+  padding: 36px 0;
+  text-align: center;
+}
+
+.grades-stat-value {
+  font-weight: 700;
+  font-size: 56px;
+  line-height: 56px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.grades-stat-value--blue {
+  color: #2563eb;
+}
+
+.grades-stat-value--green {
+  color: #16a34a;
+}
+
+.grades-stat-value--purple {
+  color: #9333ea;
+}
+
+.grades-stat-value--orange {
+  color: #ea580c;
+}
+
+.grades-stat-label {
+  font-size: 20px;
+  line-height: 20px;
+  color: #4b5563;
+}
+
+/* ===== Courses breakdown ===== */
+
+.grades-courses {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 57px;
+}
+
+.course-grade-card {
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e4e4e7;
+}
+
+.course-grade-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.course-grade-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-grade-title {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  line-height: 24px;
+  color: #111827;
+}
+
+.course-grade-mark {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 14px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background-color: #dcfce7;
+  color: #166534;
+  margin-left: 8px;
+}
+
+.course-grade-total {
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 100px;
+  text-align: center;
+  color: #2563eb;
+}
+
+.course-grade-body {
+  display: grid;
+  grid-template-columns: 303px repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 36px;
+}
+
+.course-grade-block {
+  border-radius: 8px;
+  background-color: #f9fafb;
+  color: #4b5563;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.course-grade-block-value {
+  font-size: 24px;
+  line-height: 20px;
+  text-align: center;
+  color: #4b5563;
+  margin-bottom: 12px;
+}
+
+.course-grade-block-label {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: #111827;
+}
+
+/* ===== Адаптив ===== */
+
+@media (max-width: 960px) {
+  .grades-rating-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .grades-rating-filters {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .grades-stats-grid,
+  .course-grade-body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grades-stats-grid,
+  .course-grade-body {
+    grid-template-columns: 1fr;
+  }
+
+  .grades-swiper .swiper-slide {
+    width: 180px;
+  }
+}

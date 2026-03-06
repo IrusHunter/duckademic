@@ -1,0 +1,466 @@
+/* ===== Загальне оточення ===== */
+
+.schedule-info {
+    flex: 1;
+    padding: 20px 0 20px 20px;
+    background-color: #f3f4f6;
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
+}
+
+.schedule-layout {
+    margin: 0 auto;
+}
+
+.schedule-title {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 32px;
+    color: #111827;
+    margin-bottom: 16px;
+}
+
+/* ===== Карта розкладу ===== */
+
+.schedule-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 2.2fr) minmax(260px, 1fr);
+    gap: 20px;
+}
+
+/* ===== Ліва частина: today + навігація ===== */
+
+.icon-clock {
+    fill: white;
+}
+
+.schedule-main-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.schedule-main-left {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.schedule-main-icon {
+    font-size: 18px;
+}
+
+.schedule-main-heading {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 28px;
+    letter-spacing: -0.6px;
+    color: #09090b;
+
+}
+
+/* кнопки навігації */
+
+.schedule-main-controls {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    gap: 74px;
+}
+
+.schedule-main-controls >div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 303px;
+}
+
+.schedule-nav-btn {
+    width: 48px;
+    height: 40px;
+    /* padding: 12px 19px; */
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+.schedule-day-btn {
+    padding: 6px 20px;
+    border-radius: 999px;
+    border: none;
+    background-color: transparent;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.schedule-day-label {
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 16px;
+    color: #111827;
+}
+
+.schedule-view-select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    width: 195px;
+}
+
+.schedule-view-label {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-right: 1px solid #e5e7eb;
+    padding-left: auto;
+    padding-right: auto;
+    flex: 1;
+    font-size: 14px;
+    line-height: 16px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.schedule-view-caret {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 15px;
+    transition: transform 0.2s ease-in-out;
+    /* font-size: 10px; */
+}
+
+/* ===== Список пар ===== */
+
+.schedule-classes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.class-row {
+    display: grid;
+    grid-template-columns: 134px minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0;
+}
+
+.class-time {
+    font-size: 14px;
+    line-height: 20px;
+    color: #4b5563;
+    border-radius: 12px 0 0 12px;
+    border: 1px solid #e5e7eb;
+    border-right: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* картка пари */
+
+.class-card {
+    position: relative;
+    border-radius: 0 12px 12px 0;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    overflow: hidden;
+    /* box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03); */
+    padding: 16px 15px;
+}
+
+.class-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 12px;
+    height: 30px;
+    background-color: #e5e7eb;
+}
+
+/* кольорові смужки */
+
+.class-row--blue .class-card::before {
+    background-color: #EFF6FF;
+}
+
+.class-row--green .class-card::before {
+    background-color: #DCFCE2;
+}
+
+.class-row--rose .class-card::before {
+    background-color: #FEE2E2;
+}
+
+.class-row--amber .class-card::before {
+    background-color: #FEEEDB;
+}
+
+/* .class-card-inner {
+    padding: 16px 0;
+} */
+
+/* заголовок + бейдж */
+
+.class-card-header {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 150%;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.class-title {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.class-tag {
+    font-size: 12px;
+    line-height: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background-color: #18181B;
+    color: #fafafa;
+    
+    position: absolute;
+    right: 0;
+    text-align: center;
+}
+
+.white-tag {
+    background-color: #fff;
+    color: #18181B;
+}
+
+/* викладач */
+
+.class-teacher {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 20px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: center;
+}
+
+/* мета-інфо */
+
+.class-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: #4b5563;
+}
+
+.class-meta-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 20px;
+    color: #111827;
+    gap: 4px;
+}
+
+.class-meta-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #111827;
+}
+
+.class-meta-dates {
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+    color: #4b5563;
+}
+
+/* ===== Права частина: фільтри ===== */
+
+.schedule-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 116px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-label {
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 16px;
+    color: #111827;
+}
+
+.filter-select {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 13px;
+    cursor: pointer;
+
+    width: 100%;
+}
+
+
+.filter-caret {
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 15px;
+}
+
+.filter-caret-value {
+    height: 100%;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-right: 1px solid #e5e7eb;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+}
+
+
+/* ===== Адаптив ===== */
+
+@media (max-width: 960px) {
+    .schedule-card {
+        grid-template-columns: 1fr;
+    }
+
+    .class-row {
+        grid-template-columns: 100px minmax(0, 1fr);
+    }
+}
+
+
+
+
+/* ===== DROPDOWN ===== */
+
+/* щоб меню позиціонувалось відносно групи */
+.filter-group,
+.schedule-view-dd {
+    position: relative;
+}
+
+/* обгортка view dropdown */
+.schedule-view-dd {
+    width: 195px;
+    /* щоб меню мало ту ж ширину що і кнопка */
+}
+
+/* меню */
+.dropdown-menu {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+    box-shadow: 0 16px 24px rgba(15, 23, 42, 0.08);
+    z-index: 50;
+
+    /* стартовий стан (сховано) */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px);
+
+    transition: transform 0.25s ease, opacity 0.2s ease, visibility 0s linear 0.25s;
+}
+
+.is-open>.dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+
+    transition: transform 0.25s ease, opacity 0.2s ease, visibility 0s;
+}
+
+.is-open .schedule-view-select {
+    border-radius: 8px 8px 0 0;
+}
+
+.is-open .filter-select {
+    border-radius: 8px 8px 0 0;
+}
+
+.is-open .schedule-view-caret {
+    transform: scaleY(-1);
+    transform-origin: center;
+}
+
+/* кнопки-опції */
+.dropdown-item {
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 20px;
+    color: #111827;
+
+    transition: all 0.1s ease;
+}
+
+.dropdown-item:not(.is-active):hover {
+    background: #f4f4f8;
+    color: #4f4f5c;
+}
+
+/* якщо хочеш підсвітити вибране */
+.dropdown-item.is-active {
+    background: #EFF6FF;
+    border: 1px solid #DBEAFE;
+}
+
+/* опційно: щоб svg у меті не стискався */
+.class-meta-icon svg {
+    display: block;
+}
