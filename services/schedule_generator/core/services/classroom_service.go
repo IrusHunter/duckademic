@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/Duckademic/schedule-generator/generator/entities"
-	"github.com/Duckademic/schedule-generator/types"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
 )
 
 // ClassroomService aggregates and manages classrooms that the generator works with.

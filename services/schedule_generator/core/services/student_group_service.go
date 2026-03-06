@@ -3,8 +3,8 @@ package services
 import (
 	"fmt"
 
-	"github.com/Duckademic/schedule-generator/generator/entities"
-	"github.com/Duckademic/schedule-generator/types"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
 	"github.com/google/uuid"
 )
 
