@@ -1,14 +1,14 @@
-package generator
+package core
 
 import (
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/Duckademic/schedule-generator/generator/components"
-	"github.com/Duckademic/schedule-generator/generator/entities"
-	"github.com/Duckademic/schedule-generator/generator/services"
-	"github.com/Duckademic/schedule-generator/types"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/components"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
 )
 
 type ScheduleGeneratorConfig struct {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/Duckademic/schedule-generator/generator/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 )
 
 // ClassroomAssigner handles assigning classrooms to lessons within the schedule generator..
@@ -22,9 +22,11 @@ type ClassroomAssigner interface {
 func NewClassroomAssigner(c []*entities.Classroom, l []*entities.Lesson, es ErrorService) ClassroomAssigner {
 	currentSlot := entities.NewLessonSlot(0, 0)
 	lessons := make(map[entities.LessonSlot][]*entities.Lesson, 0)
+	slotsOrder := []entities.LessonSlot{}
 	for _, lesson := range l {
 		if lesson.LessonSlot != currentSlot {
 			currentSlot = lesson.LessonSlot
+			slotsOrder = append(slotsOrder, currentSlot)
 			lessons[currentSlot] = make([]*entities.Lesson, 0)
 		}
 		lessons[currentSlot] = append(lessons[currentSlot], lesson)
@@ -36,6 +38,7 @@ func NewClassroomAssigner(c []*entities.Classroom, l []*entities.Lesson, es Erro
 		errorService: es,
 		fault:        float32(0.000_000_1),
 		maxValue:     1_000_000_000_000_000,
+		slotsOrder:   slotsOrder,
 	}
 }
 
@@ -49,11 +52,13 @@ type classroomAssigner struct {
 	matrix               [][]float32 // Matrix indices: [lesson][classroom].
 	fault                float32     // Used for zero comparison.
 	maxValue             float32
+	slotsOrder           []entities.LessonSlot
 }
 
 func (ca *classroomAssigner) AssignClassrooms() {
 	n := ca.getN()
-	for slot, lessons := range ca.lessons {
+	for _, slot := range ca.slotsOrder {
+		lessons := ca.lessons[slot]
 		delta := n - len(lessons)
 		if delta < 0 {
 			ca.errorService.AddError(NewUnexpectedError("number of classrooms is less than number of simultaneous lessons",

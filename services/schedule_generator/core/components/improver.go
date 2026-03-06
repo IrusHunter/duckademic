@@ -3,8 +3,8 @@ package components
 import (
 	"errors"
 
-	"github.com/Duckademic/schedule-generator/generator/entities"
-	"github.com/Duckademic/schedule-generator/generator/services"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 )
 
 // Improver improves finished schedule

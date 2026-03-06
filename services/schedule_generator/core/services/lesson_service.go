@@ -5,7 +5,7 @@ import (
 	"slices"
 	"sort"
 
-	"github.com/Duckademic/schedule-generator/generator/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 )
 
 // LessonService aggregates and manages lessons that the generator works with.

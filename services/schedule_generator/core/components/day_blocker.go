@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/Duckademic/schedule-generator/generator/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 )
 
 // DayBlocker selects days for student groups
