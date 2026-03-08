@@ -1,0 +1,10 @@
+[
+    {
+        "path": "user",
+        "upstream_name": "user"
+    },
+    {
+        "path": "auth",
+        "upstream_name": "auth"
+    }
+]
