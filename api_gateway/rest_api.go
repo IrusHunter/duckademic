@@ -10,16 +10,18 @@ type RESTAPI interface {
 	Run(int) error
 }
 
-func NewRESTAPI(pc ProxyHandler) RESTAPI {
-	return &restapi{proxy: pc}
+func NewRESTAPI(pc ProxyHandler, dh DatabaseHandler) RESTAPI {
+	return &restapi{proxy: pc, databaseHandler: dh}
 }
 
 type restapi struct {
-	proxy ProxyHandler
+	proxy           ProxyHandler
+	databaseHandler DatabaseHandler
 }
 
 func (ra *restapi) Run(port int) error {
 	newHandler("/", ra.proxy.HandlePath)
+	newHandler("/seed", ra.databaseHandler.Seed)
 
 	log.Printf("Server start at port %d \n", port)
 

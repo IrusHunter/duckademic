@@ -8,18 +8,13 @@ import (
 	"github.com/lib/pq"
 )
 
-// Database wraps a sqlx.DB client and provides a centralized
-// way to access the database throughout the application.
-type Database struct {
-	Client *sqlx.DB // The underlying database client used for queries.
-}
-
-// NewDatabase creates a new Database instance. If the specified database does not exist, it will be created.
+// NewDBConnection creates a new PostgreSQL database connection.
+// If the specified database does not exist, it will be created.
 //
 // It requires host, port, user, password, dbname, sslmode for connecting to PostgreSQL.
 //
 // Returns a Database instance or an error if the connection or database creation fails.
-func NewDatabase(host, port, user, dbname, password, sslmode string) (*Database, error) {
+func NewDBConnection(host, port, user, dbname, password, sslmode string) (*sqlx.DB, error) {
 	connectionString := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		host, port, user, dbname, password, sslmode,
@@ -53,17 +48,17 @@ func NewDatabase(host, port, user, dbname, password, sslmode string) (*Database,
 			return nil, fmt.Errorf("failed to connect to %s: %w", dbname, err)
 		}
 	}
-	return &Database{Client: dbConn}, nil
+	return dbConn, nil
 }
 
-// NewDefaultConnection creates a new Database instance using the NewDatabase function.
+// NewDefaultDBConnection creates a new PostgreSQL database connection using the NewDatabase function.
 // It reads the required configuration from environment variables.
 //
 // Required environment variables: DB_HOST, DB_PORT, DB_USER, DB_NAME, DB_PASSWORD, DB_SSLMODE.
 //
 // Returns a Database instance or an error if the connection fails.
-func NewDefaultConnection() (*Database, error) {
-	return NewDatabase(
+func NewDefaultDBConnection() (*sqlx.DB, error) {
+	return NewDBConnection(
 		envutil.GetStringFromENV("DB_HOST"),
 		envutil.GetStringFromENV("DB_PORT"),
 		envutil.GetStringFromENV("DB_USER"),

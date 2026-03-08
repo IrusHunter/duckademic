@@ -1,42 +1,48 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"log"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
+	"github.com/google/uuid"
 )
 
 // ==========================================================================================================
 // ============================================= UpstreamService ============================================
 // ==========================================================================================================
 
+// UpstreamService provides operations to initialize and manage upstream services.
 type UpstreamService interface {
-	Seed() error
+	Seed() error // clears existing upstream data and initializes it from a JSON file.
 }
 
+// NewUpstreamService creates a new UpstreamService instance.
+//
+// It requires a upstream repository (up).
 func NewUpstreamService(up UpstreamRepository) UpstreamService {
 	return &upstreamService{repository: up}
 }
 
+// upstreamService is the basic implementation of the UpstreamService interface.
 type upstreamService struct {
 	repository UpstreamRepository
 }
 
 func (s *upstreamService) Seed() error {
 	upstreams := []Upstream{}
-	if err := jsonutil.ReadFileTo(filepath.Join("data", "upstreams"), &upstreams); err != nil {
+	if err := jsonutil.ReadFileTo(filepath.Join("data", "upstreams.json"), &upstreams); err != nil {
 		return fmt.Errorf("failed to load upstreams seed data: %w", err)
 	}
 
+	s.repository.Clear(context.Background())
 	for _, upstream := range upstreams {
-		err := s.repository.Add(upstream)
+		upstream.ID = uuid.New()
+		_, err := s.repository.Add(context.Background(), upstream)
 		if err != nil {
-			s.repository.Clear()
+			s.repository.Clear(context.Background())
 			return fmt.Errorf("can't add upstream %q: %w", upstream.String(), err)
 		}
 	}
@@ -53,24 +59,6 @@ type EndpointService interface {
 }
 
 func NewEndpointService(er EndpointRepository) EndpointService {
-	dat, err := os.ReadFile(filepath.Join("data", "endpoints.json"))
-	if err != nil {
-		panic("can't read file data/endpoints.json: " + err.Error())
-	}
-
-	endpoints := make([]Endpoint, 0)
-	err = json.Unmarshal(dat, &endpoints)
-	if err != nil {
-		panic("can't unmarshal data: " + err.Error())
-	}
-
-	for _, endpoint := range endpoints {
-		err := er.Add(endpoint)
-		if err != nil {
-			log.Fatalf("can't add endpoint with path %s to collection: %s", endpoint.Path, err.Error())
-		}
-	}
-
 	return &endpointService{repository: er}
 }
 

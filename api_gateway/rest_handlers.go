@@ -26,8 +26,8 @@ type proxyHandler struct {
 	client          *http.Client
 }
 
-func (c *proxyHandler) HandlePath(w http.ResponseWriter, r *http.Request) {
-	upstream, err := c.endpointService.GetRequiredService(r.URL.Path)
+func (h *proxyHandler) HandlePath(w http.ResponseWriter, r *http.Request) {
+	upstream, err := h.endpointService.GetRequiredService(r.URL.Path)
 	if err != nil {
 		jsonutil.ResponseWithError(w, http.StatusBadRequest, fmt.Errorf("server not found: %s", err))
 		return
@@ -39,7 +39,7 @@ func (c *proxyHandler) HandlePath(w http.ResponseWriter, r *http.Request) {
 	}
 	req, err := http.NewRequest(r.Method, url, r.Body)
 
-	resp, err := c.client.Do(req)
+	resp, err := h.client.Do(req)
 	if err != nil {
 		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("request failed: %s", err.Error()))
 		return
@@ -61,5 +61,34 @@ func (c *proxyHandler) HandlePath(w http.ResponseWriter, r *http.Request) {
 }
 
 // ==========================================================================================================
-// =============================================== SeedHandler ==============================================
+// ============================================= DatabaseHandler ============================================
 // ==========================================================================================================
+
+// DatabaseHandler represents a handler responsible for database-related HTTP operations.
+type DatabaseHandler interface {
+	// Performs database seeding operations, initializing required data and the databases of the services via HTTP.
+	Seed(w http.ResponseWriter, r *http.Request)
+}
+
+// NewDatabaseHandler creates a new DatabaseHandler instance.
+//
+// It requires a upstream service (us).
+func NewDatabaseHandler(us UpstreamService) DatabaseHandler {
+	return &databaseHandler{
+		upstreamService: us,
+	}
+}
+
+// databaseHandler is the basic implementation of the DatabaseHandler interface.
+type databaseHandler struct {
+	upstreamService UpstreamService
+}
+
+func (h *databaseHandler) Seed(w http.ResponseWriter, r *http.Request) {
+	err := h.upstreamService.Seed()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, err)
+		return
+	}
+	jsonutil.ResponseWithJSON(w, 204, nil)
+}

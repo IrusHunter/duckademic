@@ -16,7 +16,7 @@ type TeacherService interface {
 	CountLessonOverlapping() int      // Returns the count of overlapping lessons.
 }
 
-// NewTeacherService creates a new TeacherService basic instance.
+// NewTeacherService creates a new TeacherService instance.
 //
 // It requires an array of database teachers (t) and a busy grid for them (bg).
 //

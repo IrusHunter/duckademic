@@ -15,23 +15,29 @@ func main() {
 
 	port, err := envutil.GetIntFromENV("PORT")
 	if err != nil {
-		log.Fatalf("can't get port value: %s", err.Error())
+		log.Fatalf("Can't get port value: %s", err.Error())
 	}
 
-	database, err := db.NewDefaultConnection()
+	database, err := db.NewDefaultDBConnection()
 	if err != nil {
 		log.Fatalf("Can't connect to database: %v", err)
+	}
+
+	err = Migrate(database)
+	if err != nil {
+		log.Fatalf("Can't migrate the database^ %s", err.Error())
 	}
 
 	upstreamRepository := NewUpstreamRepository(database)
 	endpointRepository := NewEndpointRepository(upstreamRepository)
 
-	NewUpstreamService(upstreamRepository)
+	upstreamService := NewUpstreamService(upstreamRepository)
 	endpointService := NewEndpointService(endpointRepository)
 
 	proxyHandler := NewProxyHandler(endpointService, http.DefaultClient)
+	databaseHandler := NewDatabaseHandler(upstreamService)
 
-	restapi := NewRESTAPI(proxyHandler)
+	restapi := NewRESTAPI(proxyHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)
