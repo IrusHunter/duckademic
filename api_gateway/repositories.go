@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"slices"
 
 	"github.com/google/uuid"
@@ -19,15 +20,20 @@ type UpstreamRepository interface {
 	FindFirstByName(string) *Upstream // Returns a pointer to the first upstream with the given name.
 	// Add inserts a new Upstream into the repository and returns it, or an error if it fails.
 	Add(context.Context, Upstream) (Upstream, error)
-	Clear(context.Context) // Clear removes all upstreams from the repository.
-	Refresh() error        // Refresh reloads upstreams from the underlying storage, returning an error on failure.
+	Clear(context.Context)         // Clear removes all upstreams from the repository.
+	Refresh(context.Context) error // Refresh reloads upstreams from the underlying storage, returning an error on failure.
 }
 
 // NewUpstreamRepository creates a new UpstreamRepository instance.
 //
 // It requires a database connection (db).
 func NewUpstreamRepository(d *sqlx.DB) UpstreamRepository {
-	return &upstreamRepository{db: d}
+	repo := &upstreamRepository{db: d}
+	if err := repo.Refresh(context.Background()); err != nil {
+		log.Println("Can't refresh upstream repository: " + err.Error())
+		return &upstreamRepository{db: d}
+	}
+	return repo
 }
 
 // upstreamRepository is the basic implementation of the UpstreamRepository interface.
@@ -84,7 +90,19 @@ func (r *upstreamRepository) Clear(ctx context.Context) {
 	r.db.ExecContext(ctx, `TRUNCATE TABLE upstreams`)
 	r.upstreams = []Upstream{}
 }
-func (r *upstreamRepository) Refresh() error {
+func (r *upstreamRepository) Refresh(ctx context.Context) error {
+	upstreams := []Upstream{}
+	err := r.db.SelectContext(
+		ctx,
+		&upstreams,
+		`SELECT id, name, url, enabled, created_at, updated_at FROM upstreams`,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to get upstreams: %w", err)
+	}
+
+	r.upstreams = upstreams
 	return nil
 }
 

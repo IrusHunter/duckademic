@@ -13,12 +13,12 @@ import (
 
 // Upstream describes a backend service that requests can be proxied to.
 type Upstream struct {
-	ID        uuid.UUID `json:"id"`         // Unique identifier.
-	Name      string    `json:"name"`       // Human-readable identifier.
-	URL       string    `json:"url"`        // Base URL or domain.
-	Enabled   bool      `json:"enabled"`    // Whether the service is enabled.
-	CreatedAt time.Time `json:"created_at"` // Creation time.
-	UpdatedAt time.Time `json:"updated_at"` // Last update time.
+	ID        uuid.UUID `db:"id" json:"id"`                 // Unique identifier.
+	Name      string    `db:"name" json:"name"`             // Human-readable identifier.
+	URL       string    `db:"url" json:"url"`               // Base URL or domain.
+	Enabled   bool      `db:"enabled" json:"enabled"`       // Whether the service is enabled.
+	CreatedAt time.Time `db:"created_at" json:"created_at"` // Creation time.
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"` // Last update time.
 }
 
 // String returns a human-readable representation of the Upstream.
