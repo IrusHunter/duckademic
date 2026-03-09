@@ -8,6 +8,9 @@ import (
 	"github.com/lib/pq"
 )
 
+// TimeFormat is the layout used to format and parse time fields in models as strings (DD.MM.YYYY HH:MM:SS).
+const TimeFormat = "02.01.2006 15:04:05"
+
 // NewDBConnection creates a new PostgreSQL database connection.
 // If the specified database does not exist, it will be created.
 //

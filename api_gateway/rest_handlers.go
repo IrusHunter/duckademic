@@ -13,14 +13,20 @@ import (
 // ============================================== ProxyHandler ==============================================
 // ==========================================================================================================
 
+// DatabaseHandler represents a handler responsible for forwarding them to the appropriate upstream service.
 type ProxyHandler interface {
+	// HandlePath forwards request to the target upstream service.
 	HandlePath(w http.ResponseWriter, r *http.Request)
 }
 
+// NewProxyHandler creates a new ProxyHandler instance.
+//
+// It requires a endpoint services (es) and an HTTP client (c).
 func NewProxyHandler(es EndpointService, c *http.Client) ProxyHandler {
 	return &proxyHandler{endpointService: es, client: c}
 }
 
+// proxyHandler is the basic implementation of the ProxyHandler interface.
 type proxyHandler struct {
 	endpointService EndpointService
 	client          *http.Client
@@ -72,23 +78,29 @@ type DatabaseHandler interface {
 
 // NewDatabaseHandler creates a new DatabaseHandler instance.
 //
-// It requires a upstream service (us).
-func NewDatabaseHandler(us UpstreamService) DatabaseHandler {
+// It requires the upstream (us) and endpoint (es) services.
+func NewDatabaseHandler(us UpstreamService, es EndpointService) DatabaseHandler {
 	return &databaseHandler{
 		upstreamService: us,
+		endpointService: es,
 	}
 }
 
 // databaseHandler is the basic implementation of the DatabaseHandler interface.
 type databaseHandler struct {
 	upstreamService UpstreamService
+	endpointService EndpointService
 }
 
 func (h *databaseHandler) Seed(w http.ResponseWriter, r *http.Request) {
-	err := h.upstreamService.Seed()
-	if err != nil {
-		jsonutil.ResponseWithError(w, 500, err)
+	if err := h.upstreamService.Seed(); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed upstreams: %w", err))
 		return
 	}
+	if err := h.endpointService.Seed(); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed endpoints: %w", err))
+		return
+	}
+
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }

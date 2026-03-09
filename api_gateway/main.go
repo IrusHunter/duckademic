@@ -29,13 +29,13 @@ func main() {
 	}
 
 	upstreamRepository := NewUpstreamRepository(database)
-	endpointRepository := NewEndpointRepository(upstreamRepository)
+	endpointRepository := NewEndpointRepository(database, upstreamRepository)
 
 	upstreamService := NewUpstreamService(upstreamRepository)
-	endpointService := NewEndpointService(endpointRepository)
+	endpointService := NewEndpointService(endpointRepository, upstreamRepository)
 
 	proxyHandler := NewProxyHandler(endpointService, http.DefaultClient)
-	databaseHandler := NewDatabaseHandler(upstreamService)
+	databaseHandler := NewDatabaseHandler(upstreamService, endpointService)
 
 	restapi := NewRESTAPI(proxyHandler, databaseHandler)
 

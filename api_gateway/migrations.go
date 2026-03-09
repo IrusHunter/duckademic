@@ -30,5 +30,23 @@ func Migrate(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create on update trigger for upstreams: %w", err)
 	}
 
+	schema = `
+	CREATE TABLE IF NOT EXISTS endpoints (
+		id UUID PRIMARY KEY,
+		path TEXT NOT NULL UNIQUE,
+		upstream_id UUID NOT NULL REFERENCES upstreams(id) ON DELETE CASCADE,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create endpoints relation: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "endpoints"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for endpoints: %w", err)
+	}
+
 	return nil
 }

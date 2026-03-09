@@ -6,21 +6,26 @@ import (
 	"strconv"
 )
 
+// RESTAPI represents a RESTful HTTP server that can be started on a given port.
 type RESTAPI interface {
-	Run(int) error
+	Run(int) error // Run starts the REST API server on the specified port.
 }
 
-func NewRESTAPI(pc ProxyHandler, dh DatabaseHandler) RESTAPI {
-	return &restapi{proxy: pc, databaseHandler: dh}
+// NewRESTAPI creates a new RESTAPI instance.
+//
+// It requires the proxy (ph) and database (ph) handlers.
+func NewRESTAPI(ph ProxyHandler, dh DatabaseHandler) RESTAPI {
+	return &restapi{proxyHandler: ph, databaseHandler: dh}
 }
 
+// restapi is the basic implementation of the RESTAPI interface.
 type restapi struct {
-	proxy           ProxyHandler
+	proxyHandler    ProxyHandler
 	databaseHandler DatabaseHandler
 }
 
 func (ra *restapi) Run(port int) error {
-	newHandler("/", ra.proxy.HandlePath)
+	newHandler("/", ra.proxyHandler.HandlePath)
 	newHandler("/seed", ra.databaseHandler.Seed)
 
 	log.Printf("Server start at port %d \n", port)
