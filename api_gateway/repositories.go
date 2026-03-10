@@ -74,13 +74,13 @@ func (r *upstreamRepository) Add(ctx context.Context, upstream Upstream) (Upstre
 		upstream,
 	)
 	if err != nil {
-		return Upstream{}, fmt.Errorf("failed to insert upstream %q: %w", upstream.String(), err)
+		return Upstream{}, fmt.Errorf("failed to insert %q: %w", upstream.String(), err)
 	}
 	defer rows.Close()
 
 	if rows.Next() {
 		if err := rows.Scan(&upstream.CreatedAt, &upstream.UpdatedAt); err != nil {
-			return Upstream{}, fmt.Errorf("failed to scan database row for upstream %s: %w", upstream.String(), err)
+			return Upstream{}, fmt.Errorf("failed to scan database row for %s: %w", upstream.String(), err)
 		}
 	}
 

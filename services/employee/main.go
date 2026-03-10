@@ -2,8 +2,10 @@ package main
 
 import (
 	"log"
-	"net/http"
 
+	"github.com/IrusHunter/duckademic/services/employees/repositories"
+	resthandlers "github.com/IrusHunter/duckademic/services/employees/rest_handlers"
+	"github.com/IrusHunter/duckademic/services/employees/services"
 	"github.com/IrusHunter/duckademic/shared/db"
 	"github.com/IrusHunter/duckademic/shared/envutil"
 )
@@ -28,16 +30,14 @@ func main() {
 		log.Fatalf("Can't migrate the database: %s", err.Error())
 	}
 
-	upstreamRepository := NewUpstreamRepository(database)
-	endpointRepository := NewEndpointRepository(database, upstreamRepository)
+	academicRankRepository := repositories.NewAcademicRankRepository(database)
 
-	upstreamService := NewUpstreamService(upstreamRepository)
-	endpointService := NewEndpointService(endpointRepository, upstreamRepository)
+	academicRankService := services.NewAcademicRankService(academicRankRepository)
 
-	proxyHandler := NewProxyHandler(endpointService, http.DefaultClient)
-	databaseHandler := NewDatabaseHandler(upstreamService, endpointService)
+	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
+	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService)
 
-	restapi := NewRESTAPI(proxyHandler, databaseHandler)
+	restapi := NewRESTAPI(academicRankHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

@@ -13,7 +13,7 @@ type RESTAPI interface {
 
 // NewRESTAPI creates a new RESTAPI instance.
 //
-// It requires the proxy (ph) and database (ph) handlers.
+// It requires the proxy (ph) and database (dh) handlers.
 func NewRESTAPI(ph ProxyHandler, dh DatabaseHandler) RESTAPI {
 	return &restapi{proxyHandler: ph, databaseHandler: dh}
 }
