@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 )
@@ -39,11 +42,17 @@ func (h *proxyHandler) HandlePath(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := upstream.URL + r.URL.Path
+	url := upstream.URL + "/" + strings.Join(strings.Split(r.URL.Path, "/")[2:], "/")
 	if r.URL.RawQuery != "" {
 		url += "?" + r.URL.RawQuery
 	}
 	req, err := http.NewRequest(r.Method, url, r.Body)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError,
+			fmt.Errorf("failed to create request %q: %s", url, err.Error()),
+		)
+		return
+	}
 
 	resp, err := h.client.Do(req)
 	if err != nil {
@@ -78,11 +87,12 @@ type DatabaseHandler interface {
 
 // NewDatabaseHandler creates a new DatabaseHandler instance.
 //
-// It requires the upstream (us) and endpoint (es) services.
-func NewDatabaseHandler(us UpstreamService, es EndpointService) DatabaseHandler {
+// It requires the upstream (us) and endpoint (es) services, an HTTP client (c).
+func NewDatabaseHandler(us UpstreamService, es EndpointService, c *http.Client) DatabaseHandler {
 	return &databaseHandler{
 		upstreamService: us,
 		endpointService: es,
+		client:          c,
 	}
 }
 
@@ -90,6 +100,7 @@ func NewDatabaseHandler(us UpstreamService, es EndpointService) DatabaseHandler 
 type databaseHandler struct {
 	upstreamService UpstreamService
 	endpointService EndpointService
+	client          *http.Client
 }
 
 func (h *databaseHandler) Seed(w http.ResponseWriter, r *http.Request) {
@@ -102,5 +113,35 @@ func (h *databaseHandler) Seed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	upstreams := h.upstreamService.GetAll(context.Background())
+	for _, upstream := range upstreams {
+		url := upstream.URL + "/seed"
+		req, err := http.NewRequest(r.Method, url, r.Body)
+		if err != nil {
+			jsonutil.ResponseWithError(w, http.StatusInternalServerError,
+				fmt.Errorf("failed to create request %q: %s", url, err.Error()),
+			)
+			return
+		}
+
+		resp, err := h.client.Do(req)
+		if err != nil {
+			log.Printf("Request failed: %s \n", err.Error())
+			continue
+		}
+
+		respBody := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		resp.Body.Close()
+		if err != nil {
+			continue
+		}
+
+		respErr, ok := respBody["error"]
+		if ok {
+			log.Printf("Can't seed %s from api: %s", upstream.String(), respErr)
+		}
+
+	}
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }

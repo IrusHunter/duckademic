@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"slices"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -16,14 +15,14 @@ import (
 
 // UpstreamRepository represents a storage for upstream service entities.
 type UpstreamRepository interface {
-	Find(uuid.UUID) *Upstream // Find returns a pointer to the upstream with the given ID.
+	Find(context.Context, uuid.UUID) *Upstream // Find returns a pointer to the upstream with the given ID.
 	// FindFirstByName returns a pointer to the first upstream with the given name.
-	FindFirstByName(string) *Upstream
+	FindFirstByName(context.Context, string) *Upstream
 	// Add inserts a new Upstream into the repository and returns it, or an error if it fails.
 	Add(context.Context, Upstream) (Upstream, error)
 	Clear(context.Context) // Clear removes all upstreams from the repository.
-	// Refresh reloads upstreams from the underlying storage, returning an error on failure.
-	Refresh(context.Context) error
+	// GetAll returns a slice with all upstreams from database.
+	GetAll(context.Context) []Upstream
 }
 
 // NewUpstreamRepository creates a new UpstreamRepository instance.
@@ -31,37 +30,58 @@ type UpstreamRepository interface {
 // It requires a database connection (db).
 func NewUpstreamRepository(d *sqlx.DB) UpstreamRepository {
 	repo := &upstreamRepository{db: d}
-	if err := repo.Refresh(context.Background()); err != nil {
-		log.Println("Can't refresh upstream repository: " + err.Error())
-	}
 	return repo
 }
 
 // upstreamRepository is the basic implementation of the UpstreamRepository interface.
 type upstreamRepository struct {
-	upstreams []Upstream
-	db        *sqlx.DB
+	db *sqlx.DB
 }
 
-func (r *upstreamRepository) Find(id uuid.UUID) *Upstream {
-	ind := slices.IndexFunc(r.upstreams, func(other Upstream) bool {
-		return other.ID == id
-	})
-
-	if ind == -1 {
+func (r *upstreamRepository) Find(ctx context.Context, id uuid.UUID) *Upstream {
+	row := r.db.QueryRowContext(
+		ctx,
+		`SELECT id, name, url, enabled, created_at, updated_at FROM upstreams
+		WHERE id=$1`,
+		id,
+	)
+	var upstream Upstream
+	if err := row.Scan(
+		&upstream.ID,
+		&upstream.Name,
+		&upstream.URL,
+		&upstream.Enabled,
+		&upstream.CreatedAt,
+		&upstream.UpdatedAt,
+	); err != nil {
+		log.Printf("Can't scan upstreams row for id %q: %s \n", id, err.Error())
 		return nil
 	}
-	return &r.upstreams[ind]
+
+	return &upstream
 }
-func (r *upstreamRepository) FindFirstByName(name string) *Upstream {
-	ind := slices.IndexFunc(r.upstreams, func(other Upstream) bool {
-		return other.Name == name
-	})
-
-	if ind == -1 {
+func (r *upstreamRepository) FindFirstByName(ctx context.Context, name string) *Upstream {
+	row := r.db.QueryRowContext(
+		ctx,
+		`SELECT id, name, url, enabled, created_at, updated_at FROM upstreams
+		WHERE name=$1 
+		LIMIT 1`,
+		name,
+	)
+	var upstream Upstream
+	if err := row.Scan(
+		&upstream.ID,
+		&upstream.Name,
+		&upstream.URL,
+		&upstream.Enabled,
+		&upstream.CreatedAt,
+		&upstream.UpdatedAt,
+	); err != nil {
+		log.Printf("Can't scan upstreams row for name %q: %s \n", name, err.Error())
 		return nil
 	}
-	return &r.upstreams[ind]
+
+	return &upstream
 }
 func (r *upstreamRepository) Add(ctx context.Context, upstream Upstream) (Upstream, error) {
 	rows, err := r.db.NamedQueryContext(
@@ -84,7 +104,6 @@ func (r *upstreamRepository) Add(ctx context.Context, upstream Upstream) (Upstre
 		}
 	}
 
-	r.upstreams = append(r.upstreams, upstream)
 	return upstream, nil
 }
 func (r *upstreamRepository) Clear(ctx context.Context) {
@@ -92,9 +111,8 @@ func (r *upstreamRepository) Clear(ctx context.Context) {
 	if err != nil {
 		log.Println("Can't truncate table upstreams: " + err.Error())
 	}
-	r.upstreams = []Upstream{}
 }
-func (r *upstreamRepository) Refresh(ctx context.Context) error {
+func (r *upstreamRepository) GetAll(ctx context.Context) []Upstream {
 	upstreams := []Upstream{}
 	err := r.db.SelectContext(
 		ctx,
@@ -103,11 +121,10 @@ func (r *upstreamRepository) Refresh(ctx context.Context) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to get upstreams: %w", err)
+		log.Println(fmt.Errorf("failed to get upstreams: %w", err).Error())
 	}
 
-	r.upstreams = upstreams
-	return nil
+	return upstreams
 }
 
 // ==========================================================================================================
@@ -177,7 +194,7 @@ func (r *endpointRepository) Add(ctx context.Context, endpoint Endpoint) (Endpoi
 	}
 
 	if endpoint.Upstream == nil {
-		upstream := r.upstreamRepository.Find(endpoint.UpstreamID)
+		upstream := r.upstreamRepository.Find(ctx, endpoint.UpstreamID)
 		if upstream == nil {
 			return Endpoint{}, fmt.Errorf("failed to find upstream for %s", endpoint.String())
 		}

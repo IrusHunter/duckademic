@@ -15,7 +15,7 @@ type AcademicRankRepository interface {
 	Add(context.Context, entities.AcademicRank) (entities.AcademicRank, error)
 	Clear(context.Context) // Clear removes all academic ranks from the repository.
 	FindBySlug(context.Context, string) *entities.AcademicRank
-	// GetAll returns a slice with all academic ranks.
+	// GetAll returns a slice with all academic ranks from database.
 	GetAll(context.Context) []entities.AcademicRank
 }
 

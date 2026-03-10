@@ -35,7 +35,7 @@ func main() {
 	endpointService := NewEndpointService(endpointRepository, upstreamRepository)
 
 	proxyHandler := NewProxyHandler(endpointService, http.DefaultClient)
-	databaseHandler := NewDatabaseHandler(upstreamService, endpointService)
+	databaseHandler := NewDatabaseHandler(upstreamService, endpointService, http.DefaultClient)
 
 	restapi := NewRESTAPI(proxyHandler, databaseHandler)
 

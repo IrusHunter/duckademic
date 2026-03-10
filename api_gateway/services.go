@@ -17,6 +17,8 @@ import (
 // UpstreamService provides operations to initialize and manage upstreams.
 type UpstreamService interface {
 	Seed() error // Seed clears existing upstream data and initializes it from a JSON file.
+	// GetAll returns a slice with all upstreams from repository.
+	GetAll(context.Context) []Upstream
 }
 
 // NewUpstreamService creates a new UpstreamService instance.
@@ -48,6 +50,9 @@ func (s *upstreamService) Seed() error {
 	}
 
 	return nil
+}
+func (s *upstreamService) GetAll(ctx context.Context) []Upstream {
+	return s.repository.GetAll(ctx)
 }
 
 // ==========================================================================================================
@@ -105,7 +110,7 @@ func (s *endpointService) Seed() error {
 
 	s.repository.Clear(context.Background())
 	for _, je := range endpoints {
-		upstream := s.upstreamRepository.FindFirstByName(je.UpstreamName)
+		upstream := s.upstreamRepository.FindFirstByName(context.Background(), je.UpstreamName)
 		if upstream == nil {
 			return fmt.Errorf("upstream with name %s not found", je.UpstreamName)
 		}
