@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+
+  api-gateway:
+    build: ./api_gateway
+    ports:
+      - "10000:10000"
+    depends_on:
+      - employee-service
+    env_file:
+      - ./api_gateway/.env.docker
+    environment:
+    - DOCKER_ENV=true
+
+  employee-service:
+    build: ./services/employee
+    expose:
+      - "10001"
+    env_file:
+      - ./services/employee/.env.docker
+    environment:
+    - DOCKER_ENV=true
+  
