@@ -20,6 +20,12 @@ type AcademicRankService interface {
 	Add(context.Context, entities.AcademicRank) (entities.AcademicRank, error)
 	// GetAll returns a slice with all academic ranks.
 	GetAll(context.Context) []entities.AcademicRank
+	// Delete removes the AcademicRank with the specified ID from the repository.
+	Delete(context.Context, uuid.UUID) error
+	// Update updates the AcademicRank with the specified ID and returns the updated entity.
+	Update(context.Context, uuid.UUID, entities.AcademicRank) (entities.AcademicRank, error)
+	// FindByID returns a pointer to the academic rank from repository with the given id.
+	FindByID(context.Context, uuid.UUID) *entities.AcademicRank
 }
 
 // NewAcademicRankService creates a new AcademicRankService instance.
@@ -45,7 +51,7 @@ func (s *academicRankService) Add(ctx context.Context, academicRank entities.Aca
 ) (entities.AcademicRank, error) {
 	if err := s.validateEntity(academicRank); err != nil {
 		return entities.AcademicRank{},
-			fmt.Errorf("academic rank %q failed validation: %w", academicRank.Title, err)
+			fmt.Errorf("%s failed validation: %w", academicRank.String(), err)
 	}
 
 	slug := slug.Make(academicRank.Title)
@@ -59,7 +65,7 @@ func (s *academicRankService) Add(ctx context.Context, academicRank entities.Aca
 	ar, err := s.repository.Add(ctx, academicRank)
 	if err != nil {
 		return entities.AcademicRank{},
-			fmt.Errorf("failed to add academic rank %q to repository: %w", academicRank.Title, err)
+			fmt.Errorf("failed to add %s to repository: %w", academicRank.String(), err)
 	}
 	return ar, nil
 }
@@ -82,4 +88,28 @@ func (s *academicRankService) Seed(ctx context.Context) error {
 }
 func (s *academicRankService) GetAll(ctx context.Context) []entities.AcademicRank {
 	return s.repository.GetAll(ctx)
+}
+func (s *academicRankService) Delete(ctx context.Context, id uuid.UUID) error {
+	err := s.repository.Delete(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete academic rank with id %q from repository: %w", id, err)
+	}
+	return nil
+}
+func (s *academicRankService) Update(ctx context.Context, id uuid.UUID, rank entities.AcademicRank,
+) (entities.AcademicRank, error) {
+	if err := s.validateEntity(rank); err != nil {
+		return entities.AcademicRank{}, fmt.Errorf("%s failed validation: %w", rank.String(), err)
+	}
+
+	updatedR, err := s.repository.Update(ctx, id, rank)
+	if err != nil {
+		rank.ID = id
+		return entities.AcademicRank{}, fmt.Errorf("failed to update %q in repository: %w", rank.String(), err)
+	}
+
+	return updatedR, nil
+}
+func (s *academicRankService) FindByID(ctx context.Context, id uuid.UUID) *entities.AcademicRank {
+	return s.repository.FindByID(ctx, id)
 }

@@ -30,6 +30,7 @@ type restapi struct {
 
 func (ra *restapi) Run(port int) error {
 	newHandler("/academic-ranks", ra.academicRanksRouter)
+	newHandler("/academic-rank/{id}", ra.academicRankIDRouter)
 	newHandler("/seed", ra.databaseHandler.Seed)
 
 	log.Printf("Server start at port %d \n", port)
@@ -37,15 +38,36 @@ func (ra *restapi) Run(port int) error {
 	return http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
 
+func (ra *restapi) academicRankIDRouter(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		ra.academicRankHandler.Find(ctx, w, r)
+		return
+	case http.MethodDelete:
+		ra.academicRankHandler.Delete(ctx, w, r)
+		return
+	case http.MethodPut:
+		ra.academicRankHandler.Update(ctx, w, r)
+		return
+	}
+
+	jsonutil.ResponseWithError(
+		w, 405, fmt.Errorf("method %q not available (available methods GET, POST)", r.Method),
+	)
+}
+
 func (ra *restapi) academicRanksRouter(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		ra.academicRankHandler.GetAll(ctx, w, r)
 		return
+	case http.MethodPost:
+		ra.academicRankHandler.Add(ctx, w, r)
+		return
 	}
 
 	jsonutil.ResponseWithError(
-		w, http.StatusMethodNotAllowed, fmt.Errorf("available methods: GET"),
+		w, 405, fmt.Errorf("method %q not available (available methods GET, POST)", r.Method),
 	)
 }
 
