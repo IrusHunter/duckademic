@@ -30,8 +30,8 @@ Something important failed.
 
 #### Available routes
 
-- [/employee/academic-ranks](#employee-service-/academic-ranks)
-- [/employee/academic-ranks/{id}](#employee-service-/academic-ranks{id})
+- [/employee/academic-ranks](#employee-academic-ranks)
+- [/employee/academic-ranks/{id}](#employee-academic-ranks-id)
 
 **Summary:** routes and proxies incoming requests to the appropriate backend service based on the request path.
 
@@ -59,6 +59,7 @@ Something important failed.
 
 # Employee Service
 
+<a id="employee-academic-ranks"></a>
 ## /academic-ranks
 
 ### GET
@@ -115,6 +116,7 @@ Something important failed.
 }
 ```
 
+<a id="employee-academic-ranks-id"></a>
 ## /academic-rank/{id}
 
 ### GET
