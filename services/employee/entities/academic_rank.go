@@ -18,18 +18,25 @@ type AcademicRank struct {
 }
 
 // String returns a human-readable representation of the AcademicRank.
-// Includes ID, slug, title, and optional created and updated timestamps.
-func (ar *AcademicRank) String() string {
-	var createdAtStr, updatedAtStr string
+// Includes title and optional ID, slug, created and updated timestamps.
+func (ar AcademicRank) String() string {
+	var createdAtStr, updatedAtStr, idStr, slugStr string
+	if uuid.Nil != ar.ID {
+		idStr = fmt.Sprintf("id: %s", ar.ID)
+	}
+	if ar.Slug != "" {
+		slugStr = fmt.Sprintf(", slug: %s,", ar.Slug)
+	}
 	if !ar.CreatedAt.IsZero() {
 		createdAtStr = fmt.Sprintf("created_at: %s", ar.CreatedAt.Format(db.TimeFormat))
 		createdAtStr = fmt.Sprintf("created_at: %s", ar.CreatedAt.Format(db.TimeFormat))
 	}
-	return fmt.Sprintf("AcademicRank{id: %s, slug: %s, title: %s%s%s}",
-		ar.ID, ar.Slug, ar.Title, createdAtStr, updatedAtStr,
+	return fmt.Sprintf("AcademicRank{%s%s title: %s%s%s}",
+		idStr, slugStr, ar.Title, createdAtStr, updatedAtStr,
 	)
 }
 
+// ValidateTitle checks that Title is not empty.
 func (ar *AcademicRank) ValidateTitle() error {
 	if len(ar.Title) == 0 {
 		return fmt.Errorf("title required")

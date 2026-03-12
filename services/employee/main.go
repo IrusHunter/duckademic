@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/employees/services"
 	"github.com/IrusHunter/duckademic/shared/db"
 	"github.com/IrusHunter/duckademic/shared/envutil"
+	"github.com/IrusHunter/duckademic/shared/logger"
 )
 
 func main() {
@@ -29,6 +30,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't migrate the database: %s", err.Error())
 	}
+
+	logger.LoadOnlyConsoleConfig()
 
 	academicRankRepository := repositories.NewAcademicRankRepository(database)
 

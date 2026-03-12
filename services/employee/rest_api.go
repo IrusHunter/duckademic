@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	resthandlers "github.com/IrusHunter/duckademic/services/employees/rest_handlers"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 )
 
@@ -74,7 +75,8 @@ func (ra *restapi) academicRanksRouter(ctx context.Context, w http.ResponseWrite
 func newHandler(path string, f func(context.Context, http.ResponseWriter, *http.Request),
 ) {
 	middleF := func(w http.ResponseWriter, r *http.Request) {
-		f(context.Background(), w, r)
+		ctx := contextutil.SetTraceID(context.Background())
+		f(ctx, w, r)
 	}
 	http.HandleFunc(path, middleF)
 }
