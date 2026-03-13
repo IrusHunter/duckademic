@@ -28,8 +28,8 @@ func (ar AcademicRank) String() string {
 		slugStr = fmt.Sprintf(", slug: %s,", ar.Slug)
 	}
 	if !ar.CreatedAt.IsZero() {
-		createdAtStr = fmt.Sprintf("created_at: %s", ar.CreatedAt.Format(db.TimeFormat))
-		createdAtStr = fmt.Sprintf("created_at: %s", ar.CreatedAt.Format(db.TimeFormat))
+		createdAtStr = fmt.Sprintf(", created_at: %s", ar.CreatedAt.Format(db.TimeFormat))
+		updatedAtStr = fmt.Sprintf(", updated_at: %s", ar.UpdatedAt.Format(db.TimeFormat))
 	}
 	return fmt.Sprintf("AcademicRank{%s%s title: %s%s%s}",
 		idStr, slugStr, ar.Title, createdAtStr, updatedAtStr,

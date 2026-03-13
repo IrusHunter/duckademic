@@ -19,7 +19,7 @@ type AcademicDegree struct {
 
 // String returns a human-readable representation of the AcademicDegree.
 // Includes title and optional ID, slug, created and updated timestamps.
-func (ad *AcademicDegree) String() string {
+func (ad AcademicDegree) String() string {
 	var createdAtStr, updatedAtStr, idStr, slugStr string
 	if uuid.Nil != ad.ID {
 		idStr = fmt.Sprintf("id: %s", ad.ID)
@@ -28,8 +28,8 @@ func (ad *AcademicDegree) String() string {
 		slugStr = fmt.Sprintf(", slug: %s,", ad.Slug)
 	}
 	if !ad.CreatedAt.IsZero() {
-		createdAtStr = fmt.Sprintf("created_at: %s", ad.CreatedAt.Format(db.TimeFormat))
-		createdAtStr = fmt.Sprintf("created_at: %s", ad.CreatedAt.Format(db.TimeFormat))
+		createdAtStr = fmt.Sprintf(", created_at: %s", ad.CreatedAt.Format(db.TimeFormat))
+		updatedAtStr = fmt.Sprintf(", updated_at: %s", ad.UpdatedAt.Format(db.TimeFormat))
 	}
 	return fmt.Sprintf("AcademicDegree{%s%s title: %s%s%s}",
 		idStr, slugStr, ad.Title, createdAtStr, updatedAtStr,

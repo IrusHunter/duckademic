@@ -53,6 +53,8 @@ type BaseRepository[T fmt.Stringer] interface {
 	Clear(context.Context) error // Clear removes all entities from the database.
 	// FindByID returns a pointer to the entity with the given id from database.
 	FindByID(context.Context, uuid.UUID) *T
+	// FindFirstBy returns the first entity where the specified field matches the given value.
+	FindFirstBy(ctx context.Context, field string, slug any) *T
 	// GetAll returns a slice with all entities from database.
 	GetAll(context.Context) []T
 	// Delete removes the entity with the specified ID from the database.
@@ -135,28 +137,31 @@ func (r *baseRepository[T]) Clear(ctx context.Context) error {
 	return nil
 }
 func (r *baseRepository[T]) FindByID(ctx context.Context, id uuid.UUID) *T {
+	return r.FindFirstBy(ctx, "id", id)
+}
+func (r *baseRepository[T]) FindFirstBy(ctx context.Context, field string, param any) *T {
 	query := fmt.Sprintf(
 		`SELECT %s FROM %s
-		WHERE id=$1`,
-		r.FormSqlParameters(r.GetParameters), r.TableName,
+		WHERE %s=$1 LIMIT 1`,
+		r.FormSqlParameters(r.GetParameters), r.TableName, field,
 	)
 
 	var entity T
-	if err := r.db.GetContext(ctx, &entity, query, id); err != nil {
+	if err := r.db.GetContext(ctx, &entity, query, param); err != nil {
 		if strings.Contains(err.Error(), "no rows") {
-			r.logger.Log(contextutil.GetTraceID(ctx), "FindByID",
-				fmt.Sprintf("%s with id %q not found", r.EntityName, id),
+			r.logger.Log(contextutil.GetTraceID(ctx), "FindFirstBy",
+				fmt.Sprintf("%s with %s %q not found", r.EntityName, field, param),
 				logger.RepositoryOperationSuccess,
 			)
 			return nil
 		}
-		r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "FindByID",
-			fmt.Errorf("failed to scan database row for id %q: %w", id, err), logger.RepositoryScanFailed,
+		r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "FindFirstBy",
+			fmt.Errorf("failed to scan database row for %s %q: %w", field, param, err), logger.RepositoryScanFailed,
 		)
 		return nil
 	}
 
-	r.logger.Log(contextutil.GetTraceID(ctx), "FindByID",
+	r.logger.Log(contextutil.GetTraceID(ctx), "FindFirstBy",
 		fmt.Sprintf("%s found", entity.String()),
 		logger.RepositoryOperationSuccess)
 	return &entity

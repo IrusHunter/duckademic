@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"log"
 
 	"github.com/IrusHunter/duckademic/services/employees/entities"
 	"github.com/IrusHunter/duckademic/shared/platform"
@@ -36,23 +35,5 @@ type academicRankRepository struct {
 }
 
 func (r *academicRankRepository) FindBySlug(ctx context.Context, slug string) *entities.AcademicRank {
-	row := r.db.QueryRowContext(
-		ctx,
-		`SELECT id, slug, title, created_at, updated_at FROM academic_ranks
-		WHERE slug=$1`,
-		slug,
-	)
-	var academicRank entities.AcademicRank
-	if err := row.Scan(
-		&academicRank.ID,
-		&academicRank.Slug,
-		&academicRank.Title,
-		&academicRank.CreatedAt,
-		&academicRank.UpdatedAt,
-	); err != nil {
-		log.Printf("Can't scan database row for slug %q: %s \n", slug, err.Error())
-		return nil
-	}
-
-	return &academicRank
+	return r.FindFirstBy(ctx, "slug", slug)
 }
