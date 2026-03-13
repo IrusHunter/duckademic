@@ -31,7 +31,9 @@ Something important failed.
 #### Available routes
 
 - [/employee/academic-ranks](#employee-academic-ranks)
-- [/employee/academic-ranks/{id}](#employee-academic-ranks-id)
+- [/employee/academic-rank/{id}](#employee-academic-rank-id)
+- [/employee/academic-degrees](#employee-academic-degrees)
+- [/employee/academic-degree/{id}](#employee-academic-degree-id)
 
 **Summary:** routes and proxies incoming requests to the appropriate backend service based on the request path.
 
@@ -60,6 +62,7 @@ Something important failed.
 # Employee Service
 
 <a id="employee-academic-ranks"></a>
+
 ## /academic-ranks
 
 ### GET
@@ -116,7 +119,8 @@ Something important failed.
 }
 ```
 
-<a id="employee-academic-ranks-id"></a>
+<a id="employee-academic-rank-id"></a>
+
 ## /academic-rank/{id}
 
 ### GET
@@ -153,21 +157,13 @@ When the ID is invalid, or the academic rank is not found.
 
 #### Request
 
-No body required; the ID should be provided as a URL parameter:
-
-```
-DELETE /academic-ranks/{id}
-```
+No body required; the ID should be provided as a URL parameter
 
 #### Responses
 
 **204 NO CONTENT**
 
 Returned when the academic rank is successfully deleted.
-
-```json
-null
-```
 
 **400 BAD REQUEST**
 
@@ -202,6 +198,158 @@ Returned when the academic rank is successfully updated.
   "id": "uuid (identifier of the academic rank)",
   "slug": "string (unique slug used internally)",
   "title": "string (human-readable name of the rank)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record update timestamp)"
+}
+```
+
+**400 BAD REQUEST**
+
+Returned when the ID is invalid, the request body is malformed, or the update fails.
+
+```json
+{
+  "error": "detailed error description"
+}
+```
+
+<a id="employee-academic-degrees"></a>
+
+## /academic-degrees
+
+### GET
+
+**Summary:** gets all academic degrees from the database
+
+#### Responses
+
+**200 OK**
+
+```json
+[
+  {
+    "id": "uuid (identifier of the academic degree)",
+    "slug": "string (unique slug used internally)",
+    "title": "string (human-readable name of the degree)",
+    "created_at": "timestamp (record creation timestamp)",
+    "updated_at": "timestamp (record update timestamp)"
+  }
+]
+```
+
+### POST
+
+**Summary:** adds a new academic degree
+
+#### Request
+
+```json
+{
+  "title": "string (human-readable name of the degree)"
+}
+```
+
+#### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid (identifier of the academic degree)",
+  "slug": "string (unique slug used internally)",
+  "title": "string (human-readable name of the degree)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record update timestamp)"
+}
+```
+
+**400 BAD REQUEST**
+
+```json
+{
+  "error": "detailed error description"
+}
+```
+
+<a id="employee-academic-degree-id"></a>
+
+## /academic-degree/{id}
+
+### GET
+
+**Summary:** finds academic degree with an ID as a URL parameter
+
+#### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid (identifier of the academic degree)",
+  "slug": "string (unique slug used internally)",
+  "title": "string (human-readable name of the degree)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record update timestamp)"
+}
+```
+
+**400 BAD REQUEST**
+
+When the ID is invalid, or the academic degree is not found.
+
+```json
+{
+  "error": "detailed error description"
+}
+```
+
+### DELETE
+
+**Summary:** deletes an academic degree by its ID provided in the URL path
+
+#### Request
+
+No body required; the ID should be provided as a URL parameter
+
+#### Responses
+
+**204 NO CONTENT**
+
+Returned when the academic degree is successfully deleted.
+
+**400 BAD REQUEST**
+
+Returned when the ID is invalid or deletion fails.
+
+```json
+{
+  "error": "detailed error description"
+}
+```
+
+### PUT
+
+**Summary:** updates an academic degree by its ID with the data provided in the request body
+
+#### Request
+
+```json
+{
+  "title": "string (human-readable name of the degree, optional)"
+}
+```
+
+#### Responses
+
+**200 OK**
+
+Returned when the academic degree is successfully updated.
+
+```json
+{
+  "id": "uuid (identifier of the academic degree)",
+  "slug": "string (unique slug used internally)",
+  "title": "string (human-readable name of the degree)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record update timestamp)"
 }

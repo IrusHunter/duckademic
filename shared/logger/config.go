@@ -24,6 +24,10 @@ const (
 	HandlerBadRequest LogType = "HANDLER_BAD_REQUEST"
 	// Indicates that a middleware has received an HTTP request.
 	MiddlewareRequestReceived LogType = "MIDDLEWARE_REQUEST_RECEIVED"
+	// Indicates that a api has finished an HTTP request.
+	MiddlewareRequestFinished LogType = "MIDDLEWARE_REQUEST_FINISHED"
+	// MiddlewareFailed indicates that an error occurred while processing a request in a middleware.
+	MiddlewareFailed LogType = "MIDDLEWARE_ERROR"
 	// Indicates a failure during logging.
 	LoggerError LogType = "LOGGER_ERROR"
 )
@@ -50,6 +54,8 @@ func LoadDefaultLogConfig() {
 	config[HandlerInternalError] = LogTypeConfig{ToFile: true, ToConsole: true}
 	config[HandlerBadRequest] = LogTypeConfig{ToFile: true, ToConsole: true}
 	config[MiddlewareRequestReceived] = LogTypeConfig{ToFile: true, ToConsole: true}
+	config[MiddlewareRequestFinished] = LogTypeConfig{ToFile: true, ToConsole: true}
+	config[MiddlewareFailed] = LogTypeConfig{ToFile: true, ToConsole: true}
 }
 
 func getAllLogTypes() []LogType {
@@ -64,7 +70,8 @@ func getAllLogTypes() []LogType {
 		HandlerInternalError,
 		HandlerBadRequest,
 		MiddlewareRequestReceived,
-		LoggerError,
+		MiddlewareRequestFinished,
+		MiddlewareFailed,
 	}
 }
 

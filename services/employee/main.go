@@ -34,13 +34,16 @@ func main() {
 	logger.LoadOnlyConsoleConfig()
 
 	academicRankRepository := repositories.NewAcademicRankRepository(database)
+	academicDegreeRepository := repositories.NewAcademicDegreeRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository)
+	academicDegreeService := services.NewAcademicDegreeService(academicDegreeRepository)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
-	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService)
+	academicDegreeHandler := resthandlers.NewAcademicDegreeHandler(academicDegreeService)
+	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, academicDegreeService)
 
-	restapi := NewRESTAPI(academicRankHandler, databaseHandler)
+	restapi := NewRESTAPI(academicRankHandler, academicDegreeHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

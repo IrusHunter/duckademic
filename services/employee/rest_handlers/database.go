@@ -17,18 +17,26 @@ type DatabaseHandler interface {
 
 // NewDatabaseHandler creates a new DatabaseHandler instance.
 //
-// It requires a academic rank service.
-func NewDatabaseHandler(ars services.AcademicRankService) DatabaseHandler {
-	return &databaseHandler{academicRankService: ars}
+// It requires the academic rank (ars) and academic degree (ads) service.
+func NewDatabaseHandler(ars services.AcademicRankService, ads services.AcademicDegreeService) DatabaseHandler {
+	return &databaseHandler{
+		academicRankService:   ars,
+		academicDegreeService: ads,
+	}
 }
 
 type databaseHandler struct {
-	academicRankService services.AcademicRankService
+	academicRankService   services.AcademicRankService
+	academicDegreeService services.AcademicDegreeService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if err := h.academicRankService.Seed(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed academic ranks: %w", err))
+		return
+	}
+	if err := h.academicDegreeService.Seed(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed academic degrees: %w", err))
 		return
 	}
 }

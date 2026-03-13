@@ -39,5 +39,32 @@ func Migrate(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create on update trigger for academic_ranks: %w", err)
 	}
 
+	schema = ` 
+	CREATE TABLE IF NOT EXISTS academic_degrees (
+		id UUID PRIMARY KEY,
+		slug TEXT NOT NULL,
+		title TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create academic degrees relation: %w", err)
+	}
+
+	index = `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_academic_degrees_slug
+	ON academic_degrees (slug);
+	`
+
+	if _, err := database.Exec(index); err != nil {
+		return fmt.Errorf("failed to create academic_degrees slug index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "academic_degrees"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for academic_degrees: %w", err)
+	}
+
 	return nil
 }
