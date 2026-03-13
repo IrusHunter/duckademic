@@ -3,7 +3,7 @@ module github.com/IrusHunter/duckademic/services/employees
 go 1.23.4
 
 require (
-	github.com/IrusHunter/duckademic/shared v0.0.0-20260310135211-49ff7a777317
+	github.com/IrusHunter/duckademic/shared v0.0.0-20260313174451-d06d0f2c34d3
 	github.com/google/uuid v1.6.0
 	github.com/gosimple/slug v1.15.0
 	github.com/jmoiron/sqlx v1.4.0
