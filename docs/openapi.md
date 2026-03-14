@@ -6,9 +6,9 @@
 
 ### ANY - seeds databases of all services.
 
-**204 NO CONTENT**
+204 NO CONTENT
 
-**500 INTERNAL SERVER ERROR** [=> ErrorResponse](schemas.md#errorresponse)
+500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 ## /
 
@@ -19,7 +19,7 @@
 - [/employee/academic-degrees](#employee-academic-degrees)
 - [/employee/academic-degree/{id}](#employee-academic-degree-id)
 
-**400 BAD REQUEST** or **500 INTERNAL SERVER ERROR** [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Employee Service
 
@@ -29,7 +29,7 @@
 
 ### GET- gets all academic ranks from the database
 
-**200 OK** [=> AcademicRank[]](schemas.md#employee-academic-rank)
+200 OK [=> AcademicRank[]](schemas.md#employee-academic-rank)
 
 ### POST - adds a new academic rank
 
@@ -39,9 +39,9 @@
 }
 ```
 
-**200 OK** [=> AcademicRank](schemas.md#employee-academic-rank)
+200 OK [=> AcademicRank](schemas.md#employee-academic-rank)
 
-**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="employee-academic-rank-id"></a>
 
@@ -49,15 +49,15 @@
 
 ### GET - finds academic rank with an ID as an URL parameter
 
-**200 OK** [=> AcademicRank](schemas.md#employee-academic-rank)
+200 OK [=> AcademicRank](schemas.md#employee-academic-rank)
 
-**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 ### DELETE - deletes an academic rank by its ID provided in the URL path
 
-**204 NO CONTENT**
+204 NO CONTENT
 
-**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 ### PUT - updates an academic rank by its ID with the data provided in the request body
 
@@ -67,9 +67,9 @@
 }
 ```
 
-**200 OK** [=> AcademicRank](schemas.md#employee-academic-rank)
+200 OK [=> AcademicRank](schemas.md#employee-academic-rank)
 
-**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="employee-academic-degrees"></a>
 
@@ -77,7 +77,7 @@
 
 ### GET - gets all academic degrees from the database
 
-**200 OK** [=> AcademicDegree[]](schemas.md#employee-academic-degree)
+200 OK [=> AcademicDegree[]](schemas.md#employee-academic-degree)
 
 ### POST - adds a new academic degree
 
@@ -87,9 +87,9 @@
 }
 ```
 
-**200 OK** [=> AcademicDegree](schemas.md#employee-academic-degree)
+200 OK [=> AcademicDegree](schemas.md#employee-academic-degree)
 
-**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="employee-academic-degree-id"></a>
 
@@ -97,15 +97,15 @@
 
 ### GET - finds academic degree with an ID as a URL parameter
 
-**200 OK** [=> AcademicDegree](schemas.md#employee-academic-degree)
+200 OK [=> AcademicDegree](schemas.md#employee-academic-degree)
 
-**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 ### DELETE - deletes an academic degree by its ID provided in the URL path
 
-**204 NO CONTENT**
+204 NO CONTENT
 
-**400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 ### PUT - updates an academic degree by its ID with the data provided in the request body
 
@@ -115,7 +115,6 @@
 }
 ```
 
-**200 OK** [=> AcademicDegree](schemas.md#employee-academic-degree)
+200 OK [=> AcademicDegree](schemas.md#employee-academic-degree)
 
-
-**400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
