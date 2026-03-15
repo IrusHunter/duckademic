@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/IrusHunter/duckademic/shared/contextutil"
@@ -61,6 +62,8 @@ type BaseRepository[T fmt.Stringer] interface {
 	Delete(context.Context, uuid.UUID) error
 	// Update updates the entity with the specified ID and returns the updated onr.
 	Update(context.Context, uuid.UUID, T) (T, error)
+	// SoftDelete marks the entity as deleted by setting the deleted_at timestamp.
+	SoftDelete(context.Context, uuid.UUID) (T, error)
 }
 
 // NewBaseRepository creates a new BaseRepository instance.
@@ -235,6 +238,54 @@ func (r *baseRepository[T]) Update(ctx context.Context, id uuid.UUID, entity T) 
 
 	r.logger.Log(contextutil.GetTraceID(ctx), "Update",
 		fmt.Sprintf("%s successfully updated", entity.String()),
+		logger.RepositoryOperationSuccess)
+	return entity, nil
+}
+func (r *baseRepository[T]) SoftDelete(ctx context.Context, id uuid.UUID) (T, error) {
+	if slices.Contains(r.GetParameters, "deleted_at") {
+		return r.nilEntity, r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SoftDelete",
+			fmt.Errorf("table %s does not support soft delete (missing deleted_at column)", r.TableName),
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	query := fmt.Sprintf(`
+		UPDATE %s SET
+			deleted_at = NOW()
+		WHERE id = :id
+		RETURNING %s
+	`, r.TableName, r.FormSqlParameters(r.GetParameters))
+
+	params := map[string]any{
+		"id": id,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, query, params)
+	if err != nil {
+		return r.nilEntity, r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SoftDelete",
+			fmt.Errorf("failed to soft delete %s with id %q: %w", r.TableName, id, err),
+			logger.RepositoryQueryFailed,
+		)
+	}
+	defer rows.Close()
+
+	var entity T
+	if rows.Next() {
+		if err := rows.StructScan(&entity); err != nil {
+			return r.nilEntity, r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SoftDelete",
+				fmt.Errorf("failed to scan database row for %s with id %q: %w", r.TableName, id, err),
+				logger.RepositoryScanFailed,
+			)
+		}
+	} else {
+		return r.nilEntity, r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SoftDelete",
+			fmt.Errorf("%s with id %q not found to delete", r.TableName, id),
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	r.logger.Log(contextutil.GetTraceID(ctx), "SoftDelete",
+		fmt.Sprintf("%s with id %q successfully soft deleted", r.TableName, id),
 		logger.RepositoryOperationSuccess)
 	return entity, nil
 }

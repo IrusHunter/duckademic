@@ -26,7 +26,9 @@ func NewAcademicDegreeService(adr repositories.AcademicDegreeRepository) Academi
 	res := &academicDegreeService{
 		repository: adr,
 	}
-	res.BaseService = platform.NewBaseService(sc, adr, res.validateEntity, res.onAddPrepare)
+	res.BaseService = platform.NewBaseService(sc, adr, res.validateEntity, res.onAddPrepare,
+		func(ad *entities.AcademicDegree) bool { return false },
+	)
 
 	return res
 }

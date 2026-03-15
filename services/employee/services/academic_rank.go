@@ -26,7 +26,9 @@ func NewAcademicRankService(arr repositories.AcademicRankRepository) AcademicRan
 	res := &academicRankService{
 		repository: arr,
 	}
-	res.BaseService = platform.NewBaseService(sc, arr, res.validateEntity, res.onAddPrepare)
+	res.BaseService = platform.NewBaseService(sc, arr, res.validateEntity, res.onAddPrepare,
+		func(ar *entities.AcademicRank) bool { return false },
+	)
 
 	return res
 }

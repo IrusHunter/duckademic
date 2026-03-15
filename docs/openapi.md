@@ -18,6 +18,8 @@
 - [/employee/academic-rank/{id}](#employee-academic-rank-id)
 - [/employee/academic-degrees](#employee-academic-degrees)
 - [/employee/academic-degree/{id}](#employee-academic-degree-id)
+- [/employee/employees](#employee-employees)
+- [/employee/employee/{id}](#employee-employee-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -55,7 +57,7 @@
 
 ### DELETE - deletes an academic rank by its ID provided in the URL path
 
-204 NO CONTENT
+**200 OK** [=> AcademicRank](schemas.md#employee-academic-rank)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -89,7 +91,7 @@
 
 200 OK [=> AcademicDegree](schemas.md#employee-academic-degree)
 
-400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST\*\* [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="employee-academic-degree-id"></a>
 
@@ -103,7 +105,7 @@
 
 ### DELETE - deletes an academic degree by its ID provided in the URL path
 
-204 NO CONTENT
+**200 OK** [=> AcademicDegree](schemas.md#employee-academic-degree)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -117,4 +119,62 @@
 
 200 OK [=> AcademicDegree](schemas.md#employee-academic-degree)
 
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+**400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)
+
+<a id="employee-employees"></a>
+
+## /employees
+
+### GET - gets all employees from the database
+
+**200 OK** [=> Employee[]](schemas.md#employee-employee)
+
+### POST - adds a new employee
+
+```json
+{
+  "first_name": "string (employee's first name)",
+  "last_name": "string (employee's last name)",
+
+  // Optional fields
+  "middle_name": "string (employee's middle name)",
+  "phone_number": "string (contact phone number)"
+}
+```
+
+**200 OK** [=> Employee](schemas.md#employee-employee)
+
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="employee-employee-id"></a>
+
+## /employee/{id}
+
+### GET - finds employee with an ID as a URL parameter
+
+**200 OK** [=> Employee](schemas.md#employee-employee)
+
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes an employee by its ID provided in the URL path
+
+**200 OK** [=> Employee](schemas.md#employee-employee)
+
+**400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates an employee by its ID with the data provided in the request body
+
+```json
+{
+  "first_name": "string (employee's first name)",
+  "last_name": "string (employee's last name)",
+
+  // Optional fields
+  "middle_name": "string (employee's middle name)",
+  "phone_number": "string (contact phone number)"
+}
+```
+
+**200 OK** [=> Employee](schemas.md#employee-employee)
+
+**400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)

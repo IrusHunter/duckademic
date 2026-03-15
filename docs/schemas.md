@@ -37,3 +37,23 @@
   "updated_at": "timestamp (record update timestamp)"
 }
 ```
+
+<a id="employee-employee"></a>
+
+### Employee
+
+```json
+{
+  "id": "uuid (unique identifier of the employee)",
+  "slug": "string (unique slug used internally)",
+  "first_name": "string (employee's first name)",
+  "last_name": "string (employee's last name)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "middle_name": "string (employee's middle name)",
+  "phone_number": "string (contact phone number)",
+  "deleted_at": "timestamp (soft delete timestamp)"
+}
+```

@@ -35,15 +35,18 @@ func main() {
 
 	academicRankRepository := repositories.NewAcademicRankRepository(database)
 	academicDegreeRepository := repositories.NewAcademicDegreeRepository(database)
+	employeeRepository := repositories.NewEmployeeRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository)
 	academicDegreeService := services.NewAcademicDegreeService(academicDegreeRepository)
+	employeeService := services.NewEmployeeService(employeeRepository)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	academicDegreeHandler := resthandlers.NewAcademicDegreeHandler(academicDegreeService)
-	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, academicDegreeService)
+	employeeHandler := resthandlers.NewEmployeeHandler(employeeService)
+	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, academicDegreeService, employeeService)
 
-	restapi := NewRESTAPI(academicRankHandler, academicDegreeHandler, databaseHandler)
+	restapi := NewRESTAPI(academicRankHandler, academicDegreeHandler, employeeHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

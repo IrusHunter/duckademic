@@ -16,16 +16,18 @@ type RESTAPI interface {
 
 // NewRESTAPI creates a new RESTAPI instance.
 //
-// It requires the academic rank (arh)? academic degree (adh), and database (dh) handlers.
+// It requires the academic rank (arh), academic degree (adh), employee (eh), and database (dh) handlers.
 func NewRESTAPI(
 	arh resthandlers.AcademicRankHandler,
 	adh resthandlers.AcademicDegreeHandler,
+	eh resthandlers.EmployeeHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
 		RESTAPIHelper:         platform.NewRESTAPIHelper("RESTAPI"),
 		academicRankHandler:   arh,
 		academicDegreeHandler: adh,
+		employeeHandler:       eh,
 		databaseHandler:       dh,
 	}
 }
@@ -34,6 +36,7 @@ type restapi struct {
 	platform.RESTAPIHelper
 	academicRankHandler   resthandlers.AcademicRankHandler
 	academicDegreeHandler resthandlers.AcademicDegreeHandler
+	employeeHandler       resthandlers.EmployeeHandler
 	databaseHandler       resthandlers.DatabaseHandler
 }
 
@@ -56,6 +59,16 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet:    ra.NewDefaultHandler(ra.academicDegreeHandler.Find),
 		http.MethodDelete: ra.NewDefaultHandler(ra.academicDegreeHandler.Delete),
 		http.MethodPut:    ra.NewDefaultHandler(ra.academicDegreeHandler.Update),
+	})
+
+	ra.NewRoute("/employees", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.employeeHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.employeeHandler.Add),
+	})
+	ra.NewRoute("/employee/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.employeeHandler.Find),
+		http.MethodDelete: ra.NewDefaultHandler(ra.employeeHandler.Delete),
+		http.MethodPut:    ra.NewDefaultHandler(ra.employeeHandler.Update),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

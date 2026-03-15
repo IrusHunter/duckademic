@@ -35,8 +35,8 @@ type BaseService[T fmt.Stringer] interface {
 	Add(context.Context, T) (T, error)
 	// GetAll returns a slice with all entities.
 	GetAll(context.Context) []T
-	// Delete removes the entity with the specified ID from the repository.
-	Delete(context.Context, uuid.UUID) error
+	// Delete removes the entity by ID, or marks it as deleted depending on service logic.
+	Delete(context.Context, uuid.UUID) (T, error)
 	// Update updates the entity with the specified ID and returns the updated one.
 	Update(context.Context, uuid.UUID, T) (T, error)
 	// FindByID returns a pointer to the entity from repository with the given id.
@@ -45,26 +45,33 @@ type BaseService[T fmt.Stringer] interface {
 
 // NewBaseService creates a new BaseService instance.
 //
-// It requires a repository (r), a config (sc), the validation (vf), and the on add prepare (ap) functions.
+// It requires a repository (r), a config (sc), a validation (vf), an on add prepare (ap), and
+// if should soft delete functions (ssd).
 func NewBaseService[T fmt.Stringer](
-	sc ServiceConfig, r BaseRepository[T], vf func(T) error, ap func(context.Context, *T) error,
+	sc ServiceConfig,
+	r BaseRepository[T],
+	vf func(T) error,
+	ap func(context.Context, *T) error,
+	ssd func(*T) bool,
 ) BaseService[T] {
 	return &baseService[T]{
-		ServiceConfig:  sc,
-		repository:     r,
-		logger:         logger.NewLogger(sc.ClassName+".txt", sc.ClassName),
-		validateEntity: vf,
-		onAddPrepare:   ap,
+		ServiceConfig:    sc,
+		repository:       r,
+		logger:           logger.NewLogger(sc.ClassName+".txt", sc.ClassName),
+		validateEntity:   vf,
+		onAddPrepare:     ap,
+		shouldSoftDelete: ssd,
 	}
 }
 
 type baseService[T fmt.Stringer] struct {
 	ServiceConfig
-	repository     BaseRepository[T]
-	logger         logger.Logger
-	validateEntity func(T) error
-	onAddPrepare   func(context.Context, *T) error
-	nilEntity      T
+	repository       BaseRepository[T]
+	logger           logger.Logger
+	validateEntity   func(T) error
+	onAddPrepare     func(context.Context, *T) error
+	shouldSoftDelete func(*T) bool
+	nilEntity        T
 }
 
 func (s *baseService[T]) Add(ctx context.Context, entity T) (T, error) {
@@ -123,18 +130,40 @@ func (s *baseService[T]) GetAll(ctx context.Context) []T {
 		fmt.Sprintf("%d entities found", len(res)), logger.ServiceOperationSuccess)
 	return res
 }
-func (s *baseService[T]) Delete(ctx context.Context, id uuid.UUID) error {
-	err := s.repository.Delete(ctx, id)
-	if err != nil {
-		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "GetAll",
-			fmt.Errorf("failed to delete %s with id %q from repository: %w", s.EntityName, id, err),
-			logger.ServiceRepositoryFailed,
+func (s *baseService[T]) Delete(ctx context.Context, id uuid.UUID) (T, error) {
+	entity := s.FindByID(ctx, id)
+	if entity == nil {
+		return s.nilEntity, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Delete",
+			fmt.Errorf("%s with id %q not found", s.EntityName, id), logger.ServiceValidationFailed,
 		)
 	}
 
-	s.logger.Log(contextutil.GetTraceID(ctx), "Delete",
-		fmt.Sprintf("entity with id %q deleted", id), logger.ServiceOperationSuccess)
-	return nil
+	if s.shouldSoftDelete(entity) {
+		deletedE, err := s.repository.SoftDelete(ctx, id)
+		if err != nil {
+			return s.nilEntity, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SoftDelete",
+				fmt.Errorf("failed to soft delete %s with id %q in repository: %w", s.EntityName, id, err),
+				logger.ServiceRepositoryFailed,
+			)
+		}
+
+		s.logger.Log(contextutil.GetTraceID(ctx), "SoftDelete",
+			fmt.Sprintf("%s successfully soft deleted", deletedE),
+			logger.ServiceOperationSuccess)
+		return deletedE, nil
+	} else {
+		err := s.repository.Delete(ctx, id)
+		if err != nil {
+			return s.nilEntity, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Delete",
+				fmt.Errorf("failed to hard delete %s with id %q from repository: %w", s.EntityName, id, err),
+				logger.ServiceRepositoryFailed,
+			)
+		}
+
+		s.logger.Log(contextutil.GetTraceID(ctx), "Delete",
+			fmt.Sprintf("%s successfully hard deleted", *entity), logger.ServiceOperationSuccess)
+		return *entity, nil
+	}
 }
 func (s *baseService[T]) Update(ctx context.Context, id uuid.UUID, entity T) (T, error) {
 	if err := s.validateEntity(entity); err != nil {

@@ -98,7 +98,8 @@ func (h *baseHandler[T]) Delete(ctx context.Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	if err := h.service.Delete(ctx, entityID); err != nil {
+	entity, err := h.service.Delete(ctx, entityID)
+	if err != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Delete",
 			fmt.Errorf("failed to delete %s with id %q in service: %w", h.EntityName, entityID, err), logger.HandlerBadRequest),
 		)
@@ -106,8 +107,8 @@ func (h *baseHandler[T]) Delete(ctx context.Context, w http.ResponseWriter, r *h
 	}
 
 	h.logger.Log(contextutil.GetTraceID(ctx), "Delete",
-		fmt.Sprintf("entity with id %q deleted", entityID), logger.HandlerOperationSuccess)
-	jsonutil.ResponseWithJSON(w, 204, nil)
+		fmt.Sprintf("%s deleted", entity), logger.HandlerOperationSuccess)
+	jsonutil.ResponseWithJSON(w, 200, entity)
 }
 func (h *baseHandler[T]) Add(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	entity, ok := h.DecodeEntity(ctx, w, r, "Add")

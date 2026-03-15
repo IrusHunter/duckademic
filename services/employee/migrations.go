@@ -66,5 +66,36 @@ func Migrate(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create on update trigger for academic_degrees: %w", err)
 	}
 
+	schema = `
+	CREATE TABLE IF NOT EXISTS employees (
+		id UUID PRIMARY KEY,
+		slug TEXT NOT NULL,
+		first_name TEXT NOT NULL,
+		last_name TEXT NOT NULL,
+		middle_name TEXT,
+		phone_number TEXT,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		deleted_at TIMESTAMP WITH TIME ZONE
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create employees table: %w", err)
+	}
+
+	index = `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_employees_slug
+	ON employees (slug);
+	`
+
+	if _, err := database.Exec(index); err != nil {
+		return fmt.Errorf("failed to create employees slug index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "employees"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for employees: %w", err)
+	}
+
 	return nil
 }
