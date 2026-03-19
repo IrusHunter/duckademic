@@ -45,17 +45,17 @@ type LogTypeConfig struct {
 func LoadDefaultLogConfig() {
 	config = make(map[LogType]LogTypeConfig, 10)
 	config[RepositoryOperationSuccess] = LogTypeConfig{ToFile: false, ToConsole: false}
-	config[RepositoryQueryFailed] = LogTypeConfig{ToFile: true, ToConsole: true}
-	config[RepositoryScanFailed] = LogTypeConfig{ToFile: true, ToConsole: true}
+	config[RepositoryQueryFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[RepositoryScanFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
 	config[ServiceOperationSuccess] = LogTypeConfig{ToFile: false, ToConsole: false}
-	config[ServiceRepositoryFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
-	config[ServiceValidationFailed] = LogTypeConfig{ToFile: true, ToConsole: true}
-	config[HandlerOperationSuccess] = LogTypeConfig{ToFile: true, ToConsole: true}
-	config[HandlerInternalError] = LogTypeConfig{ToFile: true, ToConsole: true}
-	config[HandlerBadRequest] = LogTypeConfig{ToFile: true, ToConsole: true}
-	config[MiddlewareRequestReceived] = LogTypeConfig{ToFile: true, ToConsole: true}
-	config[MiddlewareRequestFinished] = LogTypeConfig{ToFile: true, ToConsole: true}
-	config[MiddlewareFailed] = LogTypeConfig{ToFile: true, ToConsole: true}
+	config[ServiceRepositoryFailed] = LogTypeConfig{ToFile: false, ToConsole: false}
+	config[ServiceValidationFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[HandlerOperationSuccess] = LogTypeConfig{ToFile: false, ToConsole: false}
+	config[HandlerInternalError] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[HandlerBadRequest] = LogTypeConfig{ToFile: false, ToConsole: false}
+	config[MiddlewareRequestReceived] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[MiddlewareRequestFinished] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[MiddlewareFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
 }
 
 func getAllLogTypes() []LogType {

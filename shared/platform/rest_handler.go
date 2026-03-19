@@ -83,7 +83,7 @@ func (h *baseHandler[T]) Update(ctx context.Context, w http.ResponseWriter, r *h
 	updatedE, err := h.service.Update(ctx, entityID, entity)
 	if err != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Update",
-			fmt.Errorf("failed to update %s with id %q in service: %w", entity, entityID, err), logger.HandlerBadRequest),
+			err, logger.HandlerBadRequest),
 		)
 		return
 	}
@@ -101,7 +101,7 @@ func (h *baseHandler[T]) Delete(ctx context.Context, w http.ResponseWriter, r *h
 	entity, err := h.service.Delete(ctx, entityID)
 	if err != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Delete",
-			fmt.Errorf("failed to delete %s with id %q in service: %w", h.EntityName, entityID, err), logger.HandlerBadRequest),
+			err, logger.HandlerBadRequest),
 		)
 		return
 	}
@@ -119,7 +119,7 @@ func (h *baseHandler[T]) Add(ctx context.Context, w http.ResponseWriter, r *http
 	updatedE, err := h.service.Add(ctx, entity)
 	if err != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Add",
-			fmt.Errorf("failed to add %s in service: %w", entity, err), logger.HandlerBadRequest),
+			err, logger.HandlerBadRequest),
 		)
 		return
 	}

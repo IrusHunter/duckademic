@@ -14,12 +14,15 @@
 
 ### ANY - routes and proxies incoming requests to the appropriate backend service based on the request path.
 
-- [/employee/academic-ranks](#employee-academic-ranks)
-- [/employee/academic-rank/{id}](#employee-academic-rank-id)
-- [/employee/academic-degrees](#employee-academic-degrees)
-- [/employee/academic-degree/{id}](#employee-academic-degree-id)
-- [/employee/employees](#employee-employees)
-- [/employee/employee/{id}](#employee-employee-id)
+- Employee Service
+  - [/employee/academic-ranks](#employee-academic-ranks)
+  - [/employee/academic-rank/{id}](#employee-academic-rank-id)
+  - [/employee/academic-degrees](#employee-academic-degrees)
+  - [/employee/academic-degree/{id}](#employee-academic-degree-id)
+  - [/employee/employees](#employee-employees)
+  - [/employee/employee/{id}](#employee-employee-id)
+  - [/employee/teachers](#employee-teachers)
+  - [/employee/teacher/{id}](#employee-teacher-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -119,7 +122,7 @@
 
 200 OK [=> AcademicDegree](schemas.md#employee-academic-degree)
 
-**400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="employee-employees"></a>
 
@@ -160,7 +163,7 @@
 
 **200 OK** [=> Employee](schemas.md#employee-employee)
 
-**400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
 
 ### PUT - updates an employee by its ID with the data provided in the request body
 
@@ -177,4 +180,62 @@
 
 **200 OK** [=> Employee](schemas.md#employee-employee)
 
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="employee-teachers"></a>
+
+## /teachers
+
+### GET - gets all teachers from the database
+
+**200 OK** [=> Teacher[]](schemas.md#employee-teacher)
+
+### POST - adds a new teacher
+
+```json
+{
+  "employee_id": "uuid (reference to employee)",
+  "email": "string (teacher's email address)",
+  "academic_rank_id": "uuid (reference to academic rank)",
+
+  // Optional fields
+  "academic_degree_id": "uuid (reference to academic degree)"
+}
+```
+
+**200 OK** [=> Teacher](schemas.md#employee-teacher)
+
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="employee-teacher-id"></a>
+
+## /teacher/{id}
+
+### GET - finds teacher with an ID as a URL parameter
+
+**200 OK** [=> Teacher](schemas.md#employee-teacher)
+
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a teacher by its ID provided in the URL path
+
+**200 OK** [=> Teacher](schemas.md#employee-teacher)
+
 **400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a teacher by its ID with the data provided in the request body
+
+```json
+{
+  "employee_id": "uuid (reference to employee)",
+  "email": "string (teacher's email address)",
+  "academic_rank_id": "uuid (reference to academic rank)",
+
+  // Optional fields
+  "academic_degree_id": "uuid (reference to academic degree)"
+}
+```
+
+**200 OK** [=> Teacher](schemas.md#employee-teacher)
+
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)

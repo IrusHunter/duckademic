@@ -79,3 +79,7 @@ func (e *Employee) GetFullName() string {
 	}
 	return strings.Join(parts, " ")
 }
+
+func (Employee) TableName() string {
+	return "employees"
+}

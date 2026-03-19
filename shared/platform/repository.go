@@ -64,6 +64,7 @@ type BaseRepository[T fmt.Stringer] interface {
 	Update(context.Context, uuid.UUID, T) (T, error)
 	// SoftDelete marks the entity as deleted by setting the deleted_at timestamp.
 	SoftDelete(context.Context, uuid.UUID) (T, error)
+	GetLogger() logger.Logger
 }
 
 // NewBaseRepository creates a new BaseRepository instance.
@@ -288,6 +289,9 @@ func (r *baseRepository[T]) SoftDelete(ctx context.Context, id uuid.UUID) (T, er
 		fmt.Sprintf("%s with id %q successfully soft deleted", r.TableName, id),
 		logger.RepositoryOperationSuccess)
 	return entity, nil
+}
+func (r *baseRepository[T]) GetLogger() logger.Logger {
+	return r.logger
 }
 
 func (r *baseRepository[T]) FormSqlParameters(parameters []string) string {

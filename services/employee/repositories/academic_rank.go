@@ -13,6 +13,7 @@ type AcademicRankRepository interface {
 	platform.BaseRepository[entities.AcademicRank]
 	// FindBySlug returns a pointer to the academic rank from database with the given slug.
 	FindBySlug(context.Context, string) *entities.AcademicRank
+	FindByTitle(context.Context, string) *entities.AcademicRank
 }
 
 // NewAcademicRankRepository creates a new AcademicRankRepository instance.
@@ -36,4 +37,7 @@ type academicRankRepository struct {
 
 func (r *academicRankRepository) FindBySlug(ctx context.Context, slug string) *entities.AcademicRank {
 	return r.FindFirstBy(ctx, "slug", slug)
+}
+func (r *academicRankRepository) FindByTitle(ctx context.Context, title string) *entities.AcademicRank {
+	return r.FindFirstBy(ctx, "title", title)
 }

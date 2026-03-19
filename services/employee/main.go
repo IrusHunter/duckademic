@@ -31,22 +31,28 @@ func main() {
 		log.Fatalf("Can't migrate the database: %s", err.Error())
 	}
 
-	logger.LoadOnlyConsoleConfig()
+	logger.LoadDefaultLogConfig()
 
 	academicRankRepository := repositories.NewAcademicRankRepository(database)
 	academicDegreeRepository := repositories.NewAcademicDegreeRepository(database)
 	employeeRepository := repositories.NewEmployeeRepository(database)
+	teacherRepository := repositories.NewTeacherRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository)
 	academicDegreeService := services.NewAcademicDegreeService(academicDegreeRepository)
 	employeeService := services.NewEmployeeService(employeeRepository)
+	teacherService := services.NewTeacherService(teacherRepository, academicRankRepository,
+		academicDegreeRepository, employeeRepository)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	academicDegreeHandler := resthandlers.NewAcademicDegreeHandler(academicDegreeService)
 	employeeHandler := resthandlers.NewEmployeeHandler(employeeService)
-	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, academicDegreeService, employeeService)
+	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
+	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, academicDegreeService,
+		employeeService, teacherService)
 
-	restapi := NewRESTAPI(academicRankHandler, academicDegreeHandler, employeeHandler, databaseHandler)
+	restapi := NewRESTAPI(academicRankHandler, academicDegreeHandler, employeeHandler,
+		teacherHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

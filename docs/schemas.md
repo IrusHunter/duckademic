@@ -57,3 +57,21 @@
   "deleted_at": "timestamp (soft delete timestamp)"
 }
 ```
+
+<a id="employee-teacher"></a>
+
+### Teacher
+
+```json
+{
+  "employee_id": "uuid (reference to employee)",
+  "email": "string (teacher's email address)",
+  "academic_rank_id": "uuid (reference to academic rank)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "academic_degree_id": "uuid (reference to academic degree)",
+  "deleted_at": "timestamp (soft delete timestamp)"
+}
+```

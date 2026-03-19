@@ -41,6 +41,7 @@ type BaseService[T fmt.Stringer] interface {
 	Update(context.Context, uuid.UUID, T) (T, error)
 	// FindByID returns a pointer to the entity from repository with the given id.
 	FindByID(context.Context, uuid.UUID) *T
+	GetLogger() logger.Logger
 }
 
 // NewBaseService creates a new BaseService instance.
@@ -90,7 +91,7 @@ func (s *baseService[T]) Add(ctx context.Context, entity T) (T, error) {
 	ar, err := s.repository.Add(ctx, entity)
 	if err != nil {
 		return s.nilEntity, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Add",
-			fmt.Errorf("failed to add %s to repository: %w", entity.String(), err), logger.ServiceRepositoryFailed,
+			err, logger.ServiceRepositoryFailed,
 		)
 	}
 
@@ -113,7 +114,7 @@ func (s *baseService[T]) Seed(ctx context.Context) error {
 		_, err := s.Add(ctx, entity)
 		if err != nil {
 			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("failed to add %s: %w", entity.String(), err), logger.ServiceRepositoryFailed,
+				fmt.Errorf("failed to add %s: %w", entity.String(), err), logger.ServiceValidationFailed,
 			)
 		}
 	}
@@ -175,7 +176,7 @@ func (s *baseService[T]) Update(ctx context.Context, id uuid.UUID, entity T) (T,
 	updatedE, err := s.repository.Update(ctx, id, entity)
 	if err != nil {
 		return s.nilEntity, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Update",
-			fmt.Errorf("failed to update %s with id %q in repository: %w", entity, id, err), logger.ServiceRepositoryFailed,
+			err, logger.ServiceRepositoryFailed,
 		)
 	}
 
@@ -195,4 +196,7 @@ func (s *baseService[T]) FindByID(ctx context.Context, id uuid.UUID) *T {
 		)
 	}
 	return entity
+}
+func (s *baseService[T]) GetLogger() logger.Logger {
+	return s.logger
 }
