@@ -104,6 +104,8 @@ type databaseHandler struct {
 }
 
 func (h *databaseHandler) Seed(w http.ResponseWriter, r *http.Request) {
+	h.propagate(r, "/clear")
+
 	if err := h.upstreamService.Seed(); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed upstreams: %w", err))
 		return
@@ -113,20 +115,26 @@ func (h *databaseHandler) Seed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.propagate(r, "/seed")
+
+	jsonutil.ResponseWithJSON(w, 204, nil)
+}
+
+func (h *databaseHandler) propagate(r *http.Request, path string) {
 	upstreams := h.upstreamService.GetAll(context.Background())
+
 	for _, upstream := range upstreams {
-		url := upstream.URL + "/seed"
+		url := upstream.URL + path
+
 		req, err := http.NewRequest(r.Method, url, r.Body)
 		if err != nil {
-			jsonutil.ResponseWithError(w, http.StatusInternalServerError,
-				fmt.Errorf("failed to create request %q: %s", url, err.Error()),
-			)
-			return
+			log.Printf("failed to create request %q: %s", url, err.Error())
+			continue
 		}
 
 		resp, err := h.client.Do(req)
 		if err != nil {
-			log.Printf("Request failed: %s \n", err.Error())
+			log.Printf("request to %s failed: %s", url, err.Error())
 			continue
 		}
 
@@ -137,11 +145,8 @@ func (h *databaseHandler) Seed(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		respErr, ok := respBody["error"]
-		if ok {
-			log.Printf("Can't seed %s from api: %s", upstream.String(), respErr)
+		if respErr, ok := respBody["error"]; ok {
+			log.Printf("can't call %s on %s: %s", path, upstream.String(), respErr)
 		}
-
 	}
-	jsonutil.ResponseWithJSON(w, 204, nil)
 }

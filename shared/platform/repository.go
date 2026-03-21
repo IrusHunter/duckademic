@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"slices"
 	"strings"
 
 	"github.com/IrusHunter/duckademic/shared/contextutil"
@@ -18,7 +17,6 @@ type RepositoryConfig struct {
 	TableName           string
 	EntityName          string
 	AddParameters       []string
-	GetParameters       []string
 	UpdateParameters    []string
 	ReturningParameters []string
 }
@@ -26,13 +24,12 @@ type RepositoryConfig struct {
 // NewRepositoryConfig creates a new RepositoryConfig instance.
 //
 // It requires the class name (cn) table name (tn), entity name (en),
-// and the lists of parameters for add (ap), get (gp), update (up), and returning (rp) operations.
+// and the lists of parameters for add (ap), update (up), and returning (rp) operations.
 func NewRepositoryConfig(
 	cn string,
 	tn string,
 	en string,
 	ap []string,
-	gp []string,
 	up []string,
 	rp []string,
 ) RepositoryConfig {
@@ -41,7 +38,6 @@ func NewRepositoryConfig(
 		TableName:           tn,
 		EntityName:          en,
 		AddParameters:       ap,
-		GetParameters:       gp,
 		UpdateParameters:    up,
 		ReturningParameters: rp,
 	}
@@ -51,7 +47,8 @@ func NewRepositoryConfig(
 type BaseRepository[T fmt.Stringer] interface {
 	// Add inserts a new entity into the database and returns it, or an error if it fails.
 	Add(context.Context, T) (T, error)
-	Clear(context.Context) error // Clear removes all entities from the database.
+	// Clear removes all entities from the database.
+	Clear(context.Context) error
 	// FindByID returns a pointer to the entity with the given id from database.
 	FindByID(context.Context, uuid.UUID) *T
 	// FindFirstBy returns the first entity where the specified field matches the given value.
@@ -62,6 +59,7 @@ type BaseRepository[T fmt.Stringer] interface {
 	Delete(context.Context, uuid.UUID) error
 	// Update updates the entity with the specified ID and returns the updated onr.
 	Update(context.Context, uuid.UUID, T) (T, error)
+	UpdateFields(context.Context, uuid.UUID, []string, T) (T, error)
 	// SoftDelete marks the entity as deleted by setting the deleted_at timestamp.
 	SoftDelete(context.Context, uuid.UUID) (T, error)
 	GetLogger() logger.Logger
@@ -128,7 +126,7 @@ func (r *baseRepository[T]) Add(ctx context.Context, entity T) (T, error) {
 	return entity, nil
 }
 func (r *baseRepository[T]) Clear(ctx context.Context) error {
-	_, err := r.db.ExecContext(ctx, fmt.Sprintf(`DELETE FROM %s`, r.TableName))
+	_, err := r.db.ExecContext(ctx, fmt.Sprintf(`TRUNCATE TABLE %s`, r.TableName))
 	if err != nil {
 		return r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Clear",
 			fmt.Errorf("failed to truncate table %s: %w", r.TableName, err), logger.RepositoryQueryFailed,
@@ -145,9 +143,9 @@ func (r *baseRepository[T]) FindByID(ctx context.Context, id uuid.UUID) *T {
 }
 func (r *baseRepository[T]) FindFirstBy(ctx context.Context, field string, param any) *T {
 	query := fmt.Sprintf(
-		`SELECT %s FROM %s
+		`SELECT * FROM %s
 		WHERE %s=$1 LIMIT 1`,
-		r.FormSqlParameters(r.GetParameters), r.TableName, field,
+		r.TableName, field,
 	)
 
 	var entity T
@@ -171,7 +169,7 @@ func (r *baseRepository[T]) FindFirstBy(ctx context.Context, field string, param
 	return &entity
 }
 func (r *baseRepository[T]) GetAll(ctx context.Context) []T {
-	query := fmt.Sprintf(`SELECT %s FROM %s`, r.FormSqlParameters(r.GetParameters), r.TableName)
+	query := fmt.Sprintf(`SELECT * FROM %s`, r.TableName)
 
 	entities := []T{}
 	err := r.db.SelectContext(ctx, &entities, query)
@@ -202,12 +200,16 @@ func (r *baseRepository[T]) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 func (r *baseRepository[T]) Update(ctx context.Context, id uuid.UUID, entity T) (T, error) {
+	return r.UpdateFields(ctx, id, r.UpdateParameters, entity)
+}
+func (r *baseRepository[T]) UpdateFields(ctx context.Context, id uuid.UUID, fields []string, entity T) (T, error) {
 	query := fmt.Sprintf(`
 		UPDATE %s SET
 		%s
 		WHERE id= :id
-		RETURNING %s
-		`, r.TableName, r.FormSqlEquations(r.UpdateParameters), r.FormSqlParameters(r.GetParameters))
+		RETURNING *
+		`, r.TableName, r.FormSqlEquations(fields),
+	)
 
 	params := structToMapByDBTag(entity)
 	params["id"] = id
@@ -243,19 +245,13 @@ func (r *baseRepository[T]) Update(ctx context.Context, id uuid.UUID, entity T) 
 	return entity, nil
 }
 func (r *baseRepository[T]) SoftDelete(ctx context.Context, id uuid.UUID) (T, error) {
-	if slices.Contains(r.GetParameters, "deleted_at") {
-		return r.nilEntity, r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SoftDelete",
-			fmt.Errorf("table %s does not support soft delete (missing deleted_at column)", r.TableName),
-			logger.RepositoryQueryFailed,
-		)
-	}
-
 	query := fmt.Sprintf(`
 		UPDATE %s SET
 			deleted_at = NOW()
 		WHERE id = :id
-		RETURNING %s
-	`, r.TableName, r.FormSqlParameters(r.GetParameters))
+		RETURNING *
+	`, r.TableName,
+	)
 
 	params := map[string]any{
 		"id": id,

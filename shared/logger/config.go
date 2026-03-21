@@ -16,6 +16,11 @@ const (
 	ServiceRepositoryFailed LogType = "SERVICE_REPOSITORY_FAILED"
 	// Indicates that the provided data failed validation or did not satisfy service-level business rules.
 	ServiceValidationFailed LogType = "SERVICE_VALIDATION_FAILED"
+	ServiceDataFetchFailed  LogType = "SERVICE_DATA_FETCH_FAILED"
+	EventDataReadFailed     LogType = "EVENT_DATA_READ_FAILED"
+	EventDataReceived       LogType = "EVENT_DATA_RECEIVED"
+	EventDataSentFailed     LogType = "EVENT_DATA_SENT_FAILED"
+	EventDataSentSuccess    LogType = "EVENT_DATA_SENT_SUCCESS"
 	// Indicates that an HTTP handler operation completed successfully.
 	HandlerOperationSuccess LogType = "HANDLER_OPERATION_SUCCESS"
 	// Indicates an internal failure while processing the request.
@@ -50,6 +55,11 @@ func LoadDefaultLogConfig() {
 	config[ServiceOperationSuccess] = LogTypeConfig{ToFile: false, ToConsole: false}
 	config[ServiceRepositoryFailed] = LogTypeConfig{ToFile: false, ToConsole: false}
 	config[ServiceValidationFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[ServiceDataFetchFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[EventDataReadFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[EventDataReceived] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[EventDataSentSuccess] = LogTypeConfig{ToFile: false, ToConsole: false}
+	config[EventDataSentFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
 	config[HandlerOperationSuccess] = LogTypeConfig{ToFile: false, ToConsole: false}
 	config[HandlerInternalError] = LogTypeConfig{ToFile: false, ToConsole: true}
 	config[HandlerBadRequest] = LogTypeConfig{ToFile: false, ToConsole: false}
@@ -66,6 +76,11 @@ func getAllLogTypes() []LogType {
 		ServiceOperationSuccess,
 		ServiceRepositoryFailed,
 		ServiceValidationFailed,
+		ServiceDataFetchFailed,
+		EventDataReadFailed,
+		EventDataReceived,
+		EventDataSentFailed,
+		EventDataSentSuccess,
 		HandlerOperationSuccess,
 		HandlerInternalError,
 		HandlerBadRequest,

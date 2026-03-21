@@ -24,6 +24,10 @@
   - [/employee/teachers](#employee-teachers)
   - [/employee/teacher/{id}](#employee-teacher-id)
 
+- Schedule Service
+  - [/schedule/academic-ranks](#schedule-academic-ranks)
+  - [/schedule/academic-rank/{id}](#schedule-academic-rank-id)
+
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Employee Service
@@ -32,7 +36,7 @@
 
 ## /academic-ranks
 
-### GET- gets all academic ranks from the database
+### GET - gets all academic ranks from the database
 
 200 OK [=> AcademicRank[]](schemas.md#employee-academic-rank)
 
@@ -239,3 +243,35 @@
 **200 OK** [=> Teacher](schemas.md#employee-teacher)
 
 **400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+# Schedule Service
+
+<a id="schedule-academic-ranks"></a>
+
+## /academic-ranks
+
+### GET - gets all academic ranks from the database
+
+200 OK [=> AcademicRank[]](schemas.md#schedule-academic-rank)
+
+<a id="schedule-academic-rank-id"></a>
+
+## /academic-rank/{id}
+
+### GET - finds academic rank with an ID as an URL parameter
+
+200 OK [=> AcademicRank](schemas.md#schedule-academic-rank)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates an academic rank by its ID with the data provided in the request body
+
+```json
+{
+  "priority": "int (determines the rank's priority: higher value = higher rank)"
+}
+```
+
+200 OK [=> AcademicRank](schemas.md#schedule-academic-rank)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

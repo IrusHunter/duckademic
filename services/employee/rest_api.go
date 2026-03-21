@@ -84,6 +84,9 @@ func (ra *restapi) Run(port int) error {
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.Seed)(r.Context(), w, r)
 	})
+	http.HandleFunc("/clear", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.databaseHandler.Clear)(r.Context(), w, r)
+	})
 
 	log.Printf("Server start at port %d \n", port)
 

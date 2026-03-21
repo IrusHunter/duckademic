@@ -75,3 +75,20 @@
   "deleted_at": "timestamp (soft delete timestamp)"
 }
 ```
+
+## Schedule Service
+
+<a id="schedule-academic-rank"></a>
+
+### AcademicRank
+
+```json
+{
+  "id": "uuid (identifier of the academic rank)",
+  "slug": "string (unique slug used internally)",
+  "title": "string (human-readable name of the rank)",
+  "priority": "int (determines the rank's priority: higher value = higher rank)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record update timestamp)"
+}
+```

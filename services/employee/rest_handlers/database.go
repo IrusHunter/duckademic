@@ -13,6 +13,7 @@ import (
 type DatabaseHandler interface {
 	// Performs database seeding operations, initializing required data.
 	Seed(context.Context, http.ResponseWriter, *http.Request)
+	Clear(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewDatabaseHandler(
@@ -51,6 +52,26 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 	}
 	if err := h.teacherService.Seed(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed teachers: %w", err))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 204, nil)
+}
+func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.teacherService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear teachers: %w", err))
+		return
+	}
+	if err := h.academicRankService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear academic ranks: %w", err))
+		return
+	}
+	if err := h.academicDegreeService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear academic degrees: %w", err))
+		return
+	}
+	if err := h.employeeService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear employees: %w", err))
 		return
 	}
 

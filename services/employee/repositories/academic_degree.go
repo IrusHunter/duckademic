@@ -21,8 +21,7 @@ type AcademicDegreeRepository interface {
 // It requires a database connection (db).
 func NewAcademicDegreeRepository(db *sqlx.DB) AcademicDegreeRepository {
 	config := platform.NewRepositoryConfig("AcademicDegreeRepository", "academic_degrees", "academic degree",
-		[]string{"id", "slug", "title"}, []string{"id", "slug", "title", "created_at", "updated_at"}, []string{"title"},
-		[]string{"created_at", "updated_at"},
+		[]string{"id", "slug", "title"}, []string{"title"}, []string{"created_at", "updated_at"},
 	)
 	return &academicDegreeRepository{
 		BaseRepository: platform.NewBaseRepository[entities.AcademicDegree](config, db),

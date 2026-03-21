@@ -26,8 +26,6 @@ type EmployeeRepository interface {
 func NewEmployeeRepository(db *sqlx.DB) EmployeeRepository {
 	config := platform.NewRepositoryConfig("EmployeeRepository", "employees", "employee",
 		[]string{"id", "slug", "first_name", "last_name", "middle_name", "phone_number"},
-		[]string{"id", "slug", "first_name", "last_name", "middle_name", "phone_number",
-			"created_at", "updated_at", "deleted_at"},
 		[]string{"first_name", "last_name", "middle_name", "phone_number"},
 		[]string{"created_at", "updated_at"},
 	)

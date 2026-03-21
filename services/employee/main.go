@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/employees/services"
 	"github.com/IrusHunter/duckademic/shared/db"
 	"github.com/IrusHunter/duckademic/shared/envutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/logger"
 )
 
@@ -31,6 +32,12 @@ func main() {
 		log.Fatalf("Can't migrate the database: %s", err.Error())
 	}
 
+	rdc, err := events.NewDefaultRedisConnection()
+	if err != nil {
+		log.Fatalf("Can't connect to redis: %v", err)
+	}
+	eventBus := events.NewEventBus(rdc)
+
 	logger.LoadDefaultLogConfig()
 
 	academicRankRepository := repositories.NewAcademicRankRepository(database)
@@ -38,7 +45,7 @@ func main() {
 	employeeRepository := repositories.NewEmployeeRepository(database)
 	teacherRepository := repositories.NewTeacherRepository(database)
 
-	academicRankService := services.NewAcademicRankService(academicRankRepository)
+	academicRankService := services.NewAcademicRankService(academicRankRepository, eventBus)
 	academicDegreeService := services.NewAcademicDegreeService(academicDegreeRepository)
 	employeeService := services.NewEmployeeService(employeeRepository)
 	teacherService := services.NewTeacherService(teacherRepository, academicRankRepository,

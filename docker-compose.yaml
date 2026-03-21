@@ -8,6 +8,7 @@ services:
       - "10000:10000"
     depends_on:
       - employee-service
+      - schedule-service
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -19,6 +20,15 @@ services:
       - "10001"
     env_file:
       - ./services/employee/.env.docker
+    environment:
+    - DOCKER_ENV=true
+  
+  schedule-service:
+    build: ./services/schedule
+    expose:
+      - "10002"
+    env_file:
+      - ./services/schedule/.env.docker
     environment:
     - DOCKER_ENV=true
   

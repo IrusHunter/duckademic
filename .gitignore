@@ -58,4 +58,4 @@ data/
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
 
 sus_file.go
-schedule/
+schedule-output/

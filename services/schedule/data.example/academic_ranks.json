@@ -1,0 +1,14 @@
+[
+    {
+        "title": "асистент",
+        "priority": 0
+    },
+    {
+        "title": "доцент",
+        "priority": 3
+    },
+    {
+        "title": "професор",
+        "priority": 5
+    }
+]

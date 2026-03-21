@@ -147,7 +147,6 @@ func teacherMigrations(database *sqlx.DB) error {
 		CONSTRAINT fk_teachers_academic_rank
 			FOREIGN KEY (academic_rank_id)
 			REFERENCES academic_ranks(id)
-			ON DELETE CASCADE
 	);
 	`
 

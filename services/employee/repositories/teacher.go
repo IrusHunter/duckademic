@@ -14,8 +14,6 @@ type TeacherRepository interface {
 func NewTeacherRepository(db *sqlx.DB) TeacherRepository {
 	config := platform.NewRepositoryConfig("TeacherRepository", "teachers", "teacher",
 		[]string{"employee_id", "email", "academic_degree_id", "academic_rank_id"},
-		[]string{"employee_id", "email", "academic_degree_id", "academic_rank_id",
-			"created_at", "updated_at", "deleted_at"},
 		[]string{"email", "academic_degree_id", "academic_rank_id"},
 		[]string{"created_at", "updated_at"},
 	)

@@ -26,8 +26,11 @@ func NewAcademicDegreeService(adr repositories.AcademicDegreeRepository) Academi
 	res := &academicDegreeService{
 		repository: adr,
 	}
-	res.BaseService = platform.NewBaseService(sc, adr, res.validateEntity, res.onAddPrepare,
-		func(ad *entities.AcademicDegree) bool { return false },
+	res.BaseService = platform.NewBaseService(sc, adr,
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.AcademicDegree]{
+			platform.OnAddPrepare:   res.onAddPrepare,
+			platform.ValidateEntity: res.validateEntity,
+		},
 	)
 
 	return res
@@ -38,8 +41,8 @@ type academicDegreeService struct {
 	repository repositories.AcademicDegreeRepository
 }
 
-func (s *academicDegreeService) validateEntity(AcademicDegree entities.AcademicDegree) error {
-	if err := AcademicDegree.ValidateTitle(); err != nil {
+func (s *academicDegreeService) validateEntity(ctx context.Context, academicDegree *entities.AcademicDegree) error {
+	if err := academicDegree.ValidateTitle(); err != nil {
 		return err
 	}
 

@@ -1,0 +1,29 @@
+[
+    {
+        "first_name": "Олена",
+        "last_name": "Кравченко",
+        "email": "kravchenko@example.com",
+        "academic_rank_title": "доцент",
+        "academic_rank_degree": "кандидат наук"
+    },
+    {
+        "first_name": "Іван",
+        "last_name": "Петренко",
+        "email": "petrenko@example.com",
+        "academic_rank_title": "професор",
+        "academic_rank_degree": "доктор наук"
+    },
+    {
+        "first_name": "Світлана",
+        "last_name": "Мороз",
+        "email": "moroz@example.com",
+        "academic_rank_title": "асистент"
+    },
+    {
+        "first_name": "Андрій",
+        "last_name": "Бондаренко",
+        "email": "bondarenko@example.com",
+        "academic_rank_title": "доцент",
+        "academic_rank_degree": "кандидат наук"
+    }
+]

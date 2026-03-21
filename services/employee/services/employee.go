@@ -26,7 +26,13 @@ func NewEmployeeService(er repositories.EmployeeRepository) EmployeeService {
 	res := &employeeRepository{
 		repository: er,
 	}
-	res.BaseService = platform.NewBaseService(sc, er, res.validateEntity, res.onAddPrepare, res.shouldSoftDelete)
+	res.BaseService = platform.NewBaseService(sc, er,
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Employee]{
+			platform.OnAddPrepare:    res.onAddPrepare,
+			platform.ValidateEntity:  res.validateEntity,
+			platform.HardDeleteCheck: res.hardDeleteCheck,
+		},
+	)
 
 	return res
 }
@@ -36,7 +42,7 @@ type employeeRepository struct {
 	repository repositories.EmployeeRepository
 }
 
-func (s *employeeRepository) validateEntity(employee entities.Employee) error {
+func (s *employeeRepository) validateEntity(ctx context.Context, employee *entities.Employee) error {
 	if err := employee.ValidateFirstName(); err != nil {
 		return err
 	}
@@ -46,7 +52,6 @@ func (s *employeeRepository) validateEntity(employee entities.Employee) error {
 
 	return nil
 }
-
 func (s *employeeRepository) onAddPrepare(ctx context.Context, employee *entities.Employee) error {
 	slug := slug.Make(employee.GetFullName())
 	if other := s.repository.FindBySlug(ctx, slug); other != nil {
@@ -57,7 +62,6 @@ func (s *employeeRepository) onAddPrepare(ctx context.Context, employee *entitie
 
 	return nil
 }
-
-func (s *employeeRepository) shouldSoftDelete(employee *entities.Employee) bool {
-	return true
+func (s *employeeRepository) hardDeleteCheck(ctx context.Context, employee *entities.Employee) error {
+	return fmt.Errorf("plug")
 }

@@ -36,12 +36,12 @@ func NewTeacherService(
 		employeeRepository:       er,
 	}
 
-	res.BaseService = platform.NewBaseService(
-		sc,
-		tr,
-		res.validateEntity,
-		res.onAddPrepare,
-		res.shouldSoftDelete,
+	res.BaseService = platform.NewBaseService(sc, tr,
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Teacher]{
+			platform.OnAddPrepare:    res.onAddPrepare,
+			platform.ValidateEntity:  res.validateEntity,
+			platform.HardDeleteCheck: res.hardDeleteCheck,
+		},
 	)
 
 	res.logger = res.GetLogger()
@@ -58,7 +58,7 @@ type teacherService struct {
 	logger                   logger.Logger
 }
 
-func (s *teacherService) validateEntity(teacher entities.Teacher) error {
+func (s *teacherService) validateEntity(ctx context.Context, teacher *entities.Teacher) error {
 	if err := teacher.ValidateEmail(); err != nil {
 		return err
 	}
@@ -68,8 +68,8 @@ func (s *teacherService) validateEntity(teacher entities.Teacher) error {
 func (s *teacherService) onAddPrepare(ctx context.Context, teacher *entities.Teacher) error {
 	return nil
 }
-func (s *teacherService) shouldSoftDelete(teacher *entities.Teacher) bool {
-	return true
+func (s *teacherService) hardDeleteCheck(ctx context.Context, teacher *entities.Teacher) error {
+	return fmt.Errorf("plug")
 }
 
 type seedTeacher struct {
