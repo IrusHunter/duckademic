@@ -83,9 +83,9 @@ func (e *Employee) GetFullName() string {
 func (e *Employee) GetShortFullName() string {
 	parts := make([]string, 0, 3)
 	parts = append(parts, fmt.Sprintf("%s ", e.LastName))
-	parts = append(parts, fmt.Sprintf("%s.", string(e.FirstName[0])))
+	parts = append(parts, fmt.Sprintf("%c.", []rune(e.FirstName)[0]))
 	if e.MiddleName != nil {
-		parts = append(parts, fmt.Sprintf("%s.", string((*e.MiddleName)[0])))
+		parts = append(parts, fmt.Sprintf("%c.", []rune(*e.MiddleName)[0]))
 	}
 	return strings.Join(parts, "")
 }

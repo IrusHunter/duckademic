@@ -40,12 +40,13 @@ func NewTeacherService(
 		eventBus:                 eb,
 	}
 
-	res.BaseService = platform.NewBaseService(sc, tr,
+	res.BaseService = platform.NewBaseServiceWithEventBus(sc, tr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Teacher]{
 			platform.OnAddPrepare:    res.onAddPrepare,
 			platform.ValidateEntity:  res.validateEntity,
 			platform.HardDeleteCheck: res.hardDeleteCheck,
 		},
+		eb,
 	)
 
 	res.logger = res.GetLogger()
@@ -170,6 +171,13 @@ func (s *teacherService) Update(
 }
 func (s *teacherService) sendChanges(ctx context.Context, teacher entities.Teacher, event events.EventType) {
 	filledT := s.repository.Fill(ctx, teacher.EmployeeID)
+
+	if filledT == nil {
+		s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SendChanges",
+			fmt.Errorf("failed to fill %s: not found", teacher), logger.ServiceDataFetchFailed,
+		)
+		return
+	}
 
 	eventT := events.TeacherRE{
 		Event:          events.EntityCreated,
