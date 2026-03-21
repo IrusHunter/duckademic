@@ -156,7 +156,6 @@ func (s *baseService[T]) Seed(ctx context.Context) error {
 		)
 	}
 
-	s.repository.Clear(ctx)
 	var lastError error
 	for _, entity := range entities {
 		_, err := s.Add(ctx, entity)

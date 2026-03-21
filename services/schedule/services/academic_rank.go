@@ -97,6 +97,7 @@ func (s *academicRankService) Seed(ctx context.Context) error {
 			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
 				fmt.Errorf("academic rank with title %q not found", academicRank.Title), logger.ServiceDataFetchFailed,
 			)
+			continue
 		}
 
 		_, err := s.Update(ctx, tar.ID, academicRank)
