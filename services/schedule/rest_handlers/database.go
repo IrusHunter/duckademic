@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/IrusHunter/duckademic/services/schedule/services"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 )
@@ -33,6 +34,7 @@ type databaseHandler struct {
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
 		time.Sleep(events.ExternalSeedCooldown)
+		ctx := contextutil.SetTraceID(context.Background())
 		h.academicRankService.Seed(ctx)
 	}()
 

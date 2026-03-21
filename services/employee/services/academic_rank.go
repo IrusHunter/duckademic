@@ -7,7 +7,9 @@ import (
 
 	"github.com/IrusHunter/duckademic/services/employee/entities"
 	"github.com/IrusHunter/duckademic/services/employee/repositories"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/events"
+	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -111,4 +113,27 @@ func (s *academicRankService) Update(
 		s.SendChanges(ctx, eventAR, events.EntityUpdated, events.AcademicRankRT)
 	}
 	return updatedAR, err
+}
+func (s *academicRankService) Seed(ctx context.Context) error {
+	academicRanks := []entities.AcademicRank{}
+	if err := jsonutil.ReadFileTo(filepath.Join("data", "academic_ranks.json"), &academicRanks); err != nil {
+		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+			fmt.Errorf("failed to load academic ranks seed data: %w", err), logger.ServiceValidationFailed,
+		)
+	}
+
+	var lastError error
+	for _, academicRank := range academicRanks {
+		_, err := s.Add(ctx, academicRank)
+		if err != nil {
+			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+				fmt.Errorf("failed to add %s: %w", academicRank.String(), err), logger.ServiceValidationFailed,
+			)
+		}
+	}
+
+	s.logger.Log(contextutil.GetTraceID(ctx), "Seed",
+		fmt.Sprintf("%d academic ranks added successfully", len(academicRanks)), logger.ServiceOperationSuccess,
+	)
+	return lastError
 }
