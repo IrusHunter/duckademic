@@ -126,7 +126,7 @@ func (r *baseRepository[T]) Add(ctx context.Context, entity T) (T, error) {
 	return entity, nil
 }
 func (r *baseRepository[T]) Clear(ctx context.Context) error {
-	_, err := r.db.ExecContext(ctx, fmt.Sprintf(`TRUNCATE TABLE %s`, r.TableName))
+	_, err := r.db.ExecContext(ctx, fmt.Sprintf(`TRUNCATE TABLE %s CASCADE;`, r.TableName))
 	if err != nil {
 		return r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Clear",
 			fmt.Errorf("failed to truncate table %s: %w", r.TableName, err), logger.RepositoryQueryFailed,

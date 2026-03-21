@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"github.com/IrusHunter/duckademic/services/employees/entities"
+	"github.com/IrusHunter/duckademic/services/employee/entities"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/jmoiron/sqlx"

@@ -1,10 +1,10 @@
 [
     {
-        "path": "user",
-        "upstream_name": "user"
+        "path": "employee",
+        "upstream_name": "employee-service"
     },
     {
-        "path": "auth",
-        "upstream_name": "auth"
+        "path": "schedule",
+        "upstream_name": "schedule-service"
     }
 ]

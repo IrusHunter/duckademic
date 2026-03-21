@@ -1,12 +1,12 @@
 [
     {
-        "name": "user",
-        "url": "http://service-user:10001",
+        "name": "employee-service",
+        "url": "http://employee-service:10001",
         "enabled": true
     },
     {
-        "name": "auth",
-        "url": "http://service-auth:10002",
-        "enabled": false
+        "name": "schedule-service",
+        "url": "http://schedule-service:10002",
+        "enabled": true
     }
 ]

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	resthandlers "github.com/IrusHunter/duckademic/services/employees/rest_handlers"
+	resthandlers "github.com/IrusHunter/duckademic/services/employee/rest_handlers"
 	"github.com/IrusHunter/duckademic/shared/platform"
 )
 

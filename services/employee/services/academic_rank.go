@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/IrusHunter/duckademic/services/employees/entities"
-	"github.com/IrusHunter/duckademic/services/employees/repositories"
+	"github.com/IrusHunter/duckademic/services/employee/entities"
+	"github.com/IrusHunter/duckademic/services/employee/repositories"
 	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"

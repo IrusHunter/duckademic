@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/IrusHunter/duckademic/services/employees/services"
+	"github.com/IrusHunter/duckademic/services/employee/services"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 )
 

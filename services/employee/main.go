@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/IrusHunter/duckademic/services/employees/repositories"
-	resthandlers "github.com/IrusHunter/duckademic/services/employees/rest_handlers"
-	"github.com/IrusHunter/duckademic/services/employees/services"
+	"github.com/IrusHunter/duckademic/services/employee/repositories"
+	resthandlers "github.com/IrusHunter/duckademic/services/employee/rest_handlers"
+	"github.com/IrusHunter/duckademic/services/employee/services"
 	"github.com/IrusHunter/duckademic/shared/db"
 	"github.com/IrusHunter/duckademic/shared/envutil"
 	"github.com/IrusHunter/duckademic/shared/events"

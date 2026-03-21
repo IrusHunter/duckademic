@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	"github.com/IrusHunter/duckademic/services/employees/entities"
+	"github.com/IrusHunter/duckademic/services/employee/entities"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/jmoiron/sqlx"
 )
