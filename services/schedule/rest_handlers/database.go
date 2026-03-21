@@ -21,14 +21,17 @@ type DatabaseHandler interface {
 
 func NewDatabaseHandler(
 	ars services.AcademicRankService,
+	ts services.TeacherService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		academicRankService: ars,
+		teacherService:      ts,
 	}
 }
 
 type databaseHandler struct {
 	academicRankService services.AcademicRankService
+	teacherService      services.TeacherService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -36,6 +39,9 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 		time.Sleep(events.ExternalSeedCooldown)
 		ctx := contextutil.SetTraceID(context.Background())
 		h.academicRankService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.teacherService.Seed(ctx)
+
 	}()
 
 	jsonutil.ResponseWithJSON(w, 204, nil)
@@ -43,6 +49,10 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if err := h.academicRankService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear academic ranks: %w", err))
+		return
+	}
+	if err := h.teacherService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear teachers: %w", err))
 		return
 	}
 

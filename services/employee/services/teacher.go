@@ -8,9 +8,11 @@ import (
 	"github.com/IrusHunter/duckademic/services/employee/entities"
 	"github.com/IrusHunter/duckademic/services/employee/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
+	"github.com/google/uuid"
 )
 
 type TeacherService interface {
@@ -22,6 +24,7 @@ func NewTeacherService(
 	arr repositories.AcademicRankRepository,
 	adr repositories.AcademicDegreeRepository,
 	er repositories.EmployeeRepository,
+	eb events.EventBus,
 ) TeacherService {
 	sc := platform.NewServiceConfig(
 		"TeacherService",
@@ -34,6 +37,7 @@ func NewTeacherService(
 		academicRankRepository:   arr,
 		academicDegreeRepository: adr,
 		employeeRepository:       er,
+		eventBus:                 eb,
 	}
 
 	res.BaseService = platform.NewBaseService(sc, tr,
@@ -56,6 +60,7 @@ type teacherService struct {
 	academicDegreeRepository repositories.AcademicDegreeRepository
 	employeeRepository       repositories.EmployeeRepository
 	logger                   logger.Logger
+	eventBus                 events.EventBus
 }
 
 func (s *teacherService) validateEntity(ctx context.Context, teacher *entities.Teacher) error {
@@ -134,4 +139,44 @@ func (s *teacherService) Seed(ctx context.Context) error {
 		fmt.Sprintf("%d teachers added successfully", len(teachers)), logger.ServiceOperationSuccess,
 	)
 	return lastError
+}
+
+func (s *teacherService) Add(
+	ctx context.Context, teacher entities.Teacher,
+) (entities.Teacher, error) {
+	addedT, err := s.BaseService.Add(ctx, teacher)
+	if err == nil {
+		s.sendChanges(ctx, addedT, events.EntityCreated)
+	}
+	return addedT, err
+}
+func (s *teacherService) Delete(
+	ctx context.Context, id uuid.UUID,
+) (entities.Teacher, error) {
+	deletedT, err := s.BaseService.Delete(ctx, id)
+	if err == nil {
+		s.sendChanges(ctx, deletedT, events.EntityDeleted)
+	}
+	return deletedT, err
+}
+func (s *teacherService) Update(
+	ctx context.Context, id uuid.UUID, teacher entities.Teacher,
+) (entities.Teacher, error) {
+	updatedT, err := s.BaseService.Update(ctx, id, teacher)
+	if err == nil {
+		s.sendChanges(ctx, updatedT, events.EntityUpdated)
+	}
+	return updatedT, err
+}
+func (s *teacherService) sendChanges(ctx context.Context, teacher entities.Teacher, event events.EventType) {
+	filledT := s.repository.Fill(ctx, teacher.EmployeeID)
+
+	eventT := events.TeacherRE{
+		Event:          events.EntityCreated,
+		ID:             filledT.EmployeeID,
+		Name:           filledT.Employee.GetShortFullName(),
+		AcademicRankID: filledT.AcademicRankID,
+	}
+
+	s.BaseService.SendChanges(ctx, eventT, event, events.TeacherRT)
 }

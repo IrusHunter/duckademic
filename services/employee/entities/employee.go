@@ -72,12 +72,22 @@ func (e *Employee) ValidateLastName() error {
 // and, optionally, the middle name.
 func (e *Employee) GetFullName() string {
 	parts := make([]string, 0, 3)
-	parts = append(parts, fmt.Sprintf("last_name: %s", e.LastName))
-	parts = append(parts, fmt.Sprintf("first_name: %s", e.FirstName))
+	parts = append(parts, e.LastName)
+	parts = append(parts, e.FirstName)
 	if e.MiddleName != nil {
-		parts = append(parts, fmt.Sprintf("middle_name: %s", *e.MiddleName))
+		parts = append(parts, *e.MiddleName)
 	}
 	return strings.Join(parts, " ")
+}
+
+func (e *Employee) GetShortFullName() string {
+	parts := make([]string, 0, 3)
+	parts = append(parts, fmt.Sprintf("%s ", e.LastName))
+	parts = append(parts, fmt.Sprintf("%s.", string(e.FirstName[0])))
+	if e.MiddleName != nil {
+		parts = append(parts, fmt.Sprintf("%s.", string((*e.MiddleName)[0])))
+	}
+	return strings.Join(parts, "")
 }
 
 func (Employee) TableName() string {

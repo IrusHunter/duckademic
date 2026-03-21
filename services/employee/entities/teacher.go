@@ -17,6 +17,10 @@ type Teacher struct {
 	CreatedAt        time.Time  `db:"created_at" json:"created_at"`           // Record creation timestamp.
 	UpdatedAt        time.Time  `db:"updated_at" json:"updated_at"`           // Record last update timestamp.
 	DeletedAt        *time.Time `db:"deleted_at" json:"deleted_at,omitempty"` // Record deleted timestamp.
+
+	Employee       *Employee       `db:"employee" json:"employee,omitempty"`
+	AcademicDegree *AcademicDegree `db:"academic_degree" json:"academic_degree,omitempty"`
+	AcademicRank   *AcademicRank   `db:"academic_rank" json:"academic_rank,omitempty"`
 }
 
 func (t Teacher) String() string {

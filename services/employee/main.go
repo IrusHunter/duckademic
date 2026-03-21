@@ -49,7 +49,7 @@ func main() {
 	academicDegreeService := services.NewAcademicDegreeService(academicDegreeRepository)
 	employeeService := services.NewEmployeeService(employeeRepository)
 	teacherService := services.NewTeacherService(teacherRepository, academicRankRepository,
-		academicDegreeRepository, employeeRepository)
+		academicDegreeRepository, employeeRepository, eventBus)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	academicDegreeHandler := resthandlers.NewAcademicDegreeHandler(academicDegreeService)

@@ -27,6 +27,8 @@
 - Schedule Service
   - [/schedule/academic-ranks](#schedule-academic-ranks)
   - [/schedule/academic-rank/{id}](#schedule-academic-rank-id)
+  - [/schedule/teachers](#schedule-teachers)
+  - [/schedule/teacher/{id}](#schedule-teacher-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -275,3 +277,31 @@
 200 OK [=> AcademicRank](schemas.md#schedule-academic-rank)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-teachers"></a>
+
+## /teachers
+
+### GET - gets all teachers from the database
+
+**200 OK** [=> Teacher[]](schemas.md#schedule-teacher)
+
+<a id="schedule-teacher-id"></a>
+
+## /teacher/{id}
+
+### GET - finds teacher with an ID as a URL parameter
+
+**200 OK** [=> Teacher](schemas.md#schedule-teacher)
+
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a teacher by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+**200 OK** [=> Teacher](schemas.md#schedule-teacher)
+
+**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)

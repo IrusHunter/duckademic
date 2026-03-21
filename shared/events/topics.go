@@ -4,6 +4,7 @@ type RedisTopic string
 
 const (
 	AcademicRankRT RedisTopic = "academic:ranks"
+	TeacherRT      RedisTopic = "teachers"
 )
 
 type EventType string

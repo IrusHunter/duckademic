@@ -92,3 +92,20 @@
   "updated_at": "timestamp (record update timestamp)"
 }
 ```
+
+<a id="schedule-teacher"></a>
+
+### Teacher
+
+```json
+{
+  "id": "uuid (identifier of the teacher)",
+  "name": "string (short full name of the teacher)",
+  "academic_rank_id": "uuid (reference to academic rank)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "deleted_at": "timestamp (soft delete timestamp)"
+}
+```

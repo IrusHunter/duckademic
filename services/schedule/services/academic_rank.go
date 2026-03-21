@@ -24,15 +24,13 @@ type AcademicRankService interface {
 //
 // It requires an academic rank repository (arr) and an event bus (eb).
 func NewAcademicRankService(arr repositories.AcademicRankRepository, eb events.EventBus) AcademicRankService {
-	sc := platform.NewServiceConfig("AcademicRankService", filepath.Join("data", "academic_ranks.json"), "academic_rank")
+	sc := platform.NewServiceConfig("AcademicRankService", filepath.Join("data", "academic_ranks.json"), "academic rank")
 
 	res := &academicRankService{
 		repository: arr,
 	}
 	res.BaseService = platform.NewBaseService(sc, arr,
-		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.AcademicRank]{
-			platform.ValidateEntity: res.validateEntity,
-		},
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.AcademicRank]{},
 	)
 	res.logger = res.GetLogger()
 
@@ -47,13 +45,6 @@ type academicRankService struct {
 	logger     logger.Logger
 }
 
-func (s *academicRankService) validateEntity(ctx context.Context, academicRank *entities.AcademicRank) error {
-	if err := academicRank.ValidateTitle(); err != nil {
-		return err
-	}
-
-	return nil
-}
 func (s *academicRankService) eventHandler(ctx context.Context, b []byte) {
 	ar, err := events.FromByteConvertor[events.AcademicRankRE](b)
 	if err != nil {

@@ -41,13 +41,17 @@ func main() {
 	eventBus := events.NewEventBus(rdc)
 
 	academicRankRepository := repositories.NewAcademicRankRepository(database)
+	teacherRepository := repositories.NewTeacherRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository, eventBus)
+	teacherService := services.NewTeacherService(teacherRepository, eventBus)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
-	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService)
+	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
 
-	restapi := NewRESTAPI(academicRankHandler, databaseHandler)
+	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, teacherService)
+
+	restapi := NewRESTAPI(academicRankHandler, teacherHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)
