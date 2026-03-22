@@ -8,5 +8,10 @@
         "name": "schedule-service",
         "url": "http://schedule-service:10002",
         "enabled": true
+    },
+    {
+        "name": "student-service",
+        "url": "http://student-service:10003",
+        "enabled": true
     }
 ]

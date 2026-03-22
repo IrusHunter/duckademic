@@ -40,3 +40,17 @@ func (t TeacherRE) String() string {
 	parts = append(parts, fmt.Sprintf("academic rank id: %s", t.AcademicRankID))
 	return fmt.Sprintf("TeacherRE{%s}", strings.Join(parts, ", "))
 }
+
+type StudentRE struct {
+	Event EventType
+	ID    uuid.UUID
+	Name  string
+}
+
+func (t StudentRE) String() string {
+	parts := make([]string, 0, 4)
+	parts = append(parts, fmt.Sprintf("event: %s", t.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", t.ID))
+	parts = append(parts, fmt.Sprintf("name: %s", t.Name))
+	return fmt.Sprintf("StudentRE{%s}", strings.Join(parts, ", "))
+}

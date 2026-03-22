@@ -9,6 +9,7 @@ services:
     depends_on:
       - employee-service
       - schedule-service
+      - student-service
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -27,8 +28,20 @@ services:
     build: ./services/schedule
     expose:
       - "10002"
+    depends_on:
+      - employee-service
+      - student-service
     env_file:
       - ./services/schedule/.env.docker
+    environment:
+    - DOCKER_ENV=true
+
+  student-service:
+    build: ./services/student
+    expose:
+      - "10003"
+    env_file:
+      - ./services/student/.env.docker
     environment:
     - DOCKER_ENV=true
   

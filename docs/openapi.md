@@ -30,6 +30,10 @@
   - [/schedule/teachers](#schedule-teachers)
   - [/schedule/teacher/{id}](#schedule-teacher-id)
 
+- Student Service
+  - [/student/students](#student-students)
+  - [/student/student/{id}](#student-student-id)
+
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Employee Service
@@ -305,3 +309,65 @@
 **200 OK** [=> Teacher](schemas.md#schedule-teacher)
 
 **400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+# Student Service
+
+<a id="student-students"></a>
+
+## /students
+
+### GET - gets all students from the database
+
+200 OK [=> Student[]](schemas.md#student-student)
+
+### POST - adds a new student
+
+```json
+{
+  "first_name": "string (student's first name)",
+  "last_name": "string (student's last name)",
+  "email": "string (student's email address)",
+
+  // Optional fields
+  "middle_name": "string (student's middle name)",
+  "phone_number": "string (contact phone number)"
+}
+```
+
+200 OK [=> Student](schemas.md#student-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-student-id"></a>
+
+## /student/{id}
+
+### GET - finds student with an ID as an URL parameter
+
+200 OK [=> Student](schemas.md#student-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes an student by its ID provided in the URL path
+
+**200 OK** [=> Student](schemas.md#student-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a student by its ID with the data provided in the request body
+
+```json
+{
+  "first_name": "string (student's first name)",
+  "last_name": "string (student's last name)",
+  "email": "string (student's email address)",
+
+  // Optional fields
+  "middle_name": "string (student's middle name)",
+  "phone_number": "string (contact phone number)"
+}
+```
+
+200 OK [=> Student](schemas.md#student-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

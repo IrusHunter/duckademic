@@ -6,5 +6,9 @@
     {
         "path": "schedule",
         "upstream_name": "schedule-service"
+    },
+    {
+        "path": "student",
+        "upstream_name": "student-service"
     }
 ]

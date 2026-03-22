@@ -48,9 +48,6 @@ type employeeRepository struct {
 func (r *employeeRepository) FindBySlug(ctx context.Context, slug string) *entities.Employee {
 	return r.FindFirstBy(ctx, "slug", slug)
 }
-func (r *employeeRepository) FindByTitle(ctx context.Context, title string) *entities.Employee {
-	return r.FindFirstBy(ctx, "title", title)
-}
 func (r *employeeRepository) FindFirstByName(ctx context.Context, first, last string) *entities.Employee {
 	query := fmt.Sprintf(
 		`SELECT * FROM %s

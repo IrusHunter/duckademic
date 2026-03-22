@@ -109,3 +109,26 @@
   "deleted_at": "timestamp (soft delete timestamp)"
 }
 ```
+
+## Student Service
+
+<a id="student-student"></a>
+
+### Student
+
+```json
+{
+  "id": "uuid (unique identifier of the student)",
+  "slug": "string (unique slug used internally)",
+  "first_name": "string (student's first name)",
+  "last_name": "string (student's last name)",
+  "email": "string (student's email address)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "middle_name": "string (student's middle name)",
+  "phone_number": "string (contact phone number)",
+  "deleted_at": "timestamp (soft delete timestamp)"
+}
+```
