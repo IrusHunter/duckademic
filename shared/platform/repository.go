@@ -52,7 +52,8 @@ type BaseRepository[T fmt.Stringer] interface {
 	// FindByID returns a pointer to the entity with the given id from database.
 	FindByID(context.Context, uuid.UUID) *T
 	// FindFirstBy returns the first entity where the specified field matches the given value.
-	FindFirstBy(ctx context.Context, field string, slug any) *T
+	FindFirstBy(ctx context.Context, field string, value any) *T
+	FindFirstByConditions(context.Context, map[string]any) *T
 	// GetAll returns a slice with all entities from database.
 	GetAll(context.Context) []T
 	// Delete removes the entity with the specified ID from the database.
@@ -141,30 +142,34 @@ func (r *baseRepository[T]) Clear(ctx context.Context) error {
 func (r *baseRepository[T]) FindByID(ctx context.Context, id uuid.UUID) *T {
 	return r.FindFirstBy(ctx, "id", id)
 }
-func (r *baseRepository[T]) FindFirstBy(ctx context.Context, field string, param any) *T {
-	query := fmt.Sprintf(
-		`SELECT * FROM %s
-		WHERE %s=$1 LIMIT 1`,
-		r.TableName, field,
-	)
+func (r *baseRepository[T]) FindFirstBy(ctx context.Context, field string, value any) *T {
+	return r.FindFirstByConditions(ctx, map[string]any{field: value})
+}
+func (r *baseRepository[T]) FindFirstByConditions(ctx context.Context, conditions map[string]any) *T {
+	if len(conditions) == 0 {
+		return nil
+	}
+
+	whereSQL, params := r.FormWhereClause(conditions)
+	query := fmt.Sprintf(`SELECT * FROM %s WHERE %s LIMIT 1`, r.TableName, whereSQL)
 
 	var entity T
-	if err := r.db.GetContext(ctx, &entity, query, param); err != nil {
+	if err := r.db.GetContext(ctx, &entity, query, params...); err != nil {
 		if strings.Contains(err.Error(), "no rows") {
-			r.logger.Log(contextutil.GetTraceID(ctx), "FindFirstBy",
-				fmt.Sprintf("%s with %s %q not found", r.EntityName, field, param),
+			r.logger.Log(contextutil.GetTraceID(ctx), "FindFirstByCondition",
+				fmt.Sprintf("%s with %v not found", r.EntityName, conditions),
 				logger.RepositoryOperationSuccess,
 			)
 			return nil
 		}
-		r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "FindFirstBy",
-			fmt.Errorf("failed to scan database row for %s %q: %w", field, param, err), logger.RepositoryScanFailed,
+		r.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "FindFirstByCondition",
+			fmt.Errorf("failed to scan database row for %v: %w", conditions, err), logger.RepositoryScanFailed,
 		)
 		return nil
 	}
 
-	r.logger.Log(contextutil.GetTraceID(ctx), "FindFirstBy",
-		fmt.Sprintf("%s found", entity.String()),
+	r.logger.Log(contextutil.GetTraceID(ctx), "FindFirstByCondition",
+		fmt.Sprintf("%s found", &entity),
 		logger.RepositoryOperationSuccess)
 	return &entity
 }
@@ -304,6 +309,17 @@ func (r *baseRepository[T]) FormSqlEquations(parameters []string) string {
 	}
 
 	return strings.Join(parts, ", ")
+}
+func (r *baseRepository[T]) FormWhereClause(conditions map[string]any) (string, []any) {
+	var whereClauses []string
+	var params []interface{}
+	i := 1
+	for field, value := range conditions {
+		whereClauses = append(whereClauses, fmt.Sprintf("%s=$%d", field, i))
+		params = append(params, value)
+		i++
+	}
+	return strings.Join(whereClauses, " AND "), params
 }
 
 func structToMapByDBTag(entity interface{}) map[string]interface{} {

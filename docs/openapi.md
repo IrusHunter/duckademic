@@ -45,8 +45,10 @@
   - [/curriculum/semester/{id}](#curriculum-semester-id)
   - [/curriculum/lesson-types](#curriculum-lesson-types)
   - [/curriculum/lesson-type/{id}](#curriculum-lesson-type-id)
-  - [/curriculum/disciplines](#curriculum-discipline)
+  - [/curriculum/disciplines](#curriculum-disciplines)
   - [/curriculum/discipline/{id}](#curriculum-discipline-id)
+  - [/curriculum/lesson-type-assignments](#curriculum-lesson-type-assignments)
+  - [/curriculum/lesson-type-assignment/{id}](#curriculum-lesson-type-assignment-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -497,8 +499,6 @@
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
----
-
 <a id="curriculum-semester-id"></a>
 
 ## /semester/{id}
@@ -549,8 +549,6 @@
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
----
-
 <a id="curriculum-lesson-type-id"></a>
 
 ## /lesson-type/{id}
@@ -600,8 +598,6 @@
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
----
-
 <a id="curriculum-discipline-id"></a>
 
 ## /discipline/{id}
@@ -627,5 +623,57 @@
 ```
 
 200 OK [=> Discipline](schemas.md#curriculum-discipline)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="curriculum-lesson-type-assignments"></a>
+
+## /lesson-type-assignments
+
+### GET – gets all lesson type assignments from the database
+
+200 OK [=> LessonTypeAssignment[]](schemas.md#curriculum-lesson-type-assignment)
+
+### POST – adds a new lesson type assignment
+
+```json
+{
+  "lesson_type_id": "uuid (identifier of the lesson type)",
+  "discipline_id": "uuid (identifier of the discipline)",
+  "required_hours": "integer (number of hours required for this lesson type in this discipline)"
+}
+```
+
+200 OK [=> LessonTypeAssignment](schemas.md#lcurriculum-esson-type-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="curriculum-lesson-type-assignment-id"></a>
+
+## /lesson-type-assignment/{id}
+
+### GET – finds a lesson type assignment with an ID as a URL parameter
+
+200 OK [=> LessonTypeAssignment](schemas.md#curriculum-lesson-type-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE – deletes a lesson type assignment by its ID provided in the URL path
+
+200 OK [=> LessonTypeAssignment](schemas.md#curriculum-lesson-type-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT – updates a lesson type assignment by its ID with the data provided in the request body
+
+```json
+{
+  "lesson_type_id": "uuid (identifier of the lesson type)",
+  "discipline_id": "uuid (identifier of the discipline)",
+  "required_hours": "integer (number of hours required for this lesson type in this discipline)"
+}
+```
+
+200 OK [=> LessonTypeAssignment](schemas.md#curriculum-lesson-type-assignment)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

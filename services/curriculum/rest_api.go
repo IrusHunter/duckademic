@@ -19,25 +19,28 @@ func NewRESTAPI(
 	sh resthandlers.SemesterHandler,
 	lth resthandlers.LessonTypeHandler,
 	disH resthandlers.DisciplineHandler,
+	ltah resthandlers.LessonTypeAssignmentHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:     platform.NewRESTAPIHelper("RESTAPI"),
-		curriculumHandler: ch,
-		semesterHandler:   sh,
-		lessonTypeHandler: lth,
-		disciplineHandler: disH,
-		databaseHandler:   dh,
+		RESTAPIHelper:               platform.NewRESTAPIHelper("RESTAPI"),
+		curriculumHandler:           ch,
+		semesterHandler:             sh,
+		lessonTypeHandler:           lth,
+		disciplineHandler:           disH,
+		lessonTypeAssignmentHandler: ltah,
+		databaseHandler:             dh,
 	}
 }
 
 type restapi struct {
 	platform.RESTAPIHelper
-	curriculumHandler resthandlers.CurriculumHandler
-	semesterHandler   resthandlers.SemesterHandler
-	lessonTypeHandler resthandlers.LessonTypeHandler
-	disciplineHandler resthandlers.DisciplineHandler
-	databaseHandler   resthandlers.DatabaseHandler
+	curriculumHandler           resthandlers.CurriculumHandler
+	semesterHandler             resthandlers.SemesterHandler
+	lessonTypeHandler           resthandlers.LessonTypeHandler
+	disciplineHandler           resthandlers.DisciplineHandler
+	lessonTypeAssignmentHandler resthandlers.LessonTypeAssignmentHandler
+	databaseHandler             resthandlers.DatabaseHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -79,6 +82,16 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet:    ra.NewDefaultHandler(ra.disciplineHandler.Find),
 		http.MethodDelete: ra.NewDefaultHandler(ra.disciplineHandler.Delete),
 		http.MethodPut:    ra.NewDefaultHandler(ra.disciplineHandler.Update),
+	})
+
+	ra.NewRoute("/lesson-type-assignments", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Add),
+	})
+	ra.NewRoute("/lesson-type-assignment/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Find),
+		http.MethodDelete: ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Delete),
+		http.MethodPut:    ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Update),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

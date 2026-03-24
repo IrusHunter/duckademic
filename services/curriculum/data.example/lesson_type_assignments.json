@@ -1,0 +1,27 @@
+[
+    {
+        "lesson_type_name": "лекція",
+        "discipline_name": "Структури даних",
+        "required_hours": 36
+    },
+    {
+        "lesson_type_name": "практика",
+        "discipline_name": "Кросплатформне програмування",
+        "required_hours": 20
+    },
+    {
+        "lesson_type_name": "лекція",
+        "discipline_name": "Вступ до ООП",
+        "required_hours": 40
+    },
+    {
+        "lesson_type_name": "практика",
+        "discipline_name": "Програмування вбудованих систем",
+        "required_hours": 28
+    },
+    {
+        "lesson_type_name": "лекція",
+        "discipline_name": "Обчислювальні методи",
+        "required_hours": 42
+    }
+]
