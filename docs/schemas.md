@@ -202,3 +202,17 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+<a id="curriculum-discipline"></a>
+
+### Discipline
+
+```json
+{
+  "id": "uuid (unique identifier of the discipline)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the discipline)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

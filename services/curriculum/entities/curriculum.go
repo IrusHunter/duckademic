@@ -34,8 +34,6 @@ func (c Curriculum) String() string {
 
 	if !c.CreatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("created_at: %s", c.CreatedAt.Format(db.TimeFormat)))
-	}
-	if !c.UpdatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("updated_at: %s", c.UpdatedAt.Format(db.TimeFormat)))
 	}
 

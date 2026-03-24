@@ -66,7 +66,7 @@ func (rh *RESTAPIHelper) LoggingMiddleware(next HandlerFunc) HandlerFunc {
 		next(ctx, rw, r)
 
 		rh.Logger.Log(traceID, "LoggingMiddleware",
-			fmt.Sprintf("response status=%d bytes=%d duration=%s", rw.status, rw.size, time.Since(start)),
+			fmt.Sprintf("response %d %s %db %s", rw.status, strings.ToUpper(http.StatusText(rw.status)), rw.size, time.Since(start)),
 			logger.MiddlewareRequestFinished,
 		)
 	}

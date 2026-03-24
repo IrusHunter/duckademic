@@ -42,17 +42,20 @@ func main() {
 	curriculumRepository := repositories.NewCurriculumRepository(database)
 	semesterRepository := repositories.NewSemesterRepository(database)
 	lessonTypeRepository := repositories.NewLessonTypeRepository(database)
+	disciplineRepository := repositories.NewDisciplineRepository(database)
 
 	curriculumService := services.NewCurriculumService(curriculumRepository)
 	semesterService := services.NewSemesterService(semesterRepository, curriculumRepository)
 	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository)
+	disciplineService := services.NewDisciplineService(disciplineRepository)
 
 	curriculumHandler := resthandlers.NewCurriculumHandler(curriculumService)
 	semesterHandler := resthandlers.NewSemesterHandler(semesterService)
 	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
-	databaseHandler := resthandlers.NewDatabaseHandler(curriculumService, semesterService, lessonTypeService)
+	disciplineHandler := resthandlers.NewDisciplineHandler(disciplineService)
+	databaseHandler := resthandlers.NewDatabaseHandler(curriculumService, semesterService, lessonTypeService, disciplineService)
 
-	restapi := NewRESTAPI(curriculumHandler, semesterHandler, lessonTypeHandler, databaseHandler)
+	restapi := NewRESTAPI(curriculumHandler, semesterHandler, lessonTypeHandler, disciplineHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

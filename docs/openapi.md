@@ -45,6 +45,8 @@
   - [/curriculum/semester/{id}](#curriculum-semester-id)
   - [/curriculum/lesson-types](#curriculum-lesson-types)
   - [/curriculum/lesson-type/{id}](#curriculum-lesson-type-id)
+  - [/curriculum/disciplines](#curriculum-discipline)
+  - [/curriculum/discipline/{id}](#curriculum-discipline-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -575,5 +577,55 @@
 ```
 
 200 OK [=> LessonType](schemas.md#curriculum-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="curriculum-disciplines"></a>
+
+## /disciplines
+
+### GET – gets all disciplines from the database
+
+200 OK [=> Discipline[]](schemas.md#curriculum-discipline)
+
+### POST – adds a new discipline
+
+```json
+{
+  "name": "string (name of the discipline)"
+}
+```
+
+200 OK [=> Discipline](schemas.md#curriculum-discipline)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+---
+
+<a id="curriculum-discipline-id"></a>
+
+## /discipline/{id}
+
+### GET – finds a discipline with an ID as a URL parameter
+
+200 OK [=> Discipline](schemas.md#curriculum-discipline)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE – deletes a discipline by its ID provided in the URL path
+
+200 OK [=> Discipline](schemas.md#curriculum-discipline)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT – updates a discipline by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (name of the discipline)"
+}
+```
+
+200 OK [=> Discipline](schemas.md#curriculum-discipline)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

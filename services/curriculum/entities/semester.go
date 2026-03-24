@@ -33,8 +33,6 @@ func (s Semester) String() string {
 
 	if !s.CreatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("created_at: %s", s.CreatedAt.Format(db.TimeFormat)))
-	}
-	if !s.UpdatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("updated_at: %s", s.UpdatedAt.Format(db.TimeFormat)))
 	}
 

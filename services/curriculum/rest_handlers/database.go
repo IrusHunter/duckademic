@@ -18,11 +18,13 @@ func NewDatabaseHandler(
 	cs services.CurriculumService,
 	ss services.SemesterService,
 	lts services.LessonTypeService,
+	ds services.DisciplineService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		curriculumService: cs,
 		semesterService:   ss,
 		lessonTypeService: lts,
+		disciplineService: ds,
 	}
 }
 
@@ -30,6 +32,7 @@ type databaseHandler struct {
 	curriculumService services.CurriculumService
 	semesterService   services.SemesterService
 	lessonTypeService services.LessonTypeService
+	disciplineService services.DisciplineService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -43,6 +46,10 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 	}
 	if err := h.lessonTypeService.Seed(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed lesson types: %w", err))
+		return
+	}
+	if err := h.disciplineService.Seed(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed disciplines: %w", err))
 		return
 	}
 
@@ -59,6 +66,10 @@ func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *h
 	}
 	if err := h.lessonTypeService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear lesson types: %w", err))
+		return
+	}
+	if err := h.disciplineService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear disciplines: %w", err))
 		return
 	}
 

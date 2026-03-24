@@ -34,8 +34,6 @@ func (lt LessonType) String() string {
 
 	if !lt.CreatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("created_at: %s", lt.CreatedAt.Format(db.TimeFormat)))
-	}
-	if !lt.UpdatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("updated_at: %s", lt.UpdatedAt.Format(db.TimeFormat)))
 	}
 
