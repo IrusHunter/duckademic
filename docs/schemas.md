@@ -132,3 +132,22 @@
   "deleted_at": "timestamp (soft delete timestamp)"
 }
 ```
+
+## Student Group Service
+
+<a id="student-group-student"></a>
+
+### Student
+
+```json
+{
+  "id": "uuid (unique identifier of the student)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (student's short full name)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "deleted_at": "timestamp (soft delete timestamp)"
+}
+```

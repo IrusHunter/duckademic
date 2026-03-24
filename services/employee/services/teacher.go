@@ -182,6 +182,7 @@ func (s *teacherService) sendChanges(ctx context.Context, teacher entities.Teach
 	eventT := events.TeacherRE{
 		Event:          events.EntityCreated,
 		ID:             filledT.EmployeeID,
+		Slug:           filledT.Employee.Slug,
 		Name:           filledT.Employee.GetShortFullName(),
 		AcademicRankID: filledT.AcademicRankID,
 	}

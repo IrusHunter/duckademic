@@ -10,6 +10,7 @@ services:
       - employee-service
       - schedule-service
       - student-service
+      - student-group-service
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -30,6 +31,7 @@ services:
       - "10002"
     depends_on:
       - employee-service
+      - student-group-service
       - student-service
     env_file:
       - ./services/schedule/.env.docker
@@ -42,6 +44,17 @@ services:
       - "10003"
     env_file:
       - ./services/student/.env.docker
+    environment:
+    - DOCKER_ENV=true
+  
+  student-group-service:
+    build: ./services/student_group
+    expose:
+      - "10004"
+    depends_on:
+      - student-service
+    env_file:
+      - ./services/student_group/.env.docker
     environment:
     - DOCKER_ENV=true
   

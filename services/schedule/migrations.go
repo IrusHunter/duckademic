@@ -88,5 +88,29 @@ func teacherMigrations(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create on update trigger for teachers: %w", err)
 	}
 
+	addSlug := `
+	ALTER TABLE teachers
+	ADD COLUMN IF NOT EXISTS slug TEXT;
+	`
+	if _, err := database.Exec(addSlug); err != nil {
+		return fmt.Errorf("failed to add slug column: %w", err)
+	}
+
+	dropIndex := `
+	DROP INDEX IF EXISTS idx_teachers_name;
+	`
+	if _, err := database.Exec(dropIndex); err != nil {
+		return fmt.Errorf("failed to drop name index: %w", err)
+	}
+
+	indexName = `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_teachers_slug
+	ON teachers (slug);
+	`
+
+	if _, err := database.Exec(indexName); err != nil {
+		return fmt.Errorf("failed to create teachers slug index: %w", err)
+	}
+
 	return nil
 }

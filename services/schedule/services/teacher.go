@@ -26,7 +26,9 @@ func NewTeacherService(tr repositories.TeacherRepository, eb events.EventBus) Te
 		repository: tr,
 	}
 	res.BaseService = platform.NewBaseService(sc, tr,
-		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Teacher]{},
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Teacher]{
+			platform.HardDeleteCheck: res.hardDeleteCheck,
+		},
 	)
 	res.logger = res.GetLogger()
 
@@ -41,6 +43,9 @@ type teacherService struct {
 	logger     logger.Logger
 }
 
+func (s *teacherService) hardDeleteCheck(ctx context.Context, teacher *entities.Teacher) error {
+	return fmt.Errorf("slug")
+}
 func (s *teacherService) eventHandler(ctx context.Context, b []byte) {
 	t, err := events.FromByteConvertor[events.TeacherRE](b)
 	if err != nil {
@@ -55,6 +60,7 @@ func (s *teacherService) eventHandler(ctx context.Context, b []byte) {
 
 	trueT := entities.Teacher{
 		ID:             t.ID,
+		Slug:           t.Slug,
 		Name:           t.Name,
 		AcademicRankID: t.AcademicRankID,
 	}

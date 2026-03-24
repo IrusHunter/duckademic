@@ -28,6 +28,7 @@ func (ar AcademicRankRE) String() string {
 type TeacherRE struct {
 	Event          EventType
 	ID             uuid.UUID
+	Slug           string
 	Name           string
 	AcademicRankID uuid.UUID
 }
@@ -36,6 +37,7 @@ func (t TeacherRE) String() string {
 	parts := make([]string, 0, 4)
 	parts = append(parts, fmt.Sprintf("event: %s", t.Event))
 	parts = append(parts, fmt.Sprintf("id: %s", t.ID))
+	parts = append(parts, fmt.Sprintf("slug: %s", t.Slug))
 	parts = append(parts, fmt.Sprintf("name: %s", t.Name))
 	parts = append(parts, fmt.Sprintf("academic rank id: %s", t.AcademicRankID))
 	return fmt.Sprintf("TeacherRE{%s}", strings.Join(parts, ", "))
@@ -44,13 +46,15 @@ func (t TeacherRE) String() string {
 type StudentRE struct {
 	Event EventType
 	ID    uuid.UUID
+	Slug  string
 	Name  string
 }
 
-func (t StudentRE) String() string {
+func (s StudentRE) String() string {
 	parts := make([]string, 0, 4)
-	parts = append(parts, fmt.Sprintf("event: %s", t.Event))
-	parts = append(parts, fmt.Sprintf("id: %s", t.ID))
-	parts = append(parts, fmt.Sprintf("name: %s", t.Name))
+	parts = append(parts, fmt.Sprintf("event: %s", s.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", s.ID))
+	parts = append(parts, fmt.Sprintf("slug: %s", s.Slug))
+	parts = append(parts, fmt.Sprintf("name: %s", s.Name))
 	return fmt.Sprintf("StudentRE{%s}", strings.Join(parts, ", "))
 }

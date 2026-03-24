@@ -34,6 +34,10 @@
   - [/student/students](#student-students)
   - [/student/student/{id}](#student-student-id)
 
+- Student Group Service
+  - [/student-group/students](#student-group-students)
+  - [/student-group/student/{id}](#student-group-student-id)
+
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Employee Service
@@ -369,5 +373,35 @@
 ```
 
 200 OK [=> Student](schemas.md#student-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+# Student Group Service
+
+<a id="student-group-students"></a>
+
+## /students
+
+### GET - gets all students from the database
+
+200 OK [=> Student[]](schemas.md#student-group-student)
+
+<a id="student-group-student-id"></a>
+
+## /student/{id}
+
+### GET - finds student with an ID as an URL parameter
+
+200 OK [=> Student](schemas.md#student-group-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a student by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> Student](schemas.md#student-group-student)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

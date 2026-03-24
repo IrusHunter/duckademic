@@ -149,6 +149,7 @@ func (s *studentService) sendChanges(
 	eventS := events.StudentRE{
 		Event: eventType,
 		ID:    student.ID,
+		Slug:  student.Slug,
 		Name:  student.GetShortFullName(),
 	}
 
