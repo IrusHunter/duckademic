@@ -172,3 +172,18 @@
   "effective_to": "timestamp (when this curriculum ends, nullable)"
 }
 ```
+
+<a id="curriculum-semester"></a>
+
+### Semester
+
+```json
+{
+  "id": "uuid (unique identifier of the semester)",
+  "slug": "string (unique slug used internally)",
+  "curriculum_id": "uuid (identifier of the associated curriculum)",
+  "number": "integer (semester number within the curriculum)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

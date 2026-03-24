@@ -94,7 +94,6 @@ func (s *teacherService) Seed(ctx context.Context) error {
 		)
 	}
 
-	s.repository.Clear(ctx)
 	var lastError error
 	for _, teacher := range teachers {
 		trueTeacher := entities.Teacher{Email: teacher.Email}

@@ -41,6 +41,8 @@
 - Curriculum Service
   - [/curriculum/curriculums](#curriculum-curriculum)
   - [/curriculum/curriculum/{id}](#curriculum-curriculum-id)
+  - [/curriculum/semesters](#curriculum-semesters)
+  - [/curriculum/semester/{id}](#curriculum-semester-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -467,5 +469,57 @@
 ```
 
 200 OK [=> Curriculum](schemas.md#curriculum-curriculum)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="curriculum-semesters"></a>
+
+## /semesters
+
+### GET - gets all semesters from the database
+
+200 OK [=> Semester[]](schemas.md#curriculum-semester)
+
+### POST - adds a new semester
+
+```json
+{
+  "curriculum_id": "uuid (identifier of the associated curriculum)",
+  "number": "integer (semester number within the curriculum)"
+}
+```
+
+200 OK [=> Semester](schemas.md#curriculum-semester)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+---
+
+<a id="curriculum-semester-id"></a>
+
+## /semester/{id}
+
+### GET - finds semester with an ID as an URL parameter
+
+200 OK [=> Semester](schemas.md#curriculum-semester)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a semester by its ID provided in the URL path
+
+200 OK [=> Semester](schemas.md#curriculum-semester)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a semester by its ID with the data provided in the request body
+
+```json
+{
+  "curriculum_id": "uuid (identifier of the associated curriculum)",
+  "number": "integer (semester number within the curriculum)"
+}
+```
+
+200 OK [=> Semester](schemas.md#curriculum-semester)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
