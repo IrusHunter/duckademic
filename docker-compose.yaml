@@ -11,6 +11,7 @@ services:
       - schedule-service
       - student-service
       - student-group-service
+      - curriculum-service
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -55,6 +56,15 @@ services:
       - student-service
     env_file:
       - ./services/student_group/.env.docker
+    environment:
+    - DOCKER_ENV=true
+  
+  curriculum-service:
+    build: ./services/curriculum
+    expose:
+      - "10005"
+    env_file:
+      - ./services/curriculum/.env.docker
     environment:
     - DOCKER_ENV=true
   

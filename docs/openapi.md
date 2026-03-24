@@ -38,6 +38,10 @@
   - [/student-group/students](#student-group-students)
   - [/student-group/student/{id}](#student-group-student-id)
 
+- Curriculum Service
+  - [/curriculum/curriculums](#curriculum-curriculum)
+  - [/curriculum/curriculum/{id}](#curriculum-curriculum-id)
+
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Employee Service
@@ -403,5 +407,65 @@
 ```
 
 200 OK [=> Student](schemas.md#student-group-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+# Curriculum Service
+
+<a id="curriculum-curriculum"></a>
+
+## /curriculums
+
+### GET - gets all curriculums from the database
+
+200 OK [=> Curriculum[]](schemas.md#curriculum-curriculum)
+
+### POST - adds a new curriculum
+
+```json
+{
+  "name": "string (curriculum name)",
+  "duration_years": "integer (number of years for the curriculum)",
+  "effective_from": "timestamp (when this curriculum version becomes effective)",
+
+  // Optional fields
+  "effective_to": "timestamp (when this curriculum version ends, nullable)"
+}
+```
+
+200 OK [=> Curriculum](schemas.md#curriculum-curriculum)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="curriculum-curriculum-id"></a>
+
+## /curriculum/{id}
+
+### GET - finds curriculum with an ID as an URL parameter
+
+200 OK [=> Curriculum](schemas.md#curriculum-curriculum)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a curriculum by its ID provided in the URL path
+
+200 OK [=> Curriculum](schemas.md#curriculum-curriculum)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a curriculum by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (curriculum name)",
+  "duration_years": "integer (number of years for the curriculum)",
+  "effective_from": "timestamp (when this curriculum version becomes effective)",
+
+  // Optional fields
+  "effective_to": "timestamp (when this curriculum version ends, nullable)"
+}
+```
+
+200 OK [=> Curriculum](schemas.md#curriculum-curriculum)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

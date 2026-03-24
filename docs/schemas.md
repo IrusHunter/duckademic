@@ -151,3 +151,24 @@
   "deleted_at": "timestamp (soft delete timestamp)"
 }
 ```
+
+## Curriculum Service
+
+<a id="curriculum-curriculum"></a>
+
+### Curriculum
+
+```json
+{
+  "id": "uuid (unique identifier of the curriculum)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (curriculum name)",
+  "duration_years": "integer (number of years for the curriculum)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+  "effective_from": "timestamp (when this curriculum becomes effective)",
+
+  // Optional fields
+  "effective_to": "timestamp (when this curriculum ends, nullable)"
+}
+```

@@ -1,0 +1,28 @@
+[
+    {
+        "name": "Комп'ютерні науки",
+        "duration_years": 4,
+        "effective_from": "2026-09-01T00:00:00Z"
+    },
+    {
+        "name": "Інженерія програмного забезпечення",
+        "duration_years": 4,
+        "effective_from": "2025-09-01T00:00:00Z",
+        "effective_to": "2029-08-31T23:59:59Z"
+    },
+    {
+        "name": "Інформаційні системи та технології",
+        "duration_years": 3,
+        "effective_from": "2026-01-15T00:00:00Z"
+    },
+    {
+        "name": "Кібербезпека",
+        "duration_years": 3,
+        "effective_from": "2026-09-01T00:00:00Z"
+    },
+    {
+        "name": "Штучний інтелект та робототехніка",
+        "duration_years": 2,
+        "effective_from": "2025-09-01T00:00:00Z"
+    }
+]
