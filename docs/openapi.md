@@ -43,6 +43,8 @@
   - [/curriculum/curriculum/{id}](#curriculum-curriculum-id)
   - [/curriculum/semesters](#curriculum-semesters)
   - [/curriculum/semester/{id}](#curriculum-semester-id)
+  - [/curriculum/lesson-types](#curriculum-lesson-types)
+  - [/curriculum/lesson-type/{id}](#curriculum-lesson-type-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -521,5 +523,57 @@
 ```
 
 200 OK [=> Semester](schemas.md#curriculum-semester)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="curriculum-lesson-types"></a>
+
+## /lesson-types
+
+### GET - gets all lesson types from the database
+
+200 OK [=> LessonType[]](schemas.md#curriculum-lesson-type)
+
+### POST - adds a new lesson type
+
+```json
+{
+  "name": "string (name of the lesson type)",
+  "hours_value": "integer (number of hours per lesson)"
+}
+```
+
+200 OK [=> LessonType](schemas.md#curriculum-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+---
+
+<a id="curriculum-lesson-type-id"></a>
+
+## /lesson-type/{id}
+
+### GET - finds lesson type with an ID as an URL parameter
+
+200 OK [=> LessonType](schemas.md#curriculum-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a lesson type by its ID provided in the URL path
+
+200 OK [=> LessonType](schemas.md#curriculum-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a lesson type by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (name of the lesson type)",
+  "hours_value": "integer (number of hours per lesson)"
+}
+```
+
+200 OK [=> LessonType](schemas.md#curriculum-lesson-type)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

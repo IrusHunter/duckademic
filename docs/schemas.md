@@ -187,3 +187,18 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+<a id="curriculum-lesson-type"></a>
+
+### Lesson Type
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson type)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the lesson type)",
+  "hours_value": "integer (number of hours per lesson)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

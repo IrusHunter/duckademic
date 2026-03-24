@@ -15,6 +15,7 @@ func Migrate(database *sqlx.DB) error {
 	migrationsF := []func(*sqlx.DB) error{
 		curriculumMigrations,
 		semesterMigrations,
+		lessonTypeMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -85,6 +86,36 @@ func semesterMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "semesters"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for semesters: %w", err)
+	}
+
+	return nil
+}
+func lessonTypeMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS lesson_types (
+		id UUID PRIMARY KEY,
+		slug TEXT NOT NULL,
+		name TEXT NOT NULL,
+		hours_value INT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create lesson_types table: %w", err)
+	}
+
+	indexSlug := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_lesson_types_slug
+	ON lesson_types (slug);
+	`
+	if _, err := database.Exec(indexSlug); err != nil {
+		return fmt.Errorf("failed to create lesson_types slug index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "lesson_types"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for lesson_types: %w", err)
 	}
 
 	return nil
