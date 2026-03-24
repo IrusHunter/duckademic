@@ -29,6 +29,7 @@ func (c Curriculum) String() string {
 	if c.Slug != "" {
 		parts = append(parts, fmt.Sprintf("slug: %s", c.Slug))
 	}
+
 	parts = append(parts, fmt.Sprintf("name: %s", c.Name))
 	parts = append(parts, fmt.Sprintf("duration_years: %d", c.DurationYears))
 

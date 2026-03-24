@@ -49,6 +49,8 @@
   - [/curriculum/discipline/{id}](#curriculum-discipline-id)
   - [/curriculum/lesson-type-assignments](#curriculum-lesson-type-assignments)
   - [/curriculum/lesson-type-assignment/{id}](#curriculum-lesson-type-assignment-id)
+  - [/curriculum/semester-disciplines](#curriculum-semester-disciplines)
+  - [/curriculum/semester-discipline/{id}](#curriculum-semester-discipline-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -675,5 +677,44 @@
 ```
 
 200 OK [=> LessonTypeAssignment](schemas.md#curriculum-lesson-type-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="curriculum-semester-disciplines"></a>
+
+## /semester-disciplines
+
+### GET – gets all semester discipline relations from the database
+
+200 OK [=> SemesterDiscipline[]](schemas.md#curriculum-semester-discipline)
+
+### POST – adds a new semester discipline relation
+
+```json
+{
+  "semester_id": "uuid (identifier of the semester)",
+  "discipline_id": "uuid (identifier of the discipline)"
+}
+```
+
+200 OK [=> SemesterDiscipline](schemas.md#curriculum-semester-discipline)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+---
+
+<a id="curriculum-semester-discipline-id"></a>
+
+## /semester-discipline/{id}
+
+### GET – finds a semester discipline relation by ID (URL parameter)
+
+200 OK [=> SemesterDiscipline](schemas.md#curriculum-semester-discipline)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE – deletes a semester discipline relation by its ID (URL path)
+
+200 OK [=> SemesterDiscipline](schemas.md#curriculum-semester-discipline)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

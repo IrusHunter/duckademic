@@ -20,6 +20,7 @@ func NewRESTAPI(
 	lth resthandlers.LessonTypeHandler,
 	disH resthandlers.DisciplineHandler,
 	ltah resthandlers.LessonTypeAssignmentHandler,
+	sdh resthandlers.SemesterDisciplineHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
@@ -29,6 +30,7 @@ func NewRESTAPI(
 		lessonTypeHandler:           lth,
 		disciplineHandler:           disH,
 		lessonTypeAssignmentHandler: ltah,
+		semesterDisciplineHandler:   sdh,
 		databaseHandler:             dh,
 	}
 }
@@ -40,6 +42,7 @@ type restapi struct {
 	lessonTypeHandler           resthandlers.LessonTypeHandler
 	disciplineHandler           resthandlers.DisciplineHandler
 	lessonTypeAssignmentHandler resthandlers.LessonTypeAssignmentHandler
+	semesterDisciplineHandler   resthandlers.SemesterDisciplineHandler
 	databaseHandler             resthandlers.DatabaseHandler
 }
 
@@ -92,6 +95,15 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet:    ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Find),
 		http.MethodDelete: ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Delete),
 		http.MethodPut:    ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Update),
+	})
+
+	ra.NewRoute("/semester-disciplines", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.semesterDisciplineHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.semesterDisciplineHandler.Add),
+	})
+	ra.NewRoute("/semester-discipline/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.semesterDisciplineHandler.Find),
+		http.MethodDelete: ra.NewDefaultHandler(ra.semesterDisciplineHandler.Delete),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

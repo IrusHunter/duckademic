@@ -18,6 +18,7 @@ func Migrate(database *sqlx.DB) error {
 		lessonTypeMigrations,
 		disciplineMigrations,
 		lessonTypeAssignmentMigrations,
+		semesterDisciplineMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -180,6 +181,38 @@ func lessonTypeAssignmentMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "lesson_type_assignments"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for lesson_type_assignments: %w", err)
+	}
+
+	return nil
+}
+func semesterDisciplineMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS semester_discipline (
+		id UUID PRIMARY KEY,
+		semester_id UUID NOT NULL,
+		discipline_id UUID NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		CONSTRAINT uq_semester_discipline UNIQUE (semester_id, discipline_id),
+		CONSTRAINT fk_semester FOREIGN KEY (semester_id) REFERENCES semesters(id) ON DELETE CASCADE,
+		CONSTRAINT fk_discipline FOREIGN KEY (discipline_id) REFERENCES disciplines(id) ON DELETE CASCADE
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create semester_discipline table: %w", err)
+	}
+
+	indexSemesterDiscipline := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_semester_discipline
+	ON semester_discipline (semester_id, discipline_id);
+	`
+	if _, err := database.Exec(indexSemesterDiscipline); err != nil {
+		return fmt.Errorf("failed to create semester_discipline unique index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "semester_discipline"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for semester_discipline: %w", err)
 	}
 
 	return nil

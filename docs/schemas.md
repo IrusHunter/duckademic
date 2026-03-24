@@ -231,3 +231,17 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+<a id="curriculum-semester-discipline"></a>
+
+### Semester Discipline Relation
+
+```json
+{
+  "id": "uuid (unique identifier of this semester discipline record)",
+  "semester_id": "uuid (identifier of the associated semester)",
+  "discipline_id": "uuid (identifier of the associated discipline)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

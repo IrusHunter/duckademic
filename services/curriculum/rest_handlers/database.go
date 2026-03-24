@@ -20,22 +20,25 @@ func NewDatabaseHandler(
 	lts services.LessonTypeService,
 	ds services.DisciplineService,
 	ltas services.LessonTypeAssignmentService,
+	sds services.SemesterDisciplineService,
 ) DatabaseHandler {
 	return &databaseHandler{
-		curriculumService:    cs,
-		semesterService:      ss,
-		lessonTypeService:    lts,
-		disciplineService:    ds,
-		lessonTypeAssignment: ltas,
+		curriculumService:           cs,
+		semesterService:             ss,
+		lessonTypeService:           lts,
+		disciplineService:           ds,
+		lessonTypeAssignmentService: ltas,
+		semesterDisciplineService:   sds,
 	}
 }
 
 type databaseHandler struct {
-	curriculumService    services.CurriculumService
-	semesterService      services.SemesterService
-	lessonTypeService    services.LessonTypeService
-	disciplineService    services.DisciplineService
-	lessonTypeAssignment services.LessonTypeAssignmentService
+	curriculumService           services.CurriculumService
+	semesterService             services.SemesterService
+	lessonTypeService           services.LessonTypeService
+	disciplineService           services.DisciplineService
+	lessonTypeAssignmentService services.LessonTypeAssignmentService
+	semesterDisciplineService   services.SemesterDisciplineService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -55,15 +58,23 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed disciplines: %w", err))
 		return
 	}
-	if err := h.lessonTypeAssignment.Seed(ctx); err != nil {
+	if err := h.lessonTypeAssignmentService.Seed(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed lesson type assignments: %w", err))
+		return
+	}
+	if err := h.semesterDisciplineService.Seed(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed semester-discipline relations: %w", err))
 		return
 	}
 
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	if err := h.lessonTypeAssignment.Clear(ctx); err != nil {
+	if err := h.semesterDisciplineService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear semester-discipline relations: %w", err))
+		return
+	}
+	if err := h.lessonTypeAssignmentService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear lesson type assignments: %w", err))
 		return
 	}

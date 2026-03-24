@@ -44,6 +44,7 @@ func main() {
 	lessonTypeRepository := repositories.NewLessonTypeRepository(database)
 	disciplineRepository := repositories.NewDisciplineRepository(database)
 	lessonTypeAssignmentRepository := repositories.NewLessonTypeAssignmentRepository(database)
+	semesterDisciplineRepository := repositories.NewSemesterDisciplineRepository(database)
 
 	curriculumService := services.NewCurriculumService(curriculumRepository)
 	semesterService := services.NewSemesterService(semesterRepository, curriculumRepository)
@@ -51,17 +52,20 @@ func main() {
 	disciplineService := services.NewDisciplineService(disciplineRepository)
 	lessonTypeAssignmentService := services.NewLessonTypeAssignmentService(lessonTypeAssignmentRepository,
 		lessonTypeRepository, disciplineRepository)
+	semesterDisciplineService := services.NewSemesterDisciplineService(semesterDisciplineRepository, semesterRepository,
+		disciplineRepository, curriculumRepository)
 
 	curriculumHandler := resthandlers.NewCurriculumHandler(curriculumService)
 	semesterHandler := resthandlers.NewSemesterHandler(semesterService)
 	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
 	disciplineHandler := resthandlers.NewDisciplineHandler(disciplineService)
 	lessonTypeAssignmentHandler := resthandlers.NewLessonTypeAssignmentHandler(lessonTypeAssignmentService)
+	semesterDisciplineHandler := resthandlers.NewSemesterDisciplineHandler(semesterDisciplineService)
 	databaseHandler := resthandlers.NewDatabaseHandler(curriculumService, semesterService, lessonTypeService,
-		disciplineService, lessonTypeAssignmentService)
+		disciplineService, lessonTypeAssignmentService, semesterDisciplineService)
 
 	restapi := NewRESTAPI(curriculumHandler, semesterHandler, lessonTypeHandler, disciplineHandler,
-		lessonTypeAssignmentHandler, databaseHandler)
+		lessonTypeAssignmentHandler, semesterDisciplineHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

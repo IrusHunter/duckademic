@@ -1,0 +1,27 @@
+[
+    {
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 5,
+        "discipline_name": "Програмування інтернет речей"
+    },
+    {
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 1,
+        "discipline_name": "Структури даних"
+    },
+    {
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 2,
+        "discipline_name": "Інтернет технології"
+    },
+    {
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 3,
+        "discipline_name": "Констроювання ПЗ"
+    },
+    {
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 7,
+        "discipline_name": "Програмування вбудованих систем"
+    }
+]
