@@ -13,7 +13,9 @@ import (
 // Returns an error if any table creation or trigger setup fails.
 func Migrate(database *sqlx.DB) error {
 	migrationsF := []func(*sqlx.DB) error{
+		semesterMigrations,
 		studentMigrations,
+		groupCohortMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -21,6 +23,37 @@ func Migrate(database *sqlx.DB) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func semesterMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS semesters (
+		id UUID PRIMARY KEY,
+		slug TEXT NOT NULL,
+		curriculum_id UUID NOT NULL,
+		number INT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create semesters table: %w", err)
+	}
+
+	indexSlug := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_semesters_slug
+	ON semesters (slug);
+	`
+	if _, err := database.Exec(indexSlug); err != nil {
+		return fmt.Errorf("failed to create semesters slug index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "semesters"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for semesters: %w", err)
 	}
 
 	return nil
@@ -51,6 +84,45 @@ func studentMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "students"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for students: %w", err)
+	}
+
+	addColumnWithFK := `
+	ALTER TABLE students
+	ADD COLUMN IF NOT EXISTS semester_id UUID REFERENCES semesters(id) ON DELETE SET NULL;
+	`
+
+	if _, err := database.Exec(addColumnWithFK); err != nil {
+		return fmt.Errorf("failed to add semester_id column with foreign key to students: %w", err)
+	}
+
+	return nil
+}
+func groupCohortMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS group_cohorts (
+		id UUID PRIMARY KEY,
+		slug TEXT NOT NULL,
+		name TEXT NOT NULL,
+		semester_id UUID NOT NULL REFERENCES semesters(id) ON DELETE CASCADE,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create group_cohorts table: %w", err)
+	}
+
+	indexSlug := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_group_cohorts_slug
+	ON group_cohorts (slug);
+	`
+	if _, err := database.Exec(indexSlug); err != nil {
+		return fmt.Errorf("failed to create group_cohorts slug index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "group_cohorts"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for group_cohorts: %w", err)
 	}
 
 	return nil

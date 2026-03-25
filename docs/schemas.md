@@ -197,6 +197,21 @@
 
 ## Student Group Service
 
+<a id="student-group-semester"></a>
+
+### Semester
+
+```json
+{
+  "id": "uuid (unique identifier of the semester)",
+  "slug": "string (unique slug used internally)",
+  "curriculum_id": "uuid (identifier of the associated curriculum)",
+  "number": "integer (semester number within the curriculum)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 <a id="student-group-student"></a>
 
 ### Student
@@ -206,11 +221,27 @@
   "id": "uuid (unique identifier of the student)",
   "slug": "string (unique slug used internally)",
   "name": "string (student's short full name)",
+  "semester_id": "uuid (identifier of the associated semester)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)",
 
   // Optional fields
   "deleted_at": "timestamp (soft delete timestamp)"
+}
+```
+
+<a id="student-group-group-cohort"></a>
+
+### Group Cohort
+
+```json
+{
+  "id": "uuid (unique identifier of the group cohort)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the cohort)",
+  "semester_id": "uuid (identifier of the associated semester)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
 }
 ```
 

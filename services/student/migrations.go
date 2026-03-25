@@ -89,22 +89,13 @@ func studentMigrations(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create on update trigger for students: %w", err)
 	}
 
-	addColumn := `
+	addColumnWithFK := `
 	ALTER TABLE students
-	ADD COLUMN IF NOT EXISTS semester_id UUID;
+	ADD COLUMN IF NOT EXISTS semester_id UUID REFERENCES semesters(id) ON DELETE SET NULL;
 	`
-	if _, err := database.Exec(addColumn); err != nil {
-		return fmt.Errorf("failed to add semester_id column to students: %w", err)
-	}
 
-	addForeignKey := `
-	ALTER TABLE students
-	ADD CONSTRAINT fk_students_semester
-	FOREIGN KEY (semester_id) REFERENCES semesters(id)
-	ON DELETE SET NULL;
-	`
-	if _, err := database.Exec(addForeignKey); err != nil {
-		return fmt.Errorf("failed to add foreign key constraint for semester_id: %w", err)
+	if _, err := database.Exec(addColumnWithFK); err != nil {
+		return fmt.Errorf("failed to add semester_id column with foreign key to students: %w", err)
 	}
 
 	return nil

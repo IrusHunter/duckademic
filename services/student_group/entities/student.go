@@ -10,12 +10,13 @@ import (
 )
 
 type Student struct {
-	ID        uuid.UUID  `db:"id" json:"id"`                           // Unique identifier.
-	Slug      string     `db:"slug" json:"slug"`                       // Unique slug used internally.
-	Name      string     `db:"name" json:"name"`                       // Employees first name.
-	CreatedAt time.Time  `db:"created_at" json:"created_at"`           // Record creation timestamp.
-	UpdatedAt time.Time  `db:"updated_at" json:"updated_at"`           // Record last update timestamp.
-	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at,omitempty"` // Record deleted timestamp.
+	ID         uuid.UUID  `db:"id" json:"id"`     // Unique identifier.
+	Slug       string     `db:"slug" json:"slug"` // Unique slug used internally.
+	Name       string     `db:"name" json:"name"` // Employees first name.
+	SemesterID uuid.UUID  `db:"semester_id" json:"semester_id"`
+	CreatedAt  time.Time  `db:"created_at" json:"created_at"`           // Record creation timestamp.
+	UpdatedAt  time.Time  `db:"updated_at" json:"updated_at"`           // Record last update timestamp.
+	DeletedAt  *time.Time `db:"deleted_at" json:"deleted_at,omitempty"` // Record deleted timestamp.
 }
 
 func (s Student) String() string {
@@ -29,6 +30,7 @@ func (s Student) String() string {
 	}
 
 	parts = append(parts, fmt.Sprintf("name: %s", s.Name))
+	parts = append(parts, fmt.Sprintf("semester_id: %s", s.SemesterID))
 
 	if !s.CreatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("created_at: %s", s.CreatedAt.Format(db.TimeFormat)))

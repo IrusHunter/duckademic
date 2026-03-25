@@ -44,10 +44,11 @@ func (t TeacherRE) String() string {
 }
 
 type StudentRE struct {
-	Event EventType
-	ID    uuid.UUID
-	Slug  string
-	Name  string
+	Event      EventType
+	ID         uuid.UUID
+	Slug       string
+	Name       string
+	SemesterID uuid.UUID
 }
 
 func (s StudentRE) String() string {
@@ -56,6 +57,7 @@ func (s StudentRE) String() string {
 	parts = append(parts, fmt.Sprintf("id: %s", s.ID))
 	parts = append(parts, fmt.Sprintf("slug: %s", s.Slug))
 	parts = append(parts, fmt.Sprintf("name: %s", s.Name))
+	parts = append(parts, fmt.Sprintf("semester_id: %s", s.SemesterID))
 	return fmt.Sprintf("StudentRE{%s}", strings.Join(parts, ", "))
 }
 

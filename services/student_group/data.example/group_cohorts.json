@@ -1,0 +1,27 @@
+[
+    {
+        "name": "лекційна когорта A",
+        "curriculum_name": "Комп'ютерні науки",
+        "semester_number": 1
+    },
+    {
+        "name": "практична когорта B",
+        "curriculum_name": "Математика та статистика",
+        "semester_number": 3
+    },
+    {
+        "name": "лекційна когорта C",
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 5
+    },
+    {
+        "name": "практична когорта D",
+        "curriculum_name": "Кібербезпека",
+        "semester_number": 2
+    },
+    {
+        "name": "лекційна когорта E",
+        "curriculum_name": "Штучний інтелект",
+        "semester_number": 4
+    }
+]

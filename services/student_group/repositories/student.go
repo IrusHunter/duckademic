@@ -22,7 +22,7 @@ func NewStudentRepository(db *sqlx.DB) StudentRepository {
 		"StudentRepository",
 		entities.Student{}.TableName(),
 		"student",
-		[]string{"id", "slug", "name"},
+		[]string{"id", "slug", "name", "semester_id"},
 		[]string{},
 		[]string{"created_at", "updated_at"},
 	)
@@ -52,5 +52,5 @@ func (r *studentRepository) FindFirstByName(ctx context.Context, name string) *e
 func (r *studentRepository) ExternalUpdate(
 	ctx context.Context, id uuid.UUID, student entities.Student,
 ) (entities.Student, error) {
-	return r.UpdateFields(ctx, id, []string{"slug", "name"}, student)
+	return r.UpdateFields(ctx, id, []string{"slug", "name", "semester_id"}, student)
 }

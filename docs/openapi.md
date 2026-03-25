@@ -43,8 +43,12 @@
   - [/student/student/{id}](#student-student-id)
 
 - Student Group Service
+  - [/student-group/semesters](#student-group-semesters)
+  - [/student-group/semester/{id}](#student-group-semester-id)
   - [/student-group/students](#student-group-students)
   - [/student-group/student/{id}](#student-group-student-id)
+  - [/student-group/group-cohorts](#student-group-group-cohorts)
+  - [/student-group/group-cohort/{id}](#student-group-group-cohort-id)
 
 - Curriculum Service
   - [/curriculum/curriculums](#curriculum-curriculum)
@@ -524,6 +528,36 @@
 
 # Student Group Service
 
+<a id="student-group-semesters"></a>
+
+## /semesters
+
+### GET - gets all semesters from the database
+
+200 OK [=> Semester[]](schemas.md#student-group-semester)
+
+<a id="student-group-semester-id"></a>
+
+## /semester/{id}
+
+### GET - finds semester with an ID as an URL parameter
+
+200 OK [=> Semester](schemas.md#student-group-semester)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a semester by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> Semester](schemas.md#student-group-semester)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-group-students"></a>
+
 <a id="student-group-students"></a>
 
 ## /students
@@ -549,6 +583,56 @@
 ```
 
 200 OK [=> Student](schemas.md#student-group-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-group-cohorts"></a>
+
+## /group-cohorts
+
+### GET - gets all group cohorts from the database
+
+200 OK [=> GroupCohort[]](schemas.md#student-group-group-cohort)
+
+### POST - adds a new group cohort
+
+```json
+{
+  "name": "string (name of the cohort)",
+  "semester_id": "uuid (identifier of the associated semester)"
+}
+```
+
+200 OK [=> GroupCohort](schemas.md#student-group-group-cohort)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-group-cohort-id"></a>
+
+## /group-cohort/{id}
+
+### GET - finds group cohort with an ID as a URL parameter
+
+200 OK [=> GroupCohort](schemas.md#student-group-group-cohort)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a group cohort by its ID provided in the URL path
+
+200 OK [=> GroupCohort](schemas.md#student-group-group-cohort)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a group cohort by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (name of the cohort)",
+  "semester_id": "uuid (identifier of the associated semester)"
+}
+```
+
+200 OK [=> GroupCohort](schemas.md#student-group-group-cohort)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

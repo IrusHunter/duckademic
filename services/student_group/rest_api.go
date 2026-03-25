@@ -16,19 +16,25 @@ type RESTAPI interface {
 
 func NewRESTAPI(
 	sh resthandlers.StudentHandler,
+	semH resthandlers.SemesterHandler,
+	gch resthandlers.GroupCohortHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:   platform.NewRESTAPIHelper("RESTAPI"),
-		studentHandler:  sh,
-		databaseHandler: dh,
+		RESTAPIHelper:      platform.NewRESTAPIHelper("RESTAPI"),
+		studentHandler:     sh,
+		groupCohortHandler: gch,
+		semesterHandler:    semH,
+		databaseHandler:    dh,
 	}
 }
 
 type restapi struct {
 	platform.RESTAPIHelper
-	studentHandler  resthandlers.StudentHandler
-	databaseHandler resthandlers.DatabaseHandler
+	studentHandler     resthandlers.StudentHandler
+	semesterHandler    resthandlers.SemesterHandler
+	groupCohortHandler resthandlers.GroupCohortHandler
+	databaseHandler    resthandlers.DatabaseHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -38,6 +44,24 @@ func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/student/{id}", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.Find),
 		http.MethodPut: ra.NewDefaultHandler(ra.studentHandler.Update),
+	})
+
+	ra.NewRoute("/semesters", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.GetAll),
+	})
+	ra.NewRoute("/semester/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.semesterHandler.Find),
+		http.MethodPut: ra.NewDefaultHandler(ra.semesterHandler.Update),
+	})
+
+	ra.NewRoute("/group-cohorts", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.groupCohortHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.groupCohortHandler.Add),
+	})
+	ra.NewRoute("/group-cohort/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.groupCohortHandler.Find),
+		http.MethodPut:    ra.NewDefaultHandler(ra.groupCohortHandler.Update),
+		http.MethodDelete: ra.NewDefaultHandler(ra.groupCohortHandler.Delete),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

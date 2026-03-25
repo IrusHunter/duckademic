@@ -47,7 +47,7 @@ func (s *studentService) hardDeleteCheck(ctx context.Context, student *entities.
 	return fmt.Errorf("plug")
 }
 func (s *studentService) eventHandler(ctx context.Context, b []byte) {
-	t, err := events.FromByteConvertor[events.StudentRE](b)
+	student, err := events.FromByteConvertor[events.StudentRE](b)
 	if err != nil {
 		s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "StudentRTHandler",
 			err, logger.EventDataReadFailed)
@@ -55,22 +55,23 @@ func (s *studentService) eventHandler(ctx context.Context, b []byte) {
 	}
 
 	s.logger.Log(contextutil.GetTraceID(ctx), "StudentRTHandler",
-		fmt.Sprintf("received %s", t), logger.EventDataReceived,
+		fmt.Sprintf("received %s", student), logger.EventDataReceived,
 	)
 
-	trueT := entities.Student{
-		ID:   t.ID,
-		Slug: t.Slug,
-		Name: t.Name,
+	trueS := entities.Student{
+		ID:         student.ID,
+		Slug:       student.Slug,
+		Name:       student.Name,
+		SemesterID: student.SemesterID,
 	}
 
-	switch t.Event {
+	switch student.Event {
 	case events.EntityCreated:
-		s.Add(ctx, trueT)
+		s.Add(ctx, trueS)
 	case events.EntityUpdated:
-		s.ExternalUpdate(ctx, t.ID, trueT)
+		s.ExternalUpdate(ctx, student.ID, trueS)
 	case events.EntityDeleted:
-		s.Delete(ctx, t.ID)
+		s.Delete(ctx, student.ID)
 	}
 }
 

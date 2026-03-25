@@ -183,10 +183,11 @@ func (s *studentService) sendChanges(
 	eventType events.EventType,
 ) {
 	eventS := events.StudentRE{
-		Event: eventType,
-		ID:    student.ID,
-		Slug:  student.Slug,
-		Name:  student.GetShortFullName(),
+		Event:      eventType,
+		ID:         student.ID,
+		Slug:       student.Slug,
+		Name:       student.GetShortFullName(),
+		SemesterID: student.SemesterID,
 	}
 
 	s.BaseService.SendChanges(ctx, eventS, eventType, events.StudentRT)
