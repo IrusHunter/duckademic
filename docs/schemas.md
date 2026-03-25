@@ -158,6 +158,21 @@
 
 ## Student Service
 
+<a id="student-semester"></a>
+
+### Semester
+
+```json
+{
+  "id": "uuid (unique identifier of the semester)",
+  "slug": "string (unique slug used internally)",
+  "curriculum_id": "uuid (identifier of the associated curriculum)",
+  "number": "integer (semester number within the curriculum)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 <a id="student-student"></a>
 
 ### Student
@@ -169,6 +184,7 @@
   "first_name": "string (student's first name)",
   "last_name": "string (student's last name)",
   "email": "string (student's email address)",
+  "semester_id": "uuid (identifier of the associated semester)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)",
 

@@ -12,6 +12,7 @@ import (
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
+	"github.com/gosimple/slug"
 )
 
 type SemesterDisciplineService interface {
@@ -62,7 +63,6 @@ func (s *semesterDisciplineService) onAddPrepare(
 	semesterDiscipline.ID = uuid.New()
 	return nil
 }
-
 func (s *semesterDisciplineService) Seed(ctx context.Context) error {
 	type seedItem struct {
 		CurriculumName string `json:"curriculum_name"`
@@ -78,35 +78,16 @@ func (s *semesterDisciplineService) Seed(ctx context.Context) error {
 	}
 
 	var lastError error
-	curriculumCache := make(map[string]entities.Curriculum)
-	semesterCache := make(map[string]entities.Semester)
 
 	for _, item := range mappings {
-		if _, ok := curriculumCache[item.CurriculumName]; !ok {
-			curr := s.curriculumRepository.FindFirstByName(ctx, item.CurriculumName)
-			if curr == nil {
-				lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-					fmt.Errorf("curriculum %q not found", item.CurriculumName), logger.ServiceValidationFailed,
-				)
-				continue
-			}
-			curriculumCache[item.CurriculumName] = *curr
+		semesterSlug := fmt.Sprintf("%s-%d", slug.Make(item.CurriculumName), item.SemesterNumber)
+		semester := s.semesterRepository.FindBySlug(ctx, semesterSlug)
+		if semester == nil {
+			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+				fmt.Errorf("semester slug %q not found", semesterSlug), logger.ServiceValidationFailed,
+			)
+			continue
 		}
-		curriculum := curriculumCache[item.CurriculumName]
-
-		semesterKey := fmt.Sprintf("%s-%d", curriculum.ID, item.SemesterNumber)
-		if _, ok := semesterCache[semesterKey]; !ok {
-			sem := s.semesterRepository.FindByCurriculumIDAndNumber(ctx, curriculum.ID, item.SemesterNumber)
-			if sem == nil {
-				lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-					fmt.Errorf("semester number %d not found for curriculum %q", item.SemesterNumber, item.CurriculumName),
-					logger.ServiceValidationFailed,
-				)
-				continue
-			}
-			semesterCache[semesterKey] = *sem
-		}
-		semester := semesterCache[semesterKey]
 
 		discipline := s.disciplineRepository.FindFirstByName(ctx, item.DisciplineName)
 		if discipline == nil {

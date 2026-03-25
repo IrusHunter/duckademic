@@ -37,6 +37,8 @@
   - [/schedule/lesson-type-assignment/{id}](#schedule-lesson-type-assignment-id)
 
 - Student Service
+  - [/student/semesters](#student-semesters)
+  - [/student/semester/{id}](#student-semester-id)
   - [/student/students](#student-students)
   - [/student/student/{id}](#student-student-id)
 
@@ -430,6 +432,34 @@
 
 # Student Service
 
+<a id="student-semesters"></a>
+
+## /semesters
+
+### GET - gets all semesters from the database
+
+200 OK [=> Semester[]](schemas.md#student-semester)
+
+<a id="student-semester-id"></a>
+
+## /semester/{id}
+
+### GET - finds semester with an ID as an URL parameter
+
+200 OK [=> Semester](schemas.md#student-semester)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a semester by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> Semester](schemas.md#student-semester)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
 <a id="student-students"></a>
 
 ## /students
@@ -445,6 +475,7 @@
   "first_name": "string (student's first name)",
   "last_name": "string (student's last name)",
   "email": "string (student's email address)",
+  "semester_id": "uuid (identifier of the associated semester)",
 
   // Optional fields
   "middle_name": "string (student's middle name)",
@@ -479,6 +510,7 @@
   "first_name": "string (student's first name)",
   "last_name": "string (student's last name)",
   "email": "string (student's email address)",
+  "semester_id": "uuid (identifier of the associated semester)",
 
   // Optional fields
   "middle_name": "string (student's middle name)",

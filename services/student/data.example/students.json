@@ -4,60 +4,80 @@
         "last_name": "Мельник",
         "email": "vscorah0@meetup.com",
         "phone_number": "+963 (949) 927-6857",
-        "middle_name": "Михайлович"
+        "middle_name": "Михайлович",
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 2
     },
     {
         "first_name": "Михайло",
         "last_name": "Павленко",
         "email": "sbabalola1@apache.org",
-        "middle_name": "Артемович"
+        "middle_name": "Артемович",
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 4
     },
     {
         "first_name": "Анна",
         "last_name": "Павленко",
         "email": "lflute2@rediff.com",
-        "phone_number": "+98 (864) 820-4370"
+        "phone_number": "+98 (864) 820-4370",
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 3
     },
     {
         "first_name": "Софія",
         "last_name": "Павлюк",
         "email": "ltrinder3@epa.gov",
-        "phone_number": "+358 (983) 333-3673"
+        "phone_number": "+358 (983) 333-3673",
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 2
     },
     {
         "first_name": "Анна",
         "last_name": "Мельник",
         "email": "tthewles4@comsenz.com",
-        "middle_name": "Сергійович"
+        "middle_name": "Сергійович",
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 2
     },
     {
         "first_name": "Анна",
         "last_name": "Сидоренко",
         "email": "mwyeld5@ifeng.com",
-        "phone_number": "+86 (687) 387-1471"
+        "phone_number": "+86 (687) 387-1471",
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 2
     },
     {
         "first_name": "Марія",
         "last_name": "Павленко",
         "email": "rshipton6@biglobe.ne.jp",
         "phone_number": "+7 (501) 721-9781",
-        "middle_name": "Дмитрович"
+        "middle_name": "Дмитрович",
+        "curriculum_name": "Інженерія програмного забезпечення",
+        "semester_number": 2
     },
     {
         "first_name": "Петро",
         "last_name": "Коваленко",
-        "email": "jtait7@guardian.co.uk"
+        "email": "jtait7@guardian.co.uk",
+        "curriculum_name": "Кібербезпека",
+        "semester_number": 3
     },
     {
         "first_name": "Михайло",
         "last_name": "Коваль",
         "email": "cmacarte8@cyberchimps.com",
-        "middle_name": "Дмитрович"
+        "middle_name": "Дмитрович",
+        "curriculum_name": "Кібербезпека",
+        "semester_number": 7
     },
     {
         "first_name": "Ольга",
         "last_name": "Сидоренко",
         "email": "wdrezzer9@smugmug.com",
-        "phone_number": "+48 (395) 245-8786"
+        "phone_number": "+48 (395) 245-8786",
+        "curriculum_name": "Кібербезпека",
+        "semester_number": 1
     }
 ]

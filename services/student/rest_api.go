@@ -16,11 +16,13 @@ type RESTAPI interface {
 
 func NewRESTAPI(
 	sh resthandlers.StudentHandler,
+	semH resthandlers.SemesterHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
 		RESTAPIHelper:   platform.NewRESTAPIHelper("RESTAPI"),
 		studentHandler:  sh,
+		semesterHandler: semH,
 		databaseHandler: dh,
 	}
 }
@@ -28,6 +30,7 @@ func NewRESTAPI(
 type restapi struct {
 	platform.RESTAPIHelper
 	studentHandler  resthandlers.StudentHandler
+	semesterHandler resthandlers.SemesterHandler
 	databaseHandler resthandlers.DatabaseHandler
 }
 
@@ -40,6 +43,14 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet:    ra.NewDefaultHandler(ra.studentHandler.Find),
 		http.MethodDelete: ra.NewDefaultHandler(ra.studentHandler.Delete),
 		http.MethodPut:    ra.NewDefaultHandler(ra.studentHandler.Update),
+	})
+
+	ra.NewRoute("/semesters", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.semesterHandler.GetAll),
+	})
+	ra.NewRoute("/semester/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.semesterHandler.Find),
+		http.MethodPut: ra.NewDefaultHandler(ra.semesterHandler.Update),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

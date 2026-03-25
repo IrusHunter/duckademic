@@ -110,3 +110,21 @@ func (lta LessonTypeAssignmentRE) String() string {
 	parts = append(parts, fmt.Sprintf("required_hours: %d", lta.RequiredHours))
 	return fmt.Sprintf("LessonTypeAssignmentRE{%s}", strings.Join(parts, ", "))
 }
+
+type SemesterRE struct {
+	Event        EventType
+	ID           uuid.UUID
+	Slug         string
+	CurriculumID uuid.UUID
+	Number       int
+}
+
+func (sr SemesterRE) String() string {
+	parts := make([]string, 0, 5)
+	parts = append(parts, fmt.Sprintf("event: %s", sr.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", sr.ID))
+	parts = append(parts, fmt.Sprintf("slug: %s", sr.Slug))
+	parts = append(parts, fmt.Sprintf("curriculum_id: %s", sr.CurriculumID))
+	parts = append(parts, fmt.Sprintf("number: %d", sr.Number))
+	return fmt.Sprintf("SemesterRE{%s}", strings.Join(parts, ", "))
+}

@@ -17,6 +17,7 @@ type Student struct {
 	MiddleName  *string    `db:"middle_name" json:"middle_name,omitempty"`   // Employees middle name.
 	PhoneNumber *string    `db:"phone_number" json:"phone_number,omitempty"` // Contact phone number.
 	Email       string     `db:"email" json:"email"`
+	SemesterID  uuid.UUID  `db:"semester_id" json:"semester_id"`
 	CreatedAt   time.Time  `db:"created_at" json:"created_at"`           // Record creation timestamp.
 	UpdatedAt   time.Time  `db:"updated_at" json:"updated_at"`           // Record last update timestamp.
 	DeletedAt   *time.Time `db:"deleted_at" json:"deleted_at,omitempty"` // Record deleted timestamp.
@@ -43,6 +44,7 @@ func (s Student) String() string {
 	}
 
 	parts = append(parts, fmt.Sprintf("email: %s", s.Email))
+	parts = append(parts, fmt.Sprintf("semester_id: %s", s.SemesterID))
 
 	if !s.CreatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("created_at: %s", s.CreatedAt.Format(db.TimeFormat)))

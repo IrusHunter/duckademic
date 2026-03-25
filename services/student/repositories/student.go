@@ -23,8 +23,8 @@ func NewStudentRepository(db *sqlx.DB) StudentRepository {
 		"StudentRepository",
 		entities.Student{}.TableName(),
 		"student",
-		[]string{"id", "slug", "first_name", "last_name", "middle_name", "phone_number", "email"},
-		[]string{"first_name", "last_name", "middle_name", "phone_number", "email"},
+		[]string{"id", "slug", "first_name", "last_name", "middle_name", "phone_number", "email", "semester_id"},
+		[]string{"first_name", "last_name", "middle_name", "phone_number", "email", "semester_id"},
 		[]string{"created_at", "updated_at"},
 	)
 
