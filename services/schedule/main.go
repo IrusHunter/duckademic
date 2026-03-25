@@ -42,16 +42,27 @@ func main() {
 
 	academicRankRepository := repositories.NewAcademicRankRepository(database)
 	teacherRepository := repositories.NewTeacherRepository(database)
+	disciplineRepository := repositories.NewDisciplineRepository(database)
+	lessonTypeRepository := repositories.NewLessonTypeRepository(database)
+	lessonTypeAssignmentRepository := repositories.NewLessonTypeAssignmentRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
+	disciplineService := services.NewDisciplineService(disciplineRepository, eventBus)
+	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
+	lessonTypeAssignmentService := services.NewLessonTypeAssignmentService(lessonTypeAssignmentRepository,
+		lessonTypeRepository, disciplineRepository, eventBus)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
+	disciplineHandler := resthandlers.NewDisciplineHandler(disciplineService)
+	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
+	lessonTypeAssignmentHandler := resthandlers.NewLessonTypeAssignmentHandler(lessonTypeAssignmentService)
+	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, teacherService, disciplineService,
+		lessonTypeService, lessonTypeAssignmentService)
 
-	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, teacherService)
-
-	restapi := NewRESTAPI(academicRankHandler, teacherHandler, databaseHandler)
+	restapi := NewRESTAPI(academicRankHandler, teacherHandler, disciplineHandler,
+		lessonTypeHandler, lessonTypeAssignmentHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

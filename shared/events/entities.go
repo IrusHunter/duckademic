@@ -58,3 +58,55 @@ func (s StudentRE) String() string {
 	parts = append(parts, fmt.Sprintf("name: %s", s.Name))
 	return fmt.Sprintf("StudentRE{%s}", strings.Join(parts, ", "))
 }
+
+type LessonTypeRE struct {
+	Event      EventType
+	ID         uuid.UUID
+	Slug       string
+	Name       string
+	HoursValue int
+}
+
+func (l LessonTypeRE) String() string {
+	parts := make([]string, 0, 5)
+	parts = append(parts, fmt.Sprintf("event: %s", l.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", l.ID))
+	parts = append(parts, fmt.Sprintf("slug: %s", l.Slug))
+	parts = append(parts, fmt.Sprintf("name: %s", l.Name))
+	parts = append(parts, fmt.Sprintf("hours_value: %d", l.HoursValue))
+	return fmt.Sprintf("LessonTypeRE{%s}", strings.Join(parts, ", "))
+}
+
+type DisciplineRE struct {
+	Event EventType
+	ID    uuid.UUID
+	Slug  string
+	Name  string
+}
+
+func (d DisciplineRE) String() string {
+	parts := make([]string, 0, 4)
+	parts = append(parts, fmt.Sprintf("event: %s", d.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", d.ID))
+	parts = append(parts, fmt.Sprintf("slug: %s", d.Slug))
+	parts = append(parts, fmt.Sprintf("name: %s", d.Name))
+	return fmt.Sprintf("DisciplineRE{%s}", strings.Join(parts, ", "))
+}
+
+type LessonTypeAssignmentRE struct {
+	Event         EventType
+	ID            uuid.UUID
+	LessonTypeID  uuid.UUID
+	DisciplineID  uuid.UUID
+	RequiredHours int
+}
+
+func (lta LessonTypeAssignmentRE) String() string {
+	parts := make([]string, 0, 5)
+	parts = append(parts, fmt.Sprintf("event: %s", lta.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", lta.ID))
+	parts = append(parts, fmt.Sprintf("lesson_type_id: %s", lta.LessonTypeID))
+	parts = append(parts, fmt.Sprintf("discipline_id: %s", lta.DisciplineID))
+	parts = append(parts, fmt.Sprintf("required_hours: %d", lta.RequiredHours))
+	return fmt.Sprintf("LessonTypeAssignmentRE{%s}", strings.Join(parts, ", "))
+}

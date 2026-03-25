@@ -110,6 +110,52 @@
 }
 ```
 
+<a id="schedule-discipline"></a>
+
+### Discipline
+
+```json
+{
+  "id": "uuid (unique identifier of the discipline)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the discipline)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-lesson-type"></a>
+
+### Lesson Type
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson type)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the lesson type)",
+  "hours_value": "integer (number of hours per lesson)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-lesson-type-assignment"></a>
+
+### Lesson Type Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of this lesson type assignment)",
+  "lesson_type_id": "uuid (identifier of the associated lesson type)",
+  "discipline_id": "uuid (identifier of the associated discipline)",
+  "required_hours": "integer (number of hours required for this lesson type in this discipline)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-semester-discipline"></a>
+
 ## Student Service
 
 <a id="student-student"></a>

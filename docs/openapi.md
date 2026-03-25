@@ -29,6 +29,12 @@
   - [/schedule/academic-rank/{id}](#schedule-academic-rank-id)
   - [/schedule/teachers](#schedule-teachers)
   - [/schedule/teacher/{id}](#schedule-teacher-id)
+  - [/schedule/lesson-types](#schedule-lesson-types)
+  - [/schedule/lesson-type/{id}](#schedule-lesson-type-id)
+  - [/schedule/disciplines](#schedule-disciplines)
+  - [/schedule/discipline/{id}](#schedule-discipline-id)
+  - [/schedule/lesson-type-assignments](#schedule-lesson-type-assignments)
+  - [/schedule/lesson-type-assignment/{id}](#schedule-lesson-type-assignment-id)
 
 - Student Service
   - [/student/students](#student-students)
@@ -327,6 +333,100 @@
 **200 OK** [=> Teacher](schemas.md#schedule-teacher)
 
 **400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-lesson-types"></a>
+
+## /lesson-types
+
+### GET - gets all lesson types from the database
+
+200 OK [=> LessonType[]](schemas.md#schedule-lesson-type)
+
+<a id="schedule-lesson-type-id"></a>
+
+## /lesson-type/{id}
+
+### GET - finds lesson type with an ID as an URL parameter
+
+200 OK [=> LessonType](schemas.md#schedule-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a lesson type by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> LessonType](schemas.md#schedule-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-disciplines"></a>
+
+## /disciplines
+
+### GET – gets all disciplines from the database
+
+200 OK [=> Discipline[]](schemas.md#schedule-discipline)
+
+<a id="schedule-discipline-id"></a>
+
+## /discipline/{id}
+
+### GET – finds a discipline with an ID as a URL parameter
+
+200 OK [=> Discipline](schemas.md#schedule-discipline)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT – updates a discipline by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> Discipline](schemas.md#schedule-discipline)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-lesson-type-assignments"></a>
+
+## /lesson-type-assignments
+
+### GET – gets all lesson type assignments from the database
+
+200 OK [=> LessonTypeAssignment[]](schemas.md#schedule-lesson-type-assignment)
+
+### POST – adds a new lesson type assignment
+
+```json
+{}
+```
+
+200 OK [=> LessonTypeAssignment](schemas.md#schedule-esson-type-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-lesson-type-assignment-id"></a>
+
+## /lesson-type-assignment/{id}
+
+### GET – finds a lesson type assignment with an ID as a URL parameter
+
+200 OK [=> LessonTypeAssignment](schemas.md#schedule-lesson-type-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT – updates a lesson type assignment by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> LessonTypeAssignment](schemas.md#schedule-lesson-type-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 # Student Service
 

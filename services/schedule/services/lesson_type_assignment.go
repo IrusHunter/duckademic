@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/IrusHunter/duckademic/services/curriculum/entities"
-	"github.com/IrusHunter/duckademic/services/curriculum/repositories"
+	"github.com/IrusHunter/duckademic/services/schedule/entities"
+	"github.com/IrusHunter/duckademic/services/schedule/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
@@ -35,18 +35,14 @@ func NewLessonTypeAssignmentService(
 		repository:           ltar,
 		lessonTypeRepository: ltr,
 		disciplineRepository: dr,
-		eventBus:             eb,
 	}
-
-	res.BaseService = platform.NewBaseServiceWithEventBus(sc, ltar,
-		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.LessonTypeAssignment]{
-			platform.OnAddPrepare:   res.onAddPrepare,
-			platform.ValidateEntity: res.validateEntity,
-		},
-		eb,
+	res.BaseService = platform.NewBaseService(sc, ltar,
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.LessonTypeAssignment]{},
 	)
-
 	res.logger = res.GetLogger()
+
+	eb.Subscribe(contextutil.SetTraceID(context.Background()), string(events.LessonTypeAssignmentRT), res.eventHandler)
+
 	return res
 }
 
@@ -56,31 +52,41 @@ type lessonTypeAssignmentService struct {
 	lessonTypeRepository repositories.LessonTypeRepository
 	disciplineRepository repositories.DisciplineRepository
 	logger               logger.Logger
-	eventBus             events.EventBus
 }
 
-func (s *lessonTypeAssignmentService) validateEntity(ctx context.Context, lta *entities.LessonTypeAssignment) error {
-	if err := lta.ValidateRequiredHours(); err != nil {
-		return err
-	}
-	return nil
-}
-func (s *lessonTypeAssignmentService) onAddPrepare(ctx context.Context, lta *entities.LessonTypeAssignment) error {
-	if existing := s.repository.FindByLessonTypeAndDiscipline(ctx, lta.LessonTypeID, lta.DisciplineID); existing != nil {
-		return fmt.Errorf("assignment for lesson type with id %q and discipline with id %q already exists",
-			lta.LessonTypeID, lta.DisciplineID,
-		)
+func (s *lessonTypeAssignmentService) eventHandler(ctx context.Context, b []byte) {
+	ltaEvent, err := events.FromByteConvertor[events.LessonTypeAssignmentRE](b)
+	if err != nil {
+		s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "LessonTypeAssignmentRTHandler",
+			err, logger.EventDataReadFailed)
+		return
 	}
 
-	lta.ID = uuid.New()
-	return nil
+	s.logger.Log(contextutil.GetTraceID(ctx), "LessonTypeAssignmentRTHandlerRTHandler",
+		fmt.Sprintf("received %s", ltaEvent), logger.EventDataReceived,
+	)
+
+	trueLTA := entities.LessonTypeAssignment{
+		ID:            ltaEvent.ID,
+		LessonTypeID:  ltaEvent.LessonTypeID,
+		DisciplineID:  ltaEvent.DisciplineID,
+		RequiredHours: ltaEvent.RequiredHours,
+	}
+
+	switch ltaEvent.Event {
+	case events.EntityCreated:
+		s.Add(ctx, trueLTA)
+	case events.EntityUpdated:
+		s.ExternalUpdate(ctx, ltaEvent.ID, trueLTA)
+	case events.EntityDeleted:
+		s.Delete(ctx, ltaEvent.ID)
+	}
 }
 
 func (s *lessonTypeAssignmentService) Seed(ctx context.Context) error {
 	assignments := []struct {
 		LessonTypeName string `json:"lesson_type_name"`
 		DisciplineName string `json:"discipline_name"`
-		RequiredHours  int    `json:"required_hours"`
 	}{}
 
 	if err := jsonutil.ReadFileTo(filepath.Join("data", "lesson_type_assignments.json"), &assignments); err != nil {
@@ -107,16 +113,20 @@ func (s *lessonTypeAssignmentService) Seed(ctx context.Context) error {
 			continue
 		}
 
-		lta := entities.LessonTypeAssignment{
-			LessonTypeID:  lessonType.ID,
-			DisciplineID:  discipline.ID,
-			RequiredHours: item.RequiredHours,
+		lta := s.repository.FindByLessonTypeAndDiscipline(ctx, lessonType.ID, discipline.ID)
+		if lta == nil {
+			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+				fmt.Errorf("lta for %s and %s not found", discipline, lessonType), logger.ServiceValidationFailed,
+			)
+			continue
 		}
 
-		_, err := s.Add(ctx, lta)
+		trueLta := entities.LessonTypeAssignment{}
+
+		_, err := s.Update(ctx, lta.ID, trueLta)
 		if err != nil {
 			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("failed to add %s: %w", lta, err), logger.ServiceValidationFailed,
+				fmt.Errorf("failed to update %s: %w", lta, err), logger.ServiceValidationFailed,
 			)
 			continue
 		}
@@ -129,46 +139,19 @@ func (s *lessonTypeAssignmentService) Seed(ctx context.Context) error {
 	return lastError
 }
 
-func (s *lessonTypeAssignmentService) Add(
-	ctx context.Context, lta entities.LessonTypeAssignment,
-) (entities.LessonTypeAssignment, error) {
-	addedLTA, err := s.BaseService.Add(ctx, lta)
-	if err == nil {
-		s.sendChanges(ctx, addedLTA, events.EntityCreated)
-	}
-	return addedLTA, err
-}
-func (s *lessonTypeAssignmentService) Delete(
-	ctx context.Context, id uuid.UUID,
-) (entities.LessonTypeAssignment, error) {
-	deletedLTA, err := s.BaseService.Delete(ctx, id)
-	if err == nil {
-		s.sendChanges(ctx, deletedLTA, events.EntityDeleted)
-	}
-	return deletedLTA, err
-}
-func (s *lessonTypeAssignmentService) Update(
-	ctx context.Context, id uuid.UUID, lta entities.LessonTypeAssignment,
-) (entities.LessonTypeAssignment, error) {
-	updatedLTA, err := s.BaseService.Update(ctx, id, lta)
-	if err == nil {
-		s.sendChanges(ctx, updatedLTA, events.EntityUpdated)
-	}
-	return updatedLTA, err
-}
-
-func (s *lessonTypeAssignmentService) sendChanges(
+func (s *lessonTypeAssignmentService) ExternalUpdate(
 	ctx context.Context,
+	id uuid.UUID,
 	lta entities.LessonTypeAssignment,
-	event events.EventType,
-) {
-	eventLTA := events.LessonTypeAssignmentRE{
-		Event:         event,
-		ID:            lta.ID,
-		LessonTypeID:  lta.LessonTypeID,
-		DisciplineID:  lta.DisciplineID,
-		RequiredHours: lta.RequiredHours,
+) (entities.LessonTypeAssignment, error) {
+	updated, err := s.repository.ExternalUpdate(ctx, id, lta)
+	if err != nil {
+		return entities.LessonTypeAssignment{}, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "ExternalUpdate",
+			err, logger.ServiceRepositoryFailed,
+		)
 	}
 
-	s.BaseService.SendChanges(ctx, eventLTA, event, events.LessonTypeAssignmentRT)
+	s.logger.Log(contextutil.GetTraceID(ctx), "ExternalUpdate",
+		fmt.Sprintf("%v successfully updated", updated), logger.ServiceOperationSuccess)
+	return updated, nil
 }

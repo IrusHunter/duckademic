@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/curriculum/services"
 	"github.com/IrusHunter/duckademic/shared/db"
 	"github.com/IrusHunter/duckademic/shared/envutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/logger"
 )
 
@@ -33,11 +34,11 @@ func main() {
 
 	logger.LoadDefaultLogConfig()
 
-	// rdc, err := events.NewDefaultRedisConnection()
-	// if err != nil {
-	// 	log.Fatalf("Can't connect to redis: %v", err)
-	// }
-	// eventBus := events.NewEventBus(rdc)
+	rdc, err := events.NewDefaultRedisConnection()
+	if err != nil {
+		log.Fatalf("Can't connect to redis: %v", err)
+	}
+	eventBus := events.NewEventBus(rdc)
 
 	curriculumRepository := repositories.NewCurriculumRepository(database)
 	semesterRepository := repositories.NewSemesterRepository(database)
@@ -48,10 +49,10 @@ func main() {
 
 	curriculumService := services.NewCurriculumService(curriculumRepository)
 	semesterService := services.NewSemesterService(semesterRepository, curriculumRepository)
-	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository)
-	disciplineService := services.NewDisciplineService(disciplineRepository)
+	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
+	disciplineService := services.NewDisciplineService(disciplineRepository, eventBus)
 	lessonTypeAssignmentService := services.NewLessonTypeAssignmentService(lessonTypeAssignmentRepository,
-		lessonTypeRepository, disciplineRepository)
+		lessonTypeRepository, disciplineRepository, eventBus)
 	semesterDisciplineService := services.NewSemesterDisciplineService(semesterDisciplineRepository, semesterRepository,
 		disciplineRepository, curriculumRepository)
 
