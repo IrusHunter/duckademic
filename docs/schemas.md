@@ -245,6 +245,21 @@
 }
 ```
 
+<a id="student-group-student-group"></a>
+
+### Student Group
+
+```json
+{
+  "id": "uuid (unique identifier of the student group)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the group)",
+  "group_cohort_id": "uuid (identifier of the associated student group)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 ## Curriculum Service
 
 <a id="curriculum-curriculum"></a>

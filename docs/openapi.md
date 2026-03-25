@@ -49,6 +49,8 @@
   - [/student-group/student/{id}](#student-group-student-id)
   - [/student-group/group-cohorts](#student-group-group-cohorts)
   - [/student-group/group-cohort/{id}](#student-group-group-cohort-id)
+  - [/student-group/student-groups](#student-group-student-groups)
+  - [/student-group/student-group/{id}](#student-group-student-group-id)
 
 - Curriculum Service
   - [/curriculum/curriculums](#curriculum-curriculum)
@@ -633,6 +635,56 @@
 ```
 
 200 OK [=> GroupCohort](schemas.md#student-group-group-cohort)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-student-groups"></a>
+
+## /student-groups
+
+### GET - gets all student groups from the database
+
+200 OK [=> StudentGroup[]](schemas.md#student-group-student-group)
+
+### POST - adds a new student group
+
+```json
+{
+  "name": "string (name of the group)",
+  "group_cohort_id": "uuid (identifier of the associated group cohort)"
+}
+```
+
+200 OK [=> StudentGroup](schemas.md#student-group-student-group)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-student-group-id"></a>
+
+## /student-group/{id}
+
+### GET - finds a student group by its ID provided in the URL path
+
+200 OK [=> StudentGroup](schemas.md#student-group-student-group)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a student group by its ID provided in the URL path
+
+200 OK [=> StudentGroup](schemas.md#student-group-student-group)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a student group by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (name of the group)",
+  "group_cohort_id": "uuid (identifier of the associated group cohort)"
+}
+```
+
+200 OK [=> StudentGroup](schemas.md#student-group-student-group)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

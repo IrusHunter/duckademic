@@ -18,23 +18,26 @@ func NewRESTAPI(
 	sh resthandlers.StudentHandler,
 	semH resthandlers.SemesterHandler,
 	gch resthandlers.GroupCohortHandler,
+	sgh resthandlers.StudentGroupHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:      platform.NewRESTAPIHelper("RESTAPI"),
-		studentHandler:     sh,
-		groupCohortHandler: gch,
-		semesterHandler:    semH,
-		databaseHandler:    dh,
+		RESTAPIHelper:       platform.NewRESTAPIHelper("RESTAPI"),
+		studentHandler:      sh,
+		groupCohortHandler:  gch,
+		semesterHandler:     semH,
+		studentGroupHandler: sgh,
+		databaseHandler:     dh,
 	}
 }
 
 type restapi struct {
 	platform.RESTAPIHelper
-	studentHandler     resthandlers.StudentHandler
-	semesterHandler    resthandlers.SemesterHandler
-	groupCohortHandler resthandlers.GroupCohortHandler
-	databaseHandler    resthandlers.DatabaseHandler
+	studentHandler      resthandlers.StudentHandler
+	semesterHandler     resthandlers.SemesterHandler
+	groupCohortHandler  resthandlers.GroupCohortHandler
+	studentGroupHandler resthandlers.StudentGroupHandler
+	databaseHandler     resthandlers.DatabaseHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -62,6 +65,16 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet:    ra.NewDefaultHandler(ra.groupCohortHandler.Find),
 		http.MethodPut:    ra.NewDefaultHandler(ra.groupCohortHandler.Update),
 		http.MethodDelete: ra.NewDefaultHandler(ra.groupCohortHandler.Delete),
+	})
+
+	ra.NewRoute("/student-groups", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.studentGroupHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.studentGroupHandler.Add),
+	})
+	ra.NewRoute("/student-group/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.studentGroupHandler.Find),
+		http.MethodPut:    ra.NewDefaultHandler(ra.studentGroupHandler.Update),
+		http.MethodDelete: ra.NewDefaultHandler(ra.studentGroupHandler.Delete),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
