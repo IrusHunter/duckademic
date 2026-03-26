@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/student_group/entities"
 	"github.com/IrusHunter/duckademic/services/student_group/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
@@ -22,17 +23,20 @@ type StudentGroupService interface {
 func NewStudentGroupService(
 	sgr repositories.StudentGroupRepository,
 	gcr repositories.GroupCohortRepository,
+	eb events.EventBus,
 ) StudentGroupService {
 	sc := platform.NewServiceConfig("StudentGroupService", filepath.Join("data", "student_groups.json"), "student_group")
 
 	res := &studentGroupService{
 		repository: sgr,
+		eventBus:   eb,
 	}
-	res.BaseService = platform.NewBaseService(sc, sgr,
+	res.BaseService = platform.NewBaseServiceWithEventBus(sc, sgr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.StudentGroup]{
 			platform.OnAddPrepare:   res.onAddPrepare,
 			platform.ValidateEntity: res.validateEntity,
 		},
+		eb,
 	)
 	res.logger = res.GetLogger()
 
@@ -44,6 +48,7 @@ type studentGroupService struct {
 	repository      repositories.StudentGroupRepository
 	groupCohortRepo repositories.GroupCohortRepository
 	logger          logger.Logger
+	eventBus        events.EventBus
 }
 
 func (s *studentGroupService) validateEntity(ctx context.Context, sg *entities.StudentGroup) error {
@@ -51,14 +56,8 @@ func (s *studentGroupService) validateEntity(ctx context.Context, sg *entities.S
 		return err
 	}
 
-	// Optionally: check that GroupCohortID is set
-	if sg.GroupCohortID == uuid.Nil {
-		return fmt.Errorf("group cohort ID required")
-	}
-
 	return nil
 }
-
 func (s *studentGroupService) onAddPrepare(ctx context.Context, sg *entities.StudentGroup) error {
 	slugStr := slug.Make(sg.Name)
 	if other := s.repository.FindBySlug(ctx, slugStr); other != nil {
@@ -122,4 +121,48 @@ func (s *studentGroupService) Seed(ctx context.Context) error {
 	)
 
 	return lastError
+}
+
+func (s *studentGroupService) Add(
+	ctx context.Context, group entities.StudentGroup,
+) (entities.StudentGroup, error) {
+	added, err := s.BaseService.Add(ctx, group)
+	if err == nil {
+		s.sendChanges(ctx, added, events.EntityCreated)
+	}
+	return added, err
+}
+func (s *studentGroupService) Delete(
+	ctx context.Context, id uuid.UUID,
+) (entities.StudentGroup, error) {
+	deleted, err := s.BaseService.Delete(ctx, id)
+	if err == nil {
+		s.sendChanges(ctx, deleted, events.EntityDeleted)
+	}
+	return deleted, err
+}
+func (s *studentGroupService) Update(
+	ctx context.Context, id uuid.UUID, group entities.StudentGroup,
+) (entities.StudentGroup, error) {
+	updated, err := s.BaseService.Update(ctx, id, group)
+	if err == nil {
+		s.sendChanges(ctx, updated, events.EntityUpdated)
+	}
+	return updated, err
+}
+
+func (s *studentGroupService) sendChanges(
+	ctx context.Context,
+	group entities.StudentGroup,
+	eventType events.EventType,
+) {
+	eventG := events.StudentGroupRE{
+		Event:         eventType,
+		ID:            group.ID,
+		Slug:          group.Slug,
+		Name:          group.Name,
+		GroupCohortID: group.GroupCohortID,
+	}
+
+	s.BaseService.SendChanges(ctx, eventG, eventType, events.StudentGroupRT)
 }

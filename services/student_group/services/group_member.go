@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/student_group/entities"
 	"github.com/IrusHunter/duckademic/services/student_group/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
@@ -23,6 +24,7 @@ func NewGroupMemberService(
 	sr repositories.StudentRepository,
 	gcr repositories.GroupCohortRepository,
 	sgr repositories.StudentGroupRepository,
+	eb events.EventBus,
 ) GroupMemberService {
 	sc := platform.NewServiceConfig("GroupMembersService", filepath.Join("data", "group_members.json"), "group_member")
 
@@ -31,11 +33,13 @@ func NewGroupMemberService(
 		studentRepository:      sr,
 		groupCohortRepository:  gcr,
 		studentGroupRepository: sgr,
+		eventBus:               eb,
 	}
-	res.BaseService = platform.NewBaseService(sc, gmr,
+	res.BaseService = platform.NewBaseServiceWithEventBus(sc, gmr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.GroupMember]{
 			platform.OnAddPrepare: res.onAddPrepare,
 		},
+		eb,
 	)
 	res.logger = res.GetLogger()
 
@@ -49,6 +53,7 @@ type groupMemberService struct {
 	groupCohortRepository  repositories.GroupCohortRepository
 	studentGroupRepository repositories.StudentGroupRepository
 	logger                 logger.Logger
+	eventBus               events.EventBus
 }
 
 func (s *groupMemberService) onAddPrepare(ctc context.Context, groupMember *entities.GroupMember) error {
@@ -137,4 +142,48 @@ func (s *groupMemberService) Seed(ctx context.Context) error {
 	)
 
 	return lastError
+}
+
+func (s *groupMemberService) Add(
+	ctx context.Context, member entities.GroupMember,
+) (entities.GroupMember, error) {
+	added, err := s.BaseService.Add(ctx, member)
+	if err == nil {
+		s.sendChanges(ctx, added, events.EntityCreated)
+	}
+	return added, err
+}
+func (s *groupMemberService) Delete(
+	ctx context.Context, id uuid.UUID,
+) (entities.GroupMember, error) {
+	deleted, err := s.BaseService.Delete(ctx, id)
+	if err == nil {
+		s.sendChanges(ctx, deleted, events.EntityDeleted)
+	}
+	return deleted, err
+}
+func (s *groupMemberService) Update(
+	ctx context.Context, id uuid.UUID, member entities.GroupMember,
+) (entities.GroupMember, error) {
+	updated, err := s.BaseService.Update(ctx, id, member)
+	if err == nil {
+		s.sendChanges(ctx, updated, events.EntityUpdated)
+	}
+	return updated, err
+}
+
+func (s *groupMemberService) sendChanges(
+	ctx context.Context,
+	member entities.GroupMember,
+	eventType events.EventType,
+) {
+	eventM := events.GroupMemberRE{
+		Event:          eventType,
+		ID:             member.ID,
+		StudentID:      member.StudentID,
+		GroupCohortID:  member.GroupCohort,
+		StudentGroupID: member.StudentGroup,
+	}
+
+	s.BaseService.SendChanges(ctx, eventM, eventType, events.GroupMemberRT)
 }

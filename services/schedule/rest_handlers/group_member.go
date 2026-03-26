@@ -1,8 +1,8 @@
 package resthandlers
 
 import (
-	"github.com/IrusHunter/duckademic/services/student_group/entities"
-	"github.com/IrusHunter/duckademic/services/student_group/services"
+	"github.com/IrusHunter/duckademic/services/schedule/entities"
+	"github.com/IrusHunter/duckademic/services/schedule/services"
 	"github.com/IrusHunter/duckademic/shared/platform"
 )
 

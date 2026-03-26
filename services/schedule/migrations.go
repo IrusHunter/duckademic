@@ -18,6 +18,9 @@ func Migrate(database *sqlx.DB) error {
 		disciplineMigrations,
 		lessonTypeMigrations,
 		lessonTypeAssignmentMigrations,
+		studentMigrations,
+		studentGroupMigrations,
+		groupMembersMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -204,6 +207,86 @@ func lessonTypeAssignmentMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "lesson_type_assignments"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for lesson_type_assignments: %w", err)
+	}
+
+	return nil
+}
+func studentMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS students (
+		id UUID PRIMARY KEY,
+		slug TEXT NOT NULL,
+		name TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		deleted_at TIMESTAMP WITH TIME ZONE
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create students table: %w", err)
+	}
+
+	indexSlug := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_students_slug
+	ON students (slug);
+	`
+	if _, err := database.Exec(indexSlug); err != nil {
+		return fmt.Errorf("failed to create students slug index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "students"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for students: %w", err)
+	}
+
+	return nil
+}
+func studentGroupMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS student_groups (
+		id UUID PRIMARY KEY,
+		slug TEXT NOT NULL,
+		name TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create student_groups table: %w", err)
+	}
+
+	indexSlug := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_student_groups_slug
+	ON student_groups (slug);
+	`
+	if _, err := database.Exec(indexSlug); err != nil {
+		return fmt.Errorf("failed to create student_groups slug index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "student_groups"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for student_groups: %w", err)
+	}
+
+	return nil
+}
+func groupMembersMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS group_members (
+		id UUID PRIMARY KEY,
+		student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+		student_group_id UUID REFERENCES student_groups(id) ON DELETE SET NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create group_members table: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "group_members"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for group_members: %w", err)
 	}
 
 	return nil

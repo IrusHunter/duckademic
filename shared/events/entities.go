@@ -130,3 +130,46 @@ func (sr SemesterRE) String() string {
 	parts = append(parts, fmt.Sprintf("number: %d", sr.Number))
 	return fmt.Sprintf("SemesterRE{%s}", strings.Join(parts, ", "))
 }
+
+type StudentGroupRE struct {
+	Event         EventType
+	ID            uuid.UUID
+	Slug          string
+	Name          string
+	GroupCohortID uuid.UUID
+}
+
+func (sr StudentGroupRE) String() string {
+	parts := make([]string, 0, 5)
+	parts = append(parts, fmt.Sprintf("event: %s", sr.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", sr.ID))
+	parts = append(parts, fmt.Sprintf("slug: %s", sr.Slug))
+	parts = append(parts, fmt.Sprintf("name: %s", sr.Name))
+	parts = append(parts, fmt.Sprintf("group_cohort_id: %s", sr.GroupCohortID))
+	return fmt.Sprintf("StudentGroupRE{%s}", strings.Join(parts, ", "))
+}
+
+type GroupMemberRE struct {
+	Event          EventType
+	ID             uuid.UUID
+	StudentID      uuid.UUID
+	GroupCohortID  uuid.UUID
+	StudentGroupID *uuid.UUID
+}
+
+func (gr GroupMemberRE) String() string {
+	parts := make([]string, 0, 5)
+
+	parts = append(parts, fmt.Sprintf("event: %s", gr.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", gr.ID))
+	parts = append(parts, fmt.Sprintf("student_id: %s", gr.StudentID))
+	parts = append(parts, fmt.Sprintf("group_cohort_id: %s", gr.GroupCohortID))
+
+	if gr.StudentGroupID != nil {
+		parts = append(parts, fmt.Sprintf("student_group_id: %s", *gr.StudentGroupID))
+	} else {
+		parts = append(parts, "student_group_id: <nil>")
+	}
+
+	return fmt.Sprintf("GroupMemberRE{%s}", strings.Join(parts, ", "))
+}

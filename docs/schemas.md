@@ -154,7 +154,52 @@
 }
 ```
 
-<a id="schedule-semester-discipline"></a>
+<a id="schedule-student"></a>
+
+### Student
+
+```json
+{
+  "id": "uuid (unique identifier of the student)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (student's short full name)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "deleted_at": "timestamp (soft delete timestamp)"
+}
+```
+
+<a id="schedule-student-group"></a>
+
+### Student Group
+
+```json
+{
+  "id": "uuid (unique identifier of the student group)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the group)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-group-member"></a>
+
+### Group Member
+
+```json
+{
+  "id": "uuid (unique identifier of the group member record)",
+  "studentId": "uuid (identifier of the student)",
+  "createdAt": "timestamp (record creation timestamp)",
+  "updatedAt": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "student_group_id": "uuid (identifier of the student group)"
+}
+```
 
 ## Student Service
 

@@ -10,6 +10,8 @@ const (
 	DisciplineRT           RedisTopic = "disciplines"
 	LessonTypeAssignmentRT RedisTopic = "lesson:type:assignments"
 	SemesterRT             RedisTopic = "semesters"
+	StudentGroupRT         RedisTopic = "student:groups" // 1 delay
+	GroupMemberRT          RedisTopic = "group:members"  // 2 delay
 )
 
 type EventType string

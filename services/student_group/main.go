@@ -49,15 +49,15 @@ func main() {
 	semesterService := services.NewSemesterService(semesterRepository, eventBus)
 	studentService := services.NewStudentService(studentRepository, eventBus)
 	groupCohortService := services.NewGroupCohortService(groupCohortRepository, semesterRepository)
-	studentGroupService := services.NewStudentGroupService(studentGroupRepository, groupCohortRepository)
+	studentGroupService := services.NewStudentGroupService(studentGroupRepository, groupCohortRepository, eventBus)
 	groupMemberService := services.NewGroupMemberService(groupMemberRepository, studentRepository, groupCohortRepository,
-		studentGroupRepository)
+		studentGroupRepository, eventBus)
 
 	semesterHandler := resthandlers.NewSemesterHandler(semesterService)
 	studentHandler := resthandlers.NewStudentHandler(studentService)
 	groupCohortHandler := resthandlers.NewGroupCohortHandler(groupCohortService)
 	studentGroupHandler := resthandlers.NewStudentGroupHandler(studentGroupService)
-	groupMemberHandler := resthandlers.NewGroupMembersHandler(groupMemberService)
+	groupMemberHandler := resthandlers.NewGroupMemberHandler(groupMemberService)
 	databaseHandler := resthandlers.NewDatabaseHandler(studentService, semesterService, groupCohortService,
 		studentGroupService, groupMemberService)
 

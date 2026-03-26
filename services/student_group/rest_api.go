@@ -19,7 +19,7 @@ func NewRESTAPI(
 	semH resthandlers.SemesterHandler,
 	gch resthandlers.GroupCohortHandler,
 	sgh resthandlers.StudentGroupHandler,
-	gmh resthandlers.GroupMembersHandler,
+	gmh resthandlers.GroupMemberHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
@@ -39,7 +39,7 @@ type restapi struct {
 	semesterHandler     resthandlers.SemesterHandler
 	groupCohortHandler  resthandlers.GroupCohortHandler
 	studentGroupHandler resthandlers.StudentGroupHandler
-	groupMembersHandler resthandlers.GroupMembersHandler
+	groupMembersHandler resthandlers.GroupMemberHandler
 	databaseHandler     resthandlers.DatabaseHandler
 }
 

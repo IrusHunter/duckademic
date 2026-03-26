@@ -45,6 +45,9 @@ func main() {
 	disciplineRepository := repositories.NewDisciplineRepository(database)
 	lessonTypeRepository := repositories.NewLessonTypeRepository(database)
 	lessonTypeAssignmentRepository := repositories.NewLessonTypeAssignmentRepository(database)
+	studentRepository := repositories.NewStudentRepository(database)
+	studentGroupRepository := repositories.NewStudentGroupRepository(database)
+	groupMemberRepository := repositories.NewGroupMemberRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
@@ -52,6 +55,9 @@ func main() {
 	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
 	lessonTypeAssignmentService := services.NewLessonTypeAssignmentService(lessonTypeAssignmentRepository,
 		lessonTypeRepository, disciplineRepository, eventBus)
+	studentService := services.NewStudentService(studentRepository, eventBus)
+	studentGroupService := services.NewStudentGroupService(studentGroupRepository, eventBus)
+	groupMemberService := services.NewGroupMemberService(groupMemberRepository, eventBus)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
@@ -59,10 +65,13 @@ func main() {
 	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
 	lessonTypeAssignmentHandler := resthandlers.NewLessonTypeAssignmentHandler(lessonTypeAssignmentService)
 	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, teacherService, disciplineService,
-		lessonTypeService, lessonTypeAssignmentService)
+		lessonTypeService, lessonTypeAssignmentService, studentService, studentGroupService, groupMemberService)
+	studentHandler := resthandlers.NewStudentHandler(studentService)
+	studentGroupHandler := resthandlers.NewStudentGroupHandler(studentGroupService)
+	groupMemberHandler := resthandlers.NewGroupMemberHandler(groupMemberService)
 
-	restapi := NewRESTAPI(academicRankHandler, teacherHandler, disciplineHandler,
-		lessonTypeHandler, lessonTypeAssignmentHandler, databaseHandler)
+	restapi := NewRESTAPI(academicRankHandler, teacherHandler, disciplineHandler, lessonTypeHandler,
+		lessonTypeAssignmentHandler, studentHandler, studentGroupHandler, groupMemberHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

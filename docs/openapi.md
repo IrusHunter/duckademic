@@ -35,6 +35,12 @@
   - [/schedule/discipline/{id}](#schedule-discipline-id)
   - [/schedule/lesson-type-assignments](#schedule-lesson-type-assignments)
   - [/schedule/lesson-type-assignment/{id}](#schedule-lesson-type-assignment-id)
+  - [/schedule/students](#schedule-students)
+  - [/schedule/student/{id}](#schedule-student-id)
+  - [/schedule/student-groups](schedule-student-groups)
+  - [/schedule/student-group/{id}](#schedule-student-group-id)
+  - [/schedule/group_members](#schedule-group-members)
+  - [/schedule/group_member/{id}](#schedule-group-member-id)
 
 - Student Service
   - [/student/semesters](#student-semesters)
@@ -51,8 +57,8 @@
   - [/student-group/group-cohort/{id}](#student-group-group-cohort-id)
   - [/student-group/student-groups](#student-group-student-groups)
   - [/student-group/student-group/{id}](#student-group-student-group-id)
-  - [/student-group/group_members](#student-group-group_members)
-  - [/student-group/group_member/{id}](#student-group-group_member-id)
+  - [/student-group/group_members](#student-group-group-members)
+  - [/student-group/group_member/{id}](#student-group-group-member-id)
 
 - Curriculum Service
   - [/curriculum/curriculums](#curriculum-curriculum)
@@ -438,6 +444,90 @@
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
+<a id="schedule-students"></a>
+
+## /students
+
+### GET - gets all students from the database
+
+200 OK [=> Student[]](schemas.md#schedule-student)
+
+<a id="schedule-student-id"></a>
+
+## /student/{id}
+
+### GET - finds student with an ID as an URL parameter
+
+200 OK [=> Student](schemas.md#schedule-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a student by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> Student](schemas.md#schedule-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-student-groups"></a>
+
+## /student-groups
+
+### GET - gets all student groups from the database
+
+200 OK [=> StudentGroup[]](schemas.md#schedule-student-group)
+
+<a id="schedule-student-group-id"></a>
+
+## /student-group/{id}
+
+### GET - finds a student group by its ID provided in the URL path
+
+200 OK [=> StudentGroup](schemas.md#schedule-student-group)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a student group by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> StudentGroup](schemas.md#schedule-student-group)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-group-members"></a>
+
+## /group-members
+
+### GET - gets all group members from the database
+
+200 OK [=> GroupMember[]](schemas.md#schedule-group-member)
+
+<a id="schedule-group-member-id"></a>
+
+## /group-members/{id}
+
+### GET - finds a group member by its ID provided in the URL path
+
+200 OK [=> GroupMember](schemas.md#schedule-group-member)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a group member by its ID with the data provided in the request body
+
+```json
+{}
+```
+
+200 OK [=> GroupMember](schemas.md#schedule-group-member)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
 # Student Service
 
 <a id="student-semesters"></a>
@@ -559,8 +649,6 @@
 200 OK [=> Semester](schemas.md#student-group-semester)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-<a id="student-group-group-students"></a>
 
 <a id="student-group-students"></a>
 
