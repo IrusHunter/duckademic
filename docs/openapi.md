@@ -51,6 +51,8 @@
   - [/student-group/group-cohort/{id}](#student-group-group-cohort-id)
   - [/student-group/student-groups](#student-group-student-groups)
   - [/student-group/student-group/{id}](#student-group-student-group-id)
+  - [/student-group/group_members](#student-group-group_members)
+  - [/student-group/group_member/{id}](#student-group-group_member-id)
 
 - Curriculum Service
   - [/curriculum/curriculums](#curriculum-curriculum)
@@ -685,6 +687,62 @@
 ```
 
 200 OK [=> StudentGroup](schemas.md#student-group-student-group)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-group-members"></a>
+
+## /group-members
+
+### GET - gets all group members from the database
+
+200 OK [=> GroupMember[]](schemas.md#student-group-group-member)
+
+### POST - adds a new group member
+
+```json
+{
+  "studentId": "uuid (identifier of the student)",
+  "group_cohort_id": "uuid (identifier of the associated group cohort)",
+
+  // Optional fields
+  "student_group_id": "uuid (identifier of the student group)"
+}
+```
+
+200 OK [=> GroupMember](schemas.md#student-group-group-member)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-group-member-id"></a>
+
+## /group-members/{id}
+
+### GET - finds a group member by its ID provided in the URL path
+
+200 OK [=> GroupMember](schemas.md#student-group-group-member)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a group member by its ID provided in the URL path
+
+200 OK [=> GroupMember](schemas.md#student-group-group-member)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a group member by its ID with the data provided in the request body
+
+```json
+{
+  "studentId": "uuid (identifier of the student)",
+  "group_cohort_id": "uuid (identifier of the associated group cohort)",
+
+  // Optional fields
+  "student_group_id": "uuid (identifier of the student group)"
+}
+```
+
+200 OK [=> GroupMember](schemas.md#student-group-group-member)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

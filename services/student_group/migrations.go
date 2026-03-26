@@ -17,6 +17,7 @@ func Migrate(database *sqlx.DB) error {
 		studentMigrations,
 		groupCohortMigrations,
 		studentGroupMigrations,
+		groupMembersMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -154,6 +155,37 @@ func studentGroupMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "student_groups"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for student_groups: %w", err)
+	}
+
+	return nil
+}
+func groupMembersMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS group_members (
+		id UUID PRIMARY KEY,
+		student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+		group_cohort_id UUID NOT NULL REFERENCES group_cohorts(id) ON DELETE CASCADE,
+		student_group_id UUID REFERENCES student_groups(id) ON DELETE SET NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		UNIQUE (student_id, group_cohort_id)
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create group_members table: %w", err)
+	}
+
+	indexStudentCohort := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_group_members_student_cohort
+	ON group_members (student_id, group_cohort_id);
+	`
+	if _, err := database.Exec(indexStudentCohort); err != nil {
+		return fmt.Errorf("failed to create group_members unique index on student_id and group_cohort_id: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "group_members"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for group_members: %w", err)
 	}
 
 	return nil

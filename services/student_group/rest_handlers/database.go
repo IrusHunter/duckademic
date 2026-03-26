@@ -22,12 +22,14 @@ func NewDatabaseHandler(
 	semS services.SemesterService,
 	gcs services.GroupCohortService,
 	sgs services.StudentGroupService,
+	gms services.GroupMemberService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		studentService:      ss,
 		semesterService:     semS,
 		groupCohortService:  gcs,
 		studentGroupService: sgs,
+		groupMembersService: gms,
 	}
 }
 
@@ -36,6 +38,7 @@ type databaseHandler struct {
 	semesterService     services.SemesterService
 	groupCohortService  services.GroupCohortService
 	studentGroupService services.StudentGroupService
+	groupMembersService services.GroupMemberService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -51,11 +54,17 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 		time.Sleep(events.ExternalSeedCooldown)
 		ctx = contextutil.SetTraceID(context.Background())
 		h.studentService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.groupMembersService.Seed(ctx)
 	}()
 
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.groupMembersService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group members: %w", err))
+		return
+	}
 	if err := h.studentGroupService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear student groups: %w", err))
 		return

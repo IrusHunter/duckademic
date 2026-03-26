@@ -19,6 +19,7 @@ func NewRESTAPI(
 	semH resthandlers.SemesterHandler,
 	gch resthandlers.GroupCohortHandler,
 	sgh resthandlers.StudentGroupHandler,
+	gmh resthandlers.GroupMembersHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
@@ -27,6 +28,7 @@ func NewRESTAPI(
 		groupCohortHandler:  gch,
 		semesterHandler:     semH,
 		studentGroupHandler: sgh,
+		groupMembersHandler: gmh,
 		databaseHandler:     dh,
 	}
 }
@@ -37,6 +39,7 @@ type restapi struct {
 	semesterHandler     resthandlers.SemesterHandler
 	groupCohortHandler  resthandlers.GroupCohortHandler
 	studentGroupHandler resthandlers.StudentGroupHandler
+	groupMembersHandler resthandlers.GroupMembersHandler
 	databaseHandler     resthandlers.DatabaseHandler
 }
 
@@ -75,6 +78,16 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet:    ra.NewDefaultHandler(ra.studentGroupHandler.Find),
 		http.MethodPut:    ra.NewDefaultHandler(ra.studentGroupHandler.Update),
 		http.MethodDelete: ra.NewDefaultHandler(ra.studentGroupHandler.Delete),
+	})
+
+	ra.NewRoute("/group_members", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.groupMembersHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.groupMembersHandler.Add),
+	})
+	ra.NewRoute("/group_member/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.groupMembersHandler.Find),
+		http.MethodPut:    ra.NewDefaultHandler(ra.groupMembersHandler.Update),
+		http.MethodDelete: ra.NewDefaultHandler(ra.groupMembersHandler.Delete),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

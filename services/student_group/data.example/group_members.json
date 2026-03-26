@@ -1,0 +1,25 @@
+[
+    {
+        "student_name": "Олег К.Д.",
+        "group_cohort_name": "лекційна когорта 1",
+        "student_group_name": "ІПЗ-1"
+    },
+    {
+        "student_name": "Ірина М.С.",
+        "group_cohort_name": "практична когорта 1"
+    },
+    {
+        "student_name": "Андрій П.В.",
+        "group_cohort_name": "лекційна когорта 2",
+        "student_group_name": "ІПЗ-2"
+    },
+    {
+        "student_name": "Наталія Г.О.",
+        "group_cohort_name": "практична когорта 3"
+    },
+    {
+        "student_name": "Дмитро Р.І.",
+        "group_cohort_name": "практична когорта 4",
+        "student_group_name": "ІПЗ-42"
+    }
+]

@@ -260,6 +260,23 @@
 }
 ```
 
+<a id="student-group-group-member"></a>
+
+### Group Member
+
+```json
+{
+  "id": "uuid (unique identifier of the group member record)",
+  "studentId": "uuid (identifier of the student)",
+  "group_cohort_id": "uuid (identifier of the associated group cohort)",
+  "createdAt": "timestamp (record creation timestamp)",
+  "updatedAt": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "student_group_id": "uuid (identifier of the student group)"
+}
+```
+
 ## Curriculum Service
 
 <a id="curriculum-curriculum"></a>
