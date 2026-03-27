@@ -48,7 +48,7 @@ func main() {
 
 	semesterService := services.NewSemesterService(semesterRepository, eventBus)
 	studentService := services.NewStudentService(studentRepository, eventBus)
-	groupCohortService := services.NewGroupCohortService(groupCohortRepository, semesterRepository)
+	groupCohortService := services.NewGroupCohortService(groupCohortRepository, semesterRepository, eventBus)
 	studentGroupService := services.NewStudentGroupService(studentGroupRepository, groupCohortRepository, eventBus)
 	groupMemberService := services.NewGroupMemberService(groupMemberRepository, studentRepository, groupCohortRepository,
 		studentGroupRepository, eventBus)

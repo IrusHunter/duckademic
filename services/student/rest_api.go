@@ -48,10 +48,6 @@ func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/semesters", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.semesterHandler.GetAll),
 	})
-	ra.NewRoute("/semester/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.semesterHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.semesterHandler.Update),
-	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.Seed)(r.Context(), w, r)

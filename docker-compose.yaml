@@ -12,6 +12,7 @@ services:
       - student-service
       - student-group-service
       - curriculum-service
+      - teacher-load-service
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -65,6 +66,15 @@ services:
       - "10005"
     env_file:
       - ./services/curriculum/.env.docker
+    environment:
+    - DOCKER_ENV=true
+  
+  teacher-load-service:
+    build: ./services/teacher_load
+    expose:
+      - "10006"
+    env_file:
+      - ./services/teacher_load/.env.docker
     environment:
     - DOCKER_ENV=true
   

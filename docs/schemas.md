@@ -415,3 +415,32 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+## Teacher Load Service
+
+<a id="teacher-load-teacher"></a>
+
+### Teacher
+
+```json
+{
+  "id": "uuid (identifier of the teacher)",
+  "name": "string (short full name of the teacher)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="teacher-load-group-cohort"></a>
+
+### Group Cohort
+
+```json
+{
+  "id": "uuid (unique identifier of the group cohort)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the cohort)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

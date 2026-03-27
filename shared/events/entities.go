@@ -173,3 +173,23 @@ func (gr GroupMemberRE) String() string {
 
 	return fmt.Sprintf("GroupMemberRE{%s}", strings.Join(parts, ", "))
 }
+
+type GroupCohortRE struct {
+	Event      EventType
+	ID         uuid.UUID
+	Slug       string
+	Name       string
+	SemesterID uuid.UUID
+}
+
+func (gc GroupCohortRE) String() string {
+	parts := make([]string, 0, 5)
+
+	parts = append(parts, fmt.Sprintf("event: %s", gc.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", gc.ID))
+	parts = append(parts, fmt.Sprintf("slug: %s", gc.Slug))
+	parts = append(parts, fmt.Sprintf("name: %s", gc.Name))
+	parts = append(parts, fmt.Sprintf("semester_id: %s", gc.SemesterID))
+
+	return fmt.Sprintf("GroupCohortRE{%s}", strings.Join(parts, ", "))
+}

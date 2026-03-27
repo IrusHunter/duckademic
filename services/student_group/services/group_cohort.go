@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/student_group/entities"
 	"github.com/IrusHunter/duckademic/services/student_group/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
@@ -22,17 +23,20 @@ type GroupCohortService interface {
 func NewGroupCohortService(
 	gcr repositories.GroupCohortRepository,
 	sr repositories.SemesterRepository,
+	eb events.EventBus,
 ) GroupCohortService {
 	sc := platform.NewServiceConfig("GroupCohortService", filepath.Join("data", "group_cohorts.json"), "group_cohort")
 
 	res := &groupCohortService{
 		repository: gcr,
+		eventBus:   eb,
 	}
-	res.BaseService = platform.NewBaseService(sc, gcr,
+	res.BaseService = platform.NewBaseServiceWithEventBus(sc, gcr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.GroupCohort]{
 			platform.OnAddPrepare:   res.onAddPrepare,
 			platform.ValidateEntity: res.validateEntity,
 		},
+		eb,
 	)
 	res.logger = res.GetLogger()
 
@@ -44,6 +48,7 @@ type groupCohortService struct {
 	repository         repositories.GroupCohortRepository
 	semesterRepository repositories.SemesterRepository
 	logger             logger.Logger
+	eventBus           events.EventBus
 }
 
 func (s *groupCohortService) validateEntity(ctx context.Context, groupCohort *entities.GroupCohort) error {
@@ -118,4 +123,54 @@ func (s *groupCohortService) Seed(ctx context.Context) error {
 	)
 
 	return lastError
+}
+
+func (s *groupCohortService) Add(
+	ctx context.Context, gc entities.GroupCohort,
+) (entities.GroupCohort, error) {
+
+	added, err := s.BaseService.Add(ctx, gc)
+	if err == nil {
+		s.sendChanges(ctx, added, events.EntityCreated)
+	}
+	return added, err
+}
+
+func (s *groupCohortService) Delete(
+	ctx context.Context, id uuid.UUID,
+) (entities.GroupCohort, error) {
+
+	deleted, err := s.BaseService.Delete(ctx, id)
+	if err == nil {
+		s.sendChanges(ctx, deleted, events.EntityDeleted)
+	}
+	return deleted, err
+}
+
+func (s *groupCohortService) Update(
+	ctx context.Context, id uuid.UUID, gc entities.GroupCohort,
+) (entities.GroupCohort, error) {
+
+	updated, err := s.BaseService.Update(ctx, id, gc)
+	if err == nil {
+		s.sendChanges(ctx, updated, events.EntityUpdated)
+	}
+	return updated, err
+}
+
+func (s *groupCohortService) sendChanges(
+	ctx context.Context,
+	gc entities.GroupCohort,
+	eventType events.EventType,
+) {
+
+	eventGC := events.GroupCohortRE{
+		Event:      eventType,
+		ID:         gc.ID,
+		Slug:       gc.Slug,
+		Name:       gc.Name,
+		SemesterID: gc.SemesterID,
+	}
+
+	s.BaseService.SendChanges(ctx, eventGC, eventType, events.GroupCohortRT)
 }

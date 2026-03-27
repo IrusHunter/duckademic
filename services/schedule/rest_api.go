@@ -64,57 +64,29 @@ func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/teachers", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.teacherHandler.GetAll),
 	})
-	ra.NewRoute("/teacher/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.teacherHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.teacherHandler.Update),
-	})
 
 	ra.NewRoute("/disciplines", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.disciplineHandler.GetAll),
-	})
-	ra.NewRoute("/discipline/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.disciplineHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.disciplineHandler.Update),
 	})
 
 	ra.NewRoute("/lesson-types", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.GetAll),
 	})
-	ra.NewRoute("/lesson-type/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.lessonTypeHandler.Update),
-	})
 
 	ra.NewRoute("/lesson-type-assignments", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.GetAll),
-	})
-	ra.NewRoute("/lesson-type-assignment/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.Update),
 	})
 
 	ra.NewRoute("/students", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.GetAll),
 	})
-	ra.NewRoute("/student/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.studentHandler.Update),
-	})
 
 	ra.NewRoute("/student-groups", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.studentGroupHandler.GetAll),
 	})
-	ra.NewRoute("/student-group/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.studentGroupHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.studentGroupHandler.Update),
-	})
 
 	ra.NewRoute("/group-members", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.groupMemberHandler.GetAll),
-	})
-	ra.NewRoute("/group-member/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.groupMemberHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.groupMemberHandler.Update),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

@@ -12,6 +12,7 @@ const (
 	SemesterRT             RedisTopic = "semesters"
 	StudentGroupRT         RedisTopic = "student:groups" // 1 delay
 	GroupMemberRT          RedisTopic = "group:members"  // 2 delay
+	GroupCohortRT          RedisTopic = "group:cohorts"  // 1 delay
 )
 
 type EventType string

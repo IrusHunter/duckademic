@@ -14,65 +14,59 @@
 
 ### ANY - routes and proxies incoming requests to the appropriate backend service based on the request path.
 
-- Employee Service
-  - [/employee/academic-ranks](#employee-academic-ranks)
-  - [/employee/academic-rank/{id}](#employee-academic-rank-id)
-  - [/employee/academic-degrees](#employee-academic-degrees)
-  - [/employee/academic-degree/{id}](#employee-academic-degree-id)
-  - [/employee/employees](#employee-employees)
-  - [/employee/employee/{id}](#employee-employee-id)
-  - [/employee/teachers](#employee-teachers)
-  - [/employee/teacher/{id}](#employee-teacher-id)
+- Employee Service (/employee)
+  - [/academic-ranks](#employee-academic-ranks)
+  - [/academic-rank/{id}](#employee-academic-rank-id)
+  - [/academic-degrees](#employee-academic-degrees)
+  - [/academic-degree/{id}](#employee-academic-degree-id)
+  - [/employees](#employee-employees)
+  - [/employee/{id}](#employee-employee-id)
+  - [/teachers](#employee-teachers)
+  - [/teacher/{id}](#employee-teacher-id)
 
-- Schedule Service
-  - [/schedule/academic-ranks](#schedule-academic-ranks)
-  - [/schedule/academic-rank/{id}](#schedule-academic-rank-id)
-  - [/schedule/teachers](#schedule-teachers)
-  - [/schedule/teacher/{id}](#schedule-teacher-id)
-  - [/schedule/lesson-types](#schedule-lesson-types)
-  - [/schedule/lesson-type/{id}](#schedule-lesson-type-id)
-  - [/schedule/disciplines](#schedule-disciplines)
-  - [/schedule/discipline/{id}](#schedule-discipline-id)
-  - [/schedule/lesson-type-assignments](#schedule-lesson-type-assignments)
-  - [/schedule/lesson-type-assignment/{id}](#schedule-lesson-type-assignment-id)
-  - [/schedule/students](#schedule-students)
-  - [/schedule/student/{id}](#schedule-student-id)
-  - [/schedule/student-groups](schedule-student-groups)
-  - [/schedule/student-group/{id}](#schedule-student-group-id)
-  - [/schedule/group_members](#schedule-group-members)
-  - [/schedule/group_member/{id}](#schedule-group-member-id)
+- Schedule Service (/schedule)
+  - [/academic-ranks](#schedule-academic-ranks)
+  - [/academic-rank/{id}](#schedule-academic-rank-id)
+  - [/lesson-types](#schedule-lesson-types)
+  - [/teachers](#schedule-teachers)
+  - [/disciplines](#schedule-disciplines)
+  - [/lesson-type-assignments](#schedule-lesson-type-assignments)
+  - [/students](#schedule-students)
+  - [/student-groups](#schedule-student-groups)
+  - [/group_members](#schedule-group-members)
 
-- Student Service
-  - [/student/semesters](#student-semesters)
-  - [/student/semester/{id}](#student-semester-id)
-  - [/student/students](#student-students)
-  - [/student/student/{id}](#student-student-id)
+- Student Service (/student)
+  - [/semesters](#student-semesters)
+  - [/students](#student-students)
+  - [/student/{id}](#student-student-id)
 
-- Student Group Service
-  - [/student-group/semesters](#student-group-semesters)
-  - [/student-group/semester/{id}](#student-group-semester-id)
-  - [/student-group/students](#student-group-students)
-  - [/student-group/student/{id}](#student-group-student-id)
-  - [/student-group/group-cohorts](#student-group-group-cohorts)
-  - [/student-group/group-cohort/{id}](#student-group-group-cohort-id)
-  - [/student-group/student-groups](#student-group-student-groups)
-  - [/student-group/student-group/{id}](#student-group-student-group-id)
-  - [/student-group/group_members](#student-group-group-members)
-  - [/student-group/group_member/{id}](#student-group-group-member-id)
+- Student Group Service (/student-group)
+  - [/semesters](#student-group-semesters)
+  - [/students](#student-group-students)
+  - [/group-cohorts](#student-group-group-cohorts)
+  - [/group-cohort/{id}](#student-group-group-cohort-id)
+  - [/student-groups](#student-group-student-groups)
+  - [/student-group/{id}](#student-group-student-group-id)
+  - [/group_members](#student-group-group-members)
+  - [/group_member/{id}](#student-group-group-member-id)
 
-- Curriculum Service
-  - [/curriculum/curriculums](#curriculum-curriculum)
-  - [/curriculum/curriculum/{id}](#curriculum-curriculum-id)
-  - [/curriculum/semesters](#curriculum-semesters)
-  - [/curriculum/semester/{id}](#curriculum-semester-id)
-  - [/curriculum/lesson-types](#curriculum-lesson-types)
-  - [/curriculum/lesson-type/{id}](#curriculum-lesson-type-id)
-  - [/curriculum/disciplines](#curriculum-disciplines)
-  - [/curriculum/discipline/{id}](#curriculum-discipline-id)
-  - [/curriculum/lesson-type-assignments](#curriculum-lesson-type-assignments)
-  - [/curriculum/lesson-type-assignment/{id}](#curriculum-lesson-type-assignment-id)
-  - [/curriculum/semester-disciplines](#curriculum-semester-disciplines)
-  - [/curriculum/semester-discipline/{id}](#curriculum-semester-discipline-id)
+- Curriculum Service (/curriculum)
+  - [/curriculums](#curriculum-curriculum)
+  - [/curriculum/{id}](#curriculum-curriculum-id)
+  - [/semesters](#curriculum-semesters)
+  - [/semester/{id}](#curriculum-semester-id)
+  - [/lesson-types](#curriculum-lesson-types)
+  - [/lesson-type/{id}](#curriculum-lesson-type-id)
+  - [/disciplines](#curriculum-disciplines)
+  - [/discipline/{id}](#curriculum-discipline-id)
+  - [/lesson-type-assignments](#curriculum-lesson-type-assignments)
+  - [/lesson-type-assignment/{id}](#curriculum-lesson-type-assignment-id)
+  - [/semester-disciplines](#curriculum-semester-disciplines)
+  - [/semester-discipline/{id}](#curriculum-semester-discipline-id)
+
+- Teacher Load Service (/teacher-load)
+  - [/teachers](#teacher-load-teachers)
+  - [/group-cohorts](#teacher-load-group-cohorts)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -330,26 +324,6 @@
 
 **200 OK** [=> Teacher[]](schemas.md#schedule-teacher)
 
-<a id="schedule-teacher-id"></a>
-
-## /teacher/{id}
-
-### GET - finds teacher with an ID as a URL parameter
-
-**200 OK** [=> Teacher](schemas.md#schedule-teacher)
-
-**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT - updates a teacher by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-**200 OK** [=> Teacher](schemas.md#schedule-teacher)
-
-**400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
-
 <a id="schedule-lesson-types"></a>
 
 ## /lesson-types
@@ -357,26 +331,6 @@
 ### GET - gets all lesson types from the database
 
 200 OK [=> LessonType[]](schemas.md#schedule-lesson-type)
-
-<a id="schedule-lesson-type-id"></a>
-
-## /lesson-type/{id}
-
-### GET - finds lesson type with an ID as an URL parameter
-
-200 OK [=> LessonType](schemas.md#schedule-lesson-type)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT - updates a lesson type by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> LessonType](schemas.md#schedule-lesson-type)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="schedule-disciplines"></a>
 
@@ -386,26 +340,6 @@
 
 200 OK [=> Discipline[]](schemas.md#schedule-discipline)
 
-<a id="schedule-discipline-id"></a>
-
-## /discipline/{id}
-
-### GET – finds a discipline with an ID as a URL parameter
-
-200 OK [=> Discipline](schemas.md#schedule-discipline)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT – updates a discipline by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> Discipline](schemas.md#schedule-discipline)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
 <a id="schedule-lesson-type-assignments"></a>
 
 ## /lesson-type-assignments
@@ -413,36 +347,6 @@
 ### GET – gets all lesson type assignments from the database
 
 200 OK [=> LessonTypeAssignment[]](schemas.md#schedule-lesson-type-assignment)
-
-### POST – adds a new lesson type assignment
-
-```json
-{}
-```
-
-200 OK [=> LessonTypeAssignment](schemas.md#schedule-esson-type-assignment)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-<a id="schedule-lesson-type-assignment-id"></a>
-
-## /lesson-type-assignment/{id}
-
-### GET – finds a lesson type assignment with an ID as a URL parameter
-
-200 OK [=> LessonTypeAssignment](schemas.md#schedule-lesson-type-assignment)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT – updates a lesson type assignment by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> LessonTypeAssignment](schemas.md#schedule-lesson-type-assignment)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="schedule-students"></a>
 
@@ -452,26 +356,6 @@
 
 200 OK [=> Student[]](schemas.md#schedule-student)
 
-<a id="schedule-student-id"></a>
-
-## /student/{id}
-
-### GET - finds student with an ID as an URL parameter
-
-200 OK [=> Student](schemas.md#schedule-student)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT - updates a student by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> Student](schemas.md#schedule-student)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
 <a id="schedule-student-groups"></a>
 
 ## /student-groups
@@ -480,26 +364,6 @@
 
 200 OK [=> StudentGroup[]](schemas.md#schedule-student-group)
 
-<a id="schedule-student-group-id"></a>
-
-## /student-group/{id}
-
-### GET - finds a student group by its ID provided in the URL path
-
-200 OK [=> StudentGroup](schemas.md#schedule-student-group)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT - updates a student group by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> StudentGroup](schemas.md#schedule-student-group)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
 <a id="schedule-group-members"></a>
 
 ## /group-members
@@ -507,26 +371,6 @@
 ### GET - gets all group members from the database
 
 200 OK [=> GroupMember[]](schemas.md#schedule-group-member)
-
-<a id="schedule-group-member-id"></a>
-
-## /group-members/{id}
-
-### GET - finds a group member by its ID provided in the URL path
-
-200 OK [=> GroupMember](schemas.md#schedule-group-member)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT - updates a group member by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> GroupMember](schemas.md#schedule-group-member)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 # Student Service
 
@@ -537,26 +381,6 @@
 ### GET - gets all semesters from the database
 
 200 OK [=> Semester[]](schemas.md#student-semester)
-
-<a id="student-semester-id"></a>
-
-## /semester/{id}
-
-### GET - finds semester with an ID as an URL parameter
-
-200 OK [=> Semester](schemas.md#student-semester)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT - updates a semester by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> Semester](schemas.md#student-semester)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="student-students"></a>
 
@@ -630,26 +454,6 @@
 
 200 OK [=> Semester[]](schemas.md#student-group-semester)
 
-<a id="student-group-semester-id"></a>
-
-## /semester/{id}
-
-### GET - finds semester with an ID as an URL parameter
-
-200 OK [=> Semester](schemas.md#student-group-semester)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT - updates a semester by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> Semester](schemas.md#student-group-semester)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
 <a id="student-group-students"></a>
 
 ## /students
@@ -657,26 +461,6 @@
 ### GET - gets all students from the database
 
 200 OK [=> Student[]](schemas.md#student-group-student)
-
-<a id="student-group-student-id"></a>
-
-## /student/{id}
-
-### GET - finds student with an ID as an URL parameter
-
-200 OK [=> Student](schemas.md#student-group-student)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-### PUT - updates a student by its ID with the data provided in the request body
-
-```json
-{}
-```
-
-200 OK [=> Student](schemas.md#student-group-student)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="student-group-group-cohorts"></a>
 
@@ -1132,3 +916,21 @@
 200 OK [=> SemesterDiscipline](schemas.md#curriculum-semester-discipline)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+# Teacher Load Service
+
+<a id="teacher-load-teachers"></a>
+
+## /teachers
+
+### GET - gets all teachers from the database
+
+**200 OK** [=> Teacher[]](schemas.md#teacher-load-teacher)
+
+<a id="teacher-load-group-cohorts"></a>
+
+## /group-cohorts
+
+### GET - gets all group cohorts from the database
+
+200 OK [=> GroupCohort[]](schemas.md#teacher-load-group-cohort)
