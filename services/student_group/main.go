@@ -58,8 +58,7 @@ func main() {
 	groupCohortHandler := resthandlers.NewGroupCohortHandler(groupCohortService)
 	studentGroupHandler := resthandlers.NewStudentGroupHandler(studentGroupService)
 	groupMemberHandler := resthandlers.NewGroupMemberHandler(groupMemberService)
-	databaseHandler := resthandlers.NewDatabaseHandler(studentService, semesterService, groupCohortService,
-		studentGroupService, groupMemberService)
+	databaseHandler := resthandlers.NewDatabaseHandler(groupCohortService, studentGroupService, groupMemberService)
 
 	restapi := NewRESTAPI(studentHandler, semesterHandler, groupCohortHandler, studentGroupHandler,
 		groupMemberHandler, databaseHandler)

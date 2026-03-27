@@ -18,15 +18,11 @@ type DatabaseHandler interface {
 }
 
 func NewDatabaseHandler(
-	ss services.StudentService,
-	semS services.SemesterService,
 	gcs services.GroupCohortService,
 	sgs services.StudentGroupService,
 	gms services.GroupMemberService,
 ) DatabaseHandler {
 	return &databaseHandler{
-		studentService:      ss,
-		semesterService:     semS,
 		groupCohortService:  gcs,
 		studentGroupService: sgs,
 		groupMembersService: gms,
@@ -34,8 +30,6 @@ func NewDatabaseHandler(
 }
 
 type databaseHandler struct {
-	studentService      services.StudentService
-	semesterService     services.SemesterService
 	groupCohortService  services.GroupCohortService
 	studentGroupService services.StudentGroupService
 	groupMembersService services.GroupMemberService
@@ -44,16 +38,12 @@ type databaseHandler struct {
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
 		time.Sleep(events.ExternalSeedCooldown)
-		ctx := contextutil.SetTraceID(context.Background())
-		h.semesterService.Seed(ctx)
 		ctx = contextutil.SetTraceID(context.Background())
 		h.groupCohortService.Seed(ctx)
 		ctx = contextutil.SetTraceID(context.Background())
 		h.studentGroupService.Seed(ctx)
 
 		time.Sleep(events.ExternalSeedCooldown)
-		ctx = contextutil.SetTraceID(context.Background())
-		h.studentService.Seed(ctx)
 		ctx = contextutil.SetTraceID(context.Background())
 		h.groupMembersService.Seed(ctx)
 	}()
@@ -69,16 +59,8 @@ func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *h
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear student groups: %w", err))
 		return
 	}
-	if err := h.studentService.Clear(ctx); err != nil {
-		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear students: %w", err))
-		return
-	}
 	if err := h.groupCohortService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group cohorts: %w", err))
-		return
-	}
-	if err := h.semesterService.Clear(ctx); err != nil {
-		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear semesters: %w", err))
 		return
 	}
 

@@ -19,24 +19,19 @@ type DatabaseHandler interface {
 
 func NewDatabaseHandler(
 	ss services.StudentService,
-	semS services.SemesterService,
 ) DatabaseHandler {
 	return &databaseHandler{
-		studentService:  ss,
-		semesterService: semS,
+		studentService: ss,
 	}
 }
 
 type databaseHandler struct {
-	studentService  services.StudentService
-	semesterService services.SemesterService
+	studentService services.StudentService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
 		time.Sleep(events.ExternalSeedCooldown)
-		ctx := contextutil.SetTraceID(context.Background())
-		h.semesterService.Seed(ctx)
 		ctx = contextutil.SetTraceID(context.Background())
 		h.studentService.Seed(ctx)
 	}()
@@ -46,10 +41,6 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if err := h.studentService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear students: %w", err))
-		return
-	}
-	if err := h.semesterService.Clear(ctx); err != nil {
-		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear semester: %w", err))
 		return
 	}
 

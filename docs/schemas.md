@@ -444,3 +444,31 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+<a id="teacher-load-discipline"></a>
+
+### Discipline
+
+```json
+{
+  "id": "uuid (unique identifier of the discipline)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the discipline)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="teacher-load-lesson-type"></a>
+
+### Lesson Type
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson type)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the lesson type)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

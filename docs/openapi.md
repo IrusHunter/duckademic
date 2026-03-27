@@ -67,6 +67,8 @@
 - Teacher Load Service (/teacher-load)
   - [/teachers](#teacher-load-teachers)
   - [/group-cohorts](#teacher-load-group-cohorts)
+  - [/lesson-types](#teacher-load-lesson-types)
+  - [/disciplines](#teacher-load-disciplines)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -934,3 +936,19 @@
 ### GET - gets all group cohorts from the database
 
 200 OK [=> GroupCohort[]](schemas.md#teacher-load-group-cohort)
+
+<a id="teacher-load-lesson-types"></a>
+
+## /lesson-types
+
+### GET - gets all lesson types from the database
+
+200 OK [=> LessonType[]](schemas.md#teacher-load-lesson-type)
+
+<a id="teacher-load-disciplines"></a>
+
+## /disciplines
+
+### GET – gets all disciplines from the database
+
+200 OK [=> Discipline[]](schemas.md#teacher-load-discipline)

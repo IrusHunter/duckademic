@@ -42,15 +42,21 @@ func main() {
 
 	teacherRepository := repositories.NewTeacherRepository(database)
 	groupCohortRepository := repositories.NewGroupCohortRepository(database)
+	lessonTypeRepository := repositories.NewLessonTypeRepository(database)
+	disciplineRepository := repositories.NewDisciplineRepository(database)
 
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
 	groupCohortService := services.NewGroupCohortService(groupCohortRepository, eventBus)
+	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
+	disciplineService := services.NewDisciplineService(disciplineRepository, eventBus)
 
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
 	groupCohortHandler := resthandlers.NewGroupCohortHandler(groupCohortService)
+	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
+	disciplineHandler := resthandlers.NewDisciplineHandler(disciplineService)
 	databaseHandler := resthandlers.NewDatabaseHandler()
 
-	restapi := NewRESTAPI(teacherHandler, groupCohortHandler, databaseHandler)
+	restapi := NewRESTAPI(teacherHandler, groupCohortHandler, lessonTypeHandler, disciplineHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)
