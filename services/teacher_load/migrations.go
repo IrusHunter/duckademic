@@ -59,6 +59,15 @@ func teacherMigrations(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create on update trigger for teachers: %w", err)
 	}
 
+	dropDeletedAt := `
+	ALTER TABLE teachers
+	DROP COLUMN IF EXISTS deleted_at;
+	`
+
+	if _, err := database.Exec(dropDeletedAt); err != nil {
+		return fmt.Errorf("failed to drop deleted_at column from teachers: %w", err)
+	}
+
 	return nil
 }
 func groupCohortMigrations(database *sqlx.DB) error {

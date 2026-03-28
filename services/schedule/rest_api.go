@@ -93,7 +93,7 @@ func (ra *restapi) Run(port int) error {
 	})
 
 	ra.NewRoute("/teacher-loads", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.teacherHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandler(ra.teacherLoadHandler.GetAll),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

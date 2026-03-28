@@ -28,8 +28,9 @@ func NewGroupCohortService(
 	sc := platform.NewServiceConfig("GroupCohortService", filepath.Join("data", "group_cohorts.json"), "group_cohort")
 
 	res := &groupCohortService{
-		repository: gcr,
-		eventBus:   eb,
+		repository:         gcr,
+		semesterRepository: sr,
+		eventBus:           eb,
 	}
 	res.BaseService = platform.NewBaseServiceWithEventBus(sc, gcr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.GroupCohort]{

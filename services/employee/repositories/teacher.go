@@ -57,6 +57,7 @@ type TeacherFlat struct {
 	EmployeeFirstName  string  `db:"employee_first_name"`
 	EmployeeLastName   string  `db:"employee_last_name"`
 	EmployeeMiddleName *string `db:"employee_middle_name"`
+	EmployeeSlug       string  `db:"employee_slug"`
 
 	AcademicDegreeTitle *string `db:"academic_degree_title"`
 
@@ -77,6 +78,7 @@ func (flat *TeacherFlat) ConvertToTeacher() entities.Teacher {
 		FirstName:  flat.EmployeeFirstName,
 		LastName:   flat.EmployeeLastName,
 		MiddleName: flat.EmployeeMiddleName,
+		Slug:       flat.EmployeeSlug,
 	}
 
 	academicRank := &entities.AcademicRank{
@@ -114,6 +116,7 @@ func (r *teacherRepository) Fill(ctx context.Context, id uuid.UUID) *entities.Te
 			e.first_name AS employee_first_name,
 			e.last_name AS employee_last_name,
 			e.middle_name AS employee_middle_name,
+			e.slug AS employee_slug,
 
 			ad.id AS academic_degree_id,
 			ad.title AS academic_degree_title,

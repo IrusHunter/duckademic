@@ -1,17 +1,32 @@
 [
-    {
-        "name": "employee-service",
-        "url": "http://employee-service:10001",
-        "enabled": true
-    },
-    {
-        "name": "schedule-service",
-        "url": "http://schedule-service:10002",
-        "enabled": true
-    },
-    {
-        "name": "student-service",
-        "url": "http://student-service:10003",
-        "enabled": true
-    }
+  {
+    "name": "employee-service",
+    "url": "http://employee-service:10001",
+    "enabled": true
+  },
+  {
+    "name": "schedule-service",
+    "url": "http://schedule-service:10002",
+    "enabled": true
+  },
+  {
+    "name": "student-service",
+    "url": "http://student-service:10003",
+    "enabled": true
+  },
+  {
+    "name": "student-group-service",
+    "url": "http://student-group-service:10004",
+    "enabled": true
+  },
+  {
+    "name": "curriculum-service",
+    "url": "http://curriculum-service:10005",
+    "enabled": true
+  },
+  {
+    "name": "teacher-load-service",
+    "url": "http://teacher-load-service:10006",
+    "enabled": true
+  }
 ]

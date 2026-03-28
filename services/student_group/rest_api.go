@@ -80,11 +80,11 @@ func (ra *restapi) Run(port int) error {
 		http.MethodDelete: ra.NewDefaultHandler(ra.studentGroupHandler.Delete),
 	})
 
-	ra.NewRoute("/group_members", map[string]platform.HandlerFunc{
+	ra.NewRoute("/group-members", map[string]platform.HandlerFunc{
 		http.MethodGet:  ra.NewDefaultHandler(ra.groupMembersHandler.GetAll),
 		http.MethodPost: ra.NewDefaultHandler(ra.groupMembersHandler.Add),
 	})
-	ra.NewRoute("/group_member/{id}", map[string]platform.HandlerFunc{
+	ra.NewRoute("/group-member/{id}", map[string]platform.HandlerFunc{
 		http.MethodGet:    ra.NewDefaultHandler(ra.groupMembersHandler.Find),
 		http.MethodPut:    ra.NewDefaultHandler(ra.groupMembersHandler.Update),
 		http.MethodDelete: ra.NewDefaultHandler(ra.groupMembersHandler.Delete),

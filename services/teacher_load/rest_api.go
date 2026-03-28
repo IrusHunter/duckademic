@@ -53,7 +53,7 @@ func (ra *restapi) Run(port int) error {
 	})
 
 	ra.NewRoute("/disciplines", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandler(ra.disciplineHandler.GetAll),
 	})
 
 	ra.NewRoute("/lesson-types", map[string]platform.HandlerFunc{

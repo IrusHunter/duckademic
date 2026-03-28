@@ -28,8 +28,9 @@ func NewStudentGroupService(
 	sc := platform.NewServiceConfig("StudentGroupService", filepath.Join("data", "student_groups.json"), "student_group")
 
 	res := &studentGroupService{
-		repository: sgr,
-		eventBus:   eb,
+		repository:            sgr,
+		groupCohortRepository: gcr,
+		eventBus:              eb,
 	}
 	res.BaseService = platform.NewBaseServiceWithEventBus(sc, sgr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.StudentGroup]{
@@ -45,10 +46,10 @@ func NewStudentGroupService(
 
 type studentGroupService struct {
 	platform.BaseService[entities.StudentGroup]
-	repository      repositories.StudentGroupRepository
-	groupCohortRepo repositories.GroupCohortRepository
-	logger          logger.Logger
-	eventBus        events.EventBus
+	repository            repositories.StudentGroupRepository
+	groupCohortRepository repositories.GroupCohortRepository
+	logger                logger.Logger
+	eventBus              events.EventBus
 }
 
 func (s *studentGroupService) validateEntity(ctx context.Context, sg *entities.StudentGroup) error {
@@ -86,7 +87,7 @@ func (s *studentGroupService) Seed(ctx context.Context) error {
 
 	var lastError error
 	for _, item := range studentGroupsData {
-		cohort := s.groupCohortRepo.FindFirstByName(ctx, item.GroupCohortName)
+		cohort := s.groupCohortRepository.FindFirstByName(ctx, item.GroupCohortName)
 		if cohort == nil {
 			lastError = s.logger.LogAndReturnError(
 				contextutil.GetTraceID(ctx),

@@ -48,7 +48,7 @@ func (l *logger) LogAndReturnError(traceID, method string, err error, logType Lo
 }
 
 func (l *logger) formString(traceID, method, message string, logType LogType) string {
-	return fmt.Sprintf("%s ===> %s [[struct: %s, method: %s, traceID: %s, time: %s, ]]",
+	return fmt.Sprintf("%s ===> %s [[struct: %s, method: %s, traceID: %s, time: %s]]",
 		logType, message, l.class, method, traceID, time.Now().Format(db.TimeFormat),
 	)
 }

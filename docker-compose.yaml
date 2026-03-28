@@ -31,10 +31,6 @@ services:
     build: ./services/schedule
     expose:
       - "10002"
-    depends_on:
-      - employee-service
-      - student-group-service
-      - student-service
     env_file:
       - ./services/schedule/.env.docker
     environment:
@@ -53,8 +49,6 @@ services:
     build: ./services/student_group
     expose:
       - "10004"
-    depends_on:
-      - student-service
     env_file:
       - ./services/student_group/.env.docker
     environment:

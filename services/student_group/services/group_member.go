@@ -63,7 +63,7 @@ func (s *groupMemberService) onAddPrepare(ctc context.Context, groupMember *enti
 
 func (s *groupMemberService) Seed(ctx context.Context) error {
 	groupMembersData := []struct {
-		Student          string  `json:"student_name"`
+		StudentSlug      string  `json:"student_slug"`
 		GroupCohortName  string  `json:"group_cohort_name"`
 		StudentGroupName *string `json:"student_group_name,omitempty"`
 	}{}
@@ -79,12 +79,12 @@ func (s *groupMemberService) Seed(ctx context.Context) error {
 
 	var lastError error
 	for _, item := range groupMembersData {
-		student := s.studentGroupRepository.FindFirstByName(ctx, item.Student)
+		student := s.studentRepository.FindBySlug(ctx, item.StudentSlug)
 		if student == nil {
 			lastError = s.logger.LogAndReturnError(
 				contextutil.GetTraceID(ctx),
 				"Seed",
-				fmt.Errorf("student with name %q not found", item.Student),
+				fmt.Errorf("student with slug %q not found", item.StudentSlug),
 				logger.ServiceValidationFailed,
 			)
 			continue

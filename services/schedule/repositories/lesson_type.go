@@ -22,7 +22,7 @@ func NewLessonTypeRepository(db *sqlx.DB) LessonTypeRepository {
 		"LessonTypeRepository",
 		entities.LessonType{}.TableName(),
 		"lesson_type",
-		[]string{"id", "slug", "name", "required_hours"},
+		[]string{"id", "slug", "name", "hours_value"},
 		[]string{""},
 		[]string{"created_at", "updated_at"},
 	)

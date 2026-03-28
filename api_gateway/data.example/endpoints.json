@@ -1,14 +1,26 @@
 [
-    {
-        "path": "employee",
-        "upstream_name": "employee-service"
-    },
-    {
-        "path": "schedule",
-        "upstream_name": "schedule-service"
-    },
-    {
-        "path": "student",
-        "upstream_name": "student-service"
-    }
+  {
+    "path": "employee",
+    "upstream_name": "employee-service"
+  },
+  {
+    "path": "schedule",
+    "upstream_name": "schedule-service"
+  },
+  {
+    "path": "student",
+    "upstream_name": "student-service"
+  },
+  {
+    "path": "student-group",
+    "upstream_name": "student-group-service"
+  },
+  {
+    "path": "curriculum",
+    "upstream_name": "curriculum-service"
+  },
+  {
+    "path": "teacher-load",
+    "upstream_name": "teacher-load-service"
+  }
 ]

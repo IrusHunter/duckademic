@@ -40,7 +40,7 @@ func NewSemesterService(
 
 	res.logger = res.GetLogger()
 
-	eb.Subscribe(contextutil.SetTraceID(context.Background()), string(events.DisciplineRT), res.eventHandler)
+	eb.Subscribe(contextutil.SetTraceID(context.Background()), string(events.SemesterRT), res.eventHandler)
 
 	return res
 }

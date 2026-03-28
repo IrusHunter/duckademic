@@ -17,7 +17,7 @@ type TeacherRepository interface {
 
 func NewTeacherRepository(db *sqlx.DB) TeacherRepository {
 	config := platform.NewRepositoryConfig("TeacherRepository", entities.Teacher{}.TableName(),
-		"teacher", []string{"id", "name"}, []string{""}, []string{"created_at", "updated_at"},
+		"teacher", []string{"id", "slug", "name"}, []string{""}, []string{"created_at", "updated_at"},
 	)
 	return &teacherRepository{
 		BaseRepository: platform.NewBaseRepository[entities.Teacher](config, db),
@@ -38,5 +38,5 @@ func (r *teacherRepository) ExternalUpdate(
 	id uuid.UUID,
 	teacher entities.Teacher,
 ) (entities.Teacher, error) {
-	return r.UpdateFields(ctx, id, []string{"name"}, teacher)
+	return r.UpdateFields(ctx, id, []string{"slug", "name"}, teacher)
 }

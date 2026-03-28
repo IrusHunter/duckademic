@@ -22,7 +22,7 @@ func NewLessonTypeRepository(db *sqlx.DB) LessonTypeRepository {
 		"LessonTypeRepository",
 		entities.LessonType{}.TableName(),
 		"lesson_type",
-		[]string{"id", "slug", "name", "required_hours"},
+		[]string{"id", "slug", "name"},
 		[]string{""},
 		[]string{"created_at", "updated_at"},
 	)
@@ -53,5 +53,5 @@ func (r *lessonTypeRepository) ExternalUpdate(
 	id uuid.UUID,
 	lessonType entities.LessonType,
 ) (entities.LessonType, error) {
-	return r.UpdateFields(ctx, id, []string{"slug", "name", "hours_value"}, lessonType)
+	return r.UpdateFields(ctx, id, []string{"slug", "name"}, lessonType)
 }
