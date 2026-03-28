@@ -472,3 +472,20 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+<a id="teacher-load-teacher-load"></a>
+
+### Teacher Load
+
+```json
+{
+  "id": "uuid (unique identifier of the teacher load record)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "group_count": "integer (number of groups assigned for this load)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

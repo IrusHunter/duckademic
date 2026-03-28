@@ -69,6 +69,8 @@
   - [/group-cohorts](#teacher-load-group-cohorts)
   - [/lesson-types](#teacher-load-lesson-types)
   - [/disciplines](#teacher-load-disciplines)
+  - [/teacher-loads](#teacher-load-teacher-loads)
+  - [/teacher-load/{id}](#teacher-load-teacher-load-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -952,3 +954,61 @@
 ### GET – gets all disciplines from the database
 
 200 OK [=> Discipline[]](schemas.md#teacher-load-discipline)
+
+<a id="teacher-load-teacher-loads"></a>
+
+## /teacher-loads
+
+### GET – gets all teacher loads from the database
+
+200 OK [=> TeacherLoad[]](schemas.md#teacher-load-teacher-load)
+
+### POST – adds a new teacher load
+
+```json
+{
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "group_count": "integer (number of groups assigned for this load)"
+}
+```
+
+200 OK [=> TeacherLoad](schemas.md#teacher-load-teacher-load)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+---
+
+<a id="teacher-load-teacher-load-id"></a>
+
+## /teacher-load/{id}
+
+### GET – finds a teacher load with an ID as an URL parameter
+
+200 OK [=> TeacherLoad](schemas.md#teacher-load-teacher-load)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE – deletes a teacher load by its ID provided in the URL path
+
+200 OK [=> TeacherLoad](schemas.md#teacher-load-teacher-load)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT – updates a teacher load by its ID with the data provided in the request body
+
+```json
+{
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "group_count": "integer (number of groups assigned for this load)"
+}
+```
+
+200 OK [=> TeacherLoad](schemas.md#teacher-load-teacher-load)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

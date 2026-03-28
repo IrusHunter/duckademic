@@ -48,7 +48,7 @@ func main() {
 	semesterDisciplineRepository := repositories.NewSemesterDisciplineRepository(database)
 
 	curriculumService := services.NewCurriculumService(curriculumRepository)
-	semesterService := services.NewSemesterService(semesterRepository, curriculumRepository)
+	semesterService := services.NewSemesterService(semesterRepository, curriculumRepository, eventBus)
 	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
 	disciplineService := services.NewDisciplineService(disciplineRepository, eventBus)
 	lessonTypeAssignmentService := services.NewLessonTypeAssignmentService(lessonTypeAssignmentRepository,

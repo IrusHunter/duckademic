@@ -64,7 +64,8 @@ func main() {
 	disciplineHandler := resthandlers.NewDisciplineHandler(disciplineService)
 	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
 	lessonTypeAssignmentHandler := resthandlers.NewLessonTypeAssignmentHandler(lessonTypeAssignmentService)
-	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService)
+	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, teacherService, disciplineService, lessonTypeService,
+		lessonTypeAssignmentService, studentService, studentGroupService, groupMemberService)
 	studentHandler := resthandlers.NewStudentHandler(studentService)
 	studentGroupHandler := resthandlers.NewStudentGroupHandler(studentGroupService)
 	groupMemberHandler := resthandlers.NewGroupMemberHandler(groupMemberService)

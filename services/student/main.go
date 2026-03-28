@@ -48,7 +48,7 @@ func main() {
 
 	studentHandler := resthandlers.NewStudentHandler(studentService)
 	semesterHandler := resthandlers.NewSemesterHandler(semesterService)
-	databaseHandler := resthandlers.NewDatabaseHandler(studentService)
+	databaseHandler := resthandlers.NewDatabaseHandler(studentService, semesterService)
 
 	restapi := NewRESTAPI(studentHandler, semesterHandler, databaseHandler)
 

@@ -19,14 +19,17 @@ type DatabaseHandler interface {
 
 func NewDatabaseHandler(
 	ss services.StudentService,
+	semS services.SemesterService,
 ) DatabaseHandler {
 	return &databaseHandler{
-		studentService: ss,
+		studentService:  ss,
+		semesterService: semS,
 	}
 }
 
 type databaseHandler struct {
-	studentService services.StudentService
+	studentService  services.StudentService
+	semesterService services.SemesterService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -41,6 +44,10 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if err := h.studentService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear students: %w", err))
+		return
+	}
+	if err := h.semesterService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear semester: %w", err))
 		return
 	}
 

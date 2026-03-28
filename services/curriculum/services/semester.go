@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/curriculum/entities"
 	"github.com/IrusHunter/duckademic/services/curriculum/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
@@ -21,6 +22,7 @@ type SemesterService interface {
 func NewSemesterService(
 	sr repositories.SemesterRepository,
 	cr repositories.CurriculumRepository,
+	eb events.EventBus,
 ) SemesterService {
 	sc := platform.NewServiceConfig(
 		"SemesterService",
@@ -31,13 +33,15 @@ func NewSemesterService(
 	res := &semesterService{
 		repository:           sr,
 		curriculumRepository: cr,
+		eventBus:             eb,
 	}
 
-	res.BaseService = platform.NewBaseService(sc, sr,
+	res.BaseService = platform.NewBaseServiceWithEventBus(sc, sr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Semester]{
 			platform.OnAddPrepare:   res.onAddPrepare,
 			platform.ValidateEntity: res.validateEntity,
 		},
+		eb,
 	)
 
 	res.logger = res.GetLogger()
@@ -50,6 +54,7 @@ type semesterService struct {
 	repository           repositories.SemesterRepository
 	curriculumRepository repositories.CurriculumRepository
 	logger               logger.Logger
+	eventBus             events.EventBus
 }
 
 func (s *semesterService) validateEntity(ctx context.Context, semester *entities.Semester) error {
@@ -115,4 +120,48 @@ func (s *semesterService) Seed(ctx context.Context) error {
 	)
 
 	return lastError
+}
+
+func (s *semesterService) Add(
+	ctx context.Context, semester entities.Semester,
+) (entities.Semester, error) {
+	addedSemester, err := s.BaseService.Add(ctx, semester)
+	if err == nil {
+		s.sendChanges(ctx, addedSemester, events.EntityCreated)
+	}
+	return addedSemester, err
+}
+func (s *semesterService) Delete(
+	ctx context.Context, id uuid.UUID,
+) (entities.Semester, error) {
+	deletedSemester, err := s.BaseService.Delete(ctx, id)
+	if err == nil {
+		s.sendChanges(ctx, deletedSemester, events.EntityDeleted)
+	}
+	return deletedSemester, err
+}
+func (s *semesterService) Update(
+	ctx context.Context, id uuid.UUID, semester entities.Semester,
+) (entities.Semester, error) {
+	updatedSemester, err := s.BaseService.Update(ctx, id, semester)
+	if err == nil {
+		s.sendChanges(ctx, updatedSemester, events.EntityUpdated)
+	}
+	return updatedSemester, err
+}
+
+func (s *semesterService) sendChanges(
+	ctx context.Context,
+	semester entities.Semester,
+	event events.EventType,
+) {
+	eventSemester := events.SemesterRE{
+		Event:        event,
+		ID:           semester.ID,
+		Slug:         semester.Slug,
+		CurriculumID: semester.CurriculumID,
+		Number:       semester.Number,
+	}
+
+	s.BaseService.SendChanges(ctx, eventSemester, event, events.SemesterRT)
 }
