@@ -23,6 +23,7 @@ func NewRESTAPI(
 	sh resthandlers.StudentHandler,
 	sgh resthandlers.StudentGroupHandler,
 	gmh resthandlers.GroupMemberHandler,
+	tlh resthandlers.TeacherLoadHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
@@ -36,6 +37,7 @@ func NewRESTAPI(
 		studentHandler:              sh,
 		studentGroupHandler:         sgh,
 		groupMemberHandler:          gmh,
+		teacherLoadHandler:          tlh,
 	}
 }
 
@@ -50,6 +52,7 @@ type restapi struct {
 	studentGroupHandler         resthandlers.StudentGroupHandler
 	groupMemberHandler          resthandlers.GroupMemberHandler
 	databaseHandler             resthandlers.DatabaseHandler
+	teacherLoadHandler          resthandlers.TeacherLoadHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -87,6 +90,10 @@ func (ra *restapi) Run(port int) error {
 
 	ra.NewRoute("/group-members", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.groupMemberHandler.GetAll),
+	})
+
+	ra.NewRoute("/teacher-loads", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.teacherHandler.GetAll),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

@@ -28,6 +28,7 @@ func NewDatabaseHandler(
 	ss services.StudentService,
 	sgs services.StudentGroupService,
 	gmg services.GroupMemberService,
+	tls services.TeacherLoadService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		academicRankService:         ars,
@@ -38,6 +39,7 @@ func NewDatabaseHandler(
 		studentService:              ss,
 		studentGroupService:         sgs,
 		groupMemberService:          gmg,
+		teacherLoadService:          tls,
 	}
 }
 
@@ -50,6 +52,7 @@ type databaseHandler struct {
 	studentService              services.StudentService
 	studentGroupService         services.StudentGroupService
 	groupMemberService          services.GroupMemberService
+	teacherLoadService          services.TeacherLoadService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -62,6 +65,10 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.teacherLoadService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear teacher loads: %w", err))
+		return
+	}
 	if err := h.groupMemberService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group members: %w", err))
 		return

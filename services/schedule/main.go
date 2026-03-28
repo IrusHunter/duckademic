@@ -48,6 +48,7 @@ func main() {
 	studentRepository := repositories.NewStudentRepository(database)
 	studentGroupRepository := repositories.NewStudentGroupRepository(database)
 	groupMemberRepository := repositories.NewGroupMemberRepository(database)
+	teacherLoadRepository := repositories.NewTeacherLoadRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
@@ -58,6 +59,7 @@ func main() {
 	studentService := services.NewStudentService(studentRepository, eventBus)
 	studentGroupService := services.NewStudentGroupService(studentGroupRepository, eventBus)
 	groupMemberService := services.NewGroupMemberService(groupMemberRepository, eventBus)
+	teacherLoadService := services.NewTeacherLoadService(teacherLoadRepository, eventBus)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
@@ -65,13 +67,15 @@ func main() {
 	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
 	lessonTypeAssignmentHandler := resthandlers.NewLessonTypeAssignmentHandler(lessonTypeAssignmentService)
 	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, teacherService, disciplineService, lessonTypeService,
-		lessonTypeAssignmentService, studentService, studentGroupService, groupMemberService)
+		lessonTypeAssignmentService, studentService, studentGroupService, groupMemberService, teacherLoadService)
 	studentHandler := resthandlers.NewStudentHandler(studentService)
 	studentGroupHandler := resthandlers.NewStudentGroupHandler(studentGroupService)
 	groupMemberHandler := resthandlers.NewGroupMemberHandler(groupMemberService)
+	teacherLoadHandler := resthandlers.NewTeacherLoadHandler(teacherLoadService)
 
 	restapi := NewRESTAPI(academicRankHandler, teacherHandler, disciplineHandler, lessonTypeHandler,
-		lessonTypeAssignmentHandler, studentHandler, studentGroupHandler, groupMemberHandler, databaseHandler)
+		lessonTypeAssignmentHandler, studentHandler, studentGroupHandler, groupMemberHandler, teacherLoadHandler,
+		databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

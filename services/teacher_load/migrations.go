@@ -152,10 +152,10 @@ func teacherLoadMigrations(database *sqlx.DB) error {
 	schema := `
 	CREATE TABLE IF NOT EXISTS teacher_loads (
 		id UUID PRIMARY KEY,
-		teacher_id UUID NOT NULL,
-		discipline_id UUID NOT NULL,
-		lesson_type_id UUID NOT NULL,
-		group_cohort_id UUID NOT NULL,
+		teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+		discipline_id UUID NOT NULL REFERENCES disciplines(id) ON DELETE CASCADE,
+		lesson_type_id UUID NOT NULL REFERENCES lesson_types(id) ON DELETE CASCADE,
+		group_cohort_id UUID NOT NULL REFERENCES group_cohorts(id) ON DELETE CASCADE,
 		group_count INT NOT NULL,
 		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()

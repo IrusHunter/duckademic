@@ -34,6 +34,7 @@
   - [/students](#schedule-students)
   - [/student-groups](#schedule-student-groups)
   - [/group_members](#schedule-group-members)
+  - [/teacher-loads](#schedule-teacher-loads)
 
 - Student Service (/student)
   - [/semesters](#student-semesters)
@@ -375,6 +376,14 @@
 ### GET - gets all group members from the database
 
 200 OK [=> GroupMember[]](schemas.md#schedule-group-member)
+
+<a id="schedule-teacher-loads"></a>
+
+## /teacher-loads
+
+### GET – gets all teacher loads from the database
+
+200 OK [=> TeacherLoad[]](schemas.md#schedule-teacher-load)
 
 # Student Service
 
@@ -978,8 +987,6 @@
 200 OK [=> TeacherLoad](schemas.md#teacher-load-teacher-load)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
----
 
 <a id="teacher-load-teacher-load-id"></a>
 
