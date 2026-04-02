@@ -218,6 +218,27 @@
 }
 ```
 
+## Schedule Generator Service
+
+<a id="schedule-generator-generator-config"></a>
+
+### Generator Config
+
+```json
+{
+  "start_date": "timestamp (start date and time of the study period)",
+  "end_date": "timestamp (end date and time of the study period, inclusive of the last day)",
+  "slot_preference": [
+    [
+      "float (preference coefficient for a time slot; ordered by days starting from Sunday: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)"
+    ]
+  ],
+  "max_daily_student_load": "integer (maximum number of classes per student per day)",
+  "lesson_fill_rate": "float (percentage of lesson type utilization used to determine the number of study days)",
+  "classroom_occupancy": "float (percentage of classroom occupancy)"
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>

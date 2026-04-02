@@ -1,0 +1,16 @@
+{
+  "start_date": "2025-01-19T00:00:00Z",
+  "end_date": "2025-05-31T00:00:00Z",
+  "slot_preference": [
+    [],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    []
+  ],
+  "max_daily_student_load": 4,
+  "lesson_fill_rate": 0.8,
+  "classroom_occupancy": 0.8
+}

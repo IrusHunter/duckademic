@@ -3,23 +3,13 @@ package core
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/components"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
+	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
 )
-
-type ScheduleGeneratorConfig struct {
-	LessonsValue            int
-	Start                   time.Time
-	End                     time.Time
-	WorkLessons             [][]float32 // ПОЧАТОК З НЕДІЛІ нд пн вт ср чт пт сб, зберігає коефіцієнти зручності
-	MaxStudentWorkload      int         // максимальна кількість пар для студентів на день
-	FillPercentage          float64     // відсоток заповненості типом пар для визначення кількості днів
-	ClassroomFillPercentage float32
-}
 
 type generatorData struct {
 	busyGrid            [][]float32
@@ -55,44 +45,46 @@ func (g *generatorData) CheckServices(services []bool) error {
 }
 
 type ScheduleGenerator struct {
-	ScheduleGeneratorConfig
+	externalEntities.ScheduleGeneratorConfig
 	generatorData
 	errorService     components.ErrorService
 	weekData         generatorData
 	classroomService services.ClassroomService
 }
 
-func NewScheduleGenerator(cfg ScheduleGeneratorConfig) (*ScheduleGenerator, error) {
-	if len(cfg.WorkLessons) != 7 {
-		return nil, fmt.Errorf("length of WorkLessons %d instead of 7", len(cfg.WorkLessons))
-	}
-	if cfg.Start.After(cfg.End) {
-		return nil, fmt.Errorf("start date comes after end")
-	}
-
+func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*ScheduleGenerator, error) {
 	scheduleGenerator := ScheduleGenerator{
 		ScheduleGeneratorConfig: cfg,
 	}
 
 	index := 0
-	for date := cfg.Start; !date.After(cfg.End); date = date.AddDate(0, 0, 1) {
-		scheduleGenerator.busyGrid = append(scheduleGenerator.busyGrid, make([]float32, len(cfg.WorkLessons[date.Weekday()])))
-		copy(scheduleGenerator.busyGrid[index], cfg.WorkLessons[date.Weekday()])
+
+	for range cfg.StartDate.Weekday() {
+		scheduleGenerator.busyGrid = append(scheduleGenerator.busyGrid, []float32{})
+	}
+
+	for date := cfg.StartDate; !date.After(cfg.EndDate); date = date.AddDate(0, 0, 1) {
+		scheduleGenerator.busyGrid = append(scheduleGenerator.busyGrid, make([]float32, len(cfg.SlotPreference[date.Weekday()])))
+		copy(scheduleGenerator.busyGrid[index], cfg.SlotPreference[date.Weekday()])
 		index++
+	}
+
+	for range 6 - cfg.EndDate.Weekday() {
+		scheduleGenerator.busyGrid = append(scheduleGenerator.busyGrid, []float32{})
 	}
 
 	for i := range 7 {
 		scheduleGenerator.weekData.busyGrid = append(scheduleGenerator.weekData.busyGrid,
-			make([]float32, len(cfg.WorkLessons[i])))
-		copy(scheduleGenerator.weekData.busyGrid[i], cfg.WorkLessons[i])
+			make([]float32, len(cfg.SlotPreference[i])))
+		copy(scheduleGenerator.weekData.busyGrid[i], cfg.SlotPreference[i])
 	}
 
-	ls, err := services.NewLessonService(cfg.LessonsValue)
+	ls, err := services.NewLessonService(2) // TODO: remove and get it value from lesson type
 	if err != nil {
 		return nil, err
 	}
 
-	weekLS, err := services.NewLessonService(cfg.LessonsValue)
+	weekLS, err := services.NewLessonService(2) // TODO: remove and get it value from lesson type
 	if err != nil {
 		return nil, err
 	}
@@ -122,12 +114,12 @@ func (g *ScheduleGenerator) SetTeachers(teachers []types.Teacher) error {
 }
 
 func (g *ScheduleGenerator) SetStudentGroups(studentGroups []types.StudentGroup) error {
-	sgs, err := services.NewStudentGroupService(studentGroups, g.MaxStudentWorkload, g.busyGrid)
+	sgs, err := services.NewStudentGroupService(studentGroups, g.MaxDailyStudentLoad, g.busyGrid)
 	if err != nil {
 		return err
 	}
 
-	weekSGS, err := services.NewStudentGroupService(studentGroups, g.MaxStudentWorkload, g.weekData.busyGrid)
+	weekSGS, err := services.NewStudentGroupService(studentGroups, g.MaxDailyStudentLoad, g.weekData.busyGrid)
 	if err != nil {
 		return err
 	}
@@ -196,7 +188,7 @@ func (g *ScheduleGenerator) SetStudyLoads(studyLoads []types.StudyLoad) error {
 }
 
 func (g *ScheduleGenerator) SetClassrooms(classrooms []types.Classroom) error {
-	cs, err := services.NewClassroomService(classrooms, g.busyGrid, g.ClassroomFillPercentage)
+	cs, err := services.NewClassroomService(classrooms, g.busyGrid, float32(g.ClassroomOccupancy))
 	if err != nil {
 		return fmt.Errorf("classroom service creation fails: %w", err)
 	}
