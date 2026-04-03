@@ -20,44 +20,45 @@ func NewRESTAPI(
 	gch resthandlers.GroupCohortHandler,
 	sgh resthandlers.StudentGroupHandler,
 	gmh resthandlers.GroupMemberHandler,
+	lth resthandlers.LessonTypeHandler,
+	disH resthandlers.DisciplineHandler,
+	gcah resthandlers.GroupCohortAssignmentHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:       platform.NewRESTAPIHelper("RESTAPI"),
-		studentHandler:      sh,
-		groupCohortHandler:  gch,
-		semesterHandler:     semH,
-		studentGroupHandler: sgh,
-		groupMembersHandler: gmh,
-		databaseHandler:     dh,
+		RESTAPIHelper:                platform.NewRESTAPIHelper("RESTAPI"),
+		studentHandler:               sh,
+		groupCohortHandler:           gch,
+		semesterHandler:              semH,
+		studentGroupHandler:          sgh,
+		groupMembersHandler:          gmh,
+		databaseHandler:              dh,
+		disciplineHandler:            disH,
+		lessonTypeHandler:            lth,
+		groupCohortAssignmentHandler: gcah,
 	}
 }
 
 type restapi struct {
 	platform.RESTAPIHelper
-	studentHandler      resthandlers.StudentHandler
-	semesterHandler     resthandlers.SemesterHandler
-	groupCohortHandler  resthandlers.GroupCohortHandler
-	studentGroupHandler resthandlers.StudentGroupHandler
-	groupMembersHandler resthandlers.GroupMemberHandler
-	databaseHandler     resthandlers.DatabaseHandler
+	studentHandler               resthandlers.StudentHandler
+	semesterHandler              resthandlers.SemesterHandler
+	groupCohortHandler           resthandlers.GroupCohortHandler
+	studentGroupHandler          resthandlers.StudentGroupHandler
+	groupMembersHandler          resthandlers.GroupMemberHandler
+	disciplineHandler            resthandlers.DisciplineHandler
+	lessonTypeHandler            resthandlers.LessonTypeHandler
+	groupCohortAssignmentHandler resthandlers.GroupCohortAssignmentHandler
+	databaseHandler              resthandlers.DatabaseHandler
 }
 
 func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/students", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.GetAll),
 	})
-	ra.NewRoute("/student/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.studentHandler.Update),
-	})
 
 	ra.NewRoute("/semesters", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.GetAll),
-	})
-	ra.NewRoute("/semester/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.semesterHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.semesterHandler.Update),
 	})
 
 	ra.NewRoute("/group-cohorts", map[string]platform.HandlerFunc{
@@ -88,6 +89,24 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet:    ra.NewDefaultHandler(ra.groupMembersHandler.Find),
 		http.MethodPut:    ra.NewDefaultHandler(ra.groupMembersHandler.Update),
 		http.MethodDelete: ra.NewDefaultHandler(ra.groupMembersHandler.Delete),
+	})
+
+	ra.NewRoute("/disciplines", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.disciplineHandler.GetAll),
+	})
+
+	ra.NewRoute("/lesson-types", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.GetAll),
+	})
+
+	ra.NewRoute("/group-cohort-assignments", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.Add),
+	})
+	ra.NewRoute("/group-cohort-assignment/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.Find),
+		http.MethodPut:    ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.Update),
+		http.MethodDelete: ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.Delete),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

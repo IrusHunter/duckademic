@@ -373,6 +373,49 @@
 }
 ```
 
+<a id="student-group-discipline"></a>
+
+### Discipline
+
+```json
+{
+  "id": "uuid (unique identifier of the discipline)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the discipline)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="student-group-lesson-type"></a>
+
+### Lesson Type
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson type)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the lesson type)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="student-group-group-cohort-assignment"></a>
+
+### Group Cohort Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of the assignment)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 ## Curriculum Service
 
 <a id="curriculum-curriculum"></a>

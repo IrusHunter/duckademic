@@ -53,8 +53,12 @@
   - [/group-cohort/{id}](#student-group-group-cohort-id)
   - [/student-groups](#student-group-student-groups)
   - [/student-group/{id}](#student-group-student-group-id)
-  - [/group_members](#student-group-group-members)
-  - [/group_member/{id}](#student-group-group-member-id)
+  - [/group-members](#student-group-group-members)
+  - [/group-member/{id}](#student-group-group-member-id)
+  - [/lesson-types](#student-group-lesson-types)
+  - [/disciplines](#student-group-disciplines)
+  - [/group-cohort-assignments](#student-group-group-cohort-assignments)
+  - [/group-cohort-assignment/{id}](#student-group-group-cohort-assignment)
 
 - Curriculum Service (/curriculum)
   - [/curriculums](#curriculum-curriculum)
@@ -674,6 +678,74 @@
 ```
 
 200 OK [=> GroupMember](schemas.md#student-group-group-member)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-lesson-types"></a>
+
+## /lesson-types
+
+### GET - gets all lesson types from the database
+
+200 OK [=> LessonType[]](schemas.md#student-group-lesson-type)
+
+<a id="student-group-disciplines"></a>
+
+## /disciplines
+
+### GET – gets all disciplines from the database
+
+200 OK [=> Discipline[]](schemas.md#student-group-discipline)
+
+<a id="student-group-group-cohort-assignments"></a>
+
+## /group-cohort-assignments
+
+### GET - gets all group cohort assignments from the database
+
+200 OK [=> GroupCohortAssignment[]](schemas.md#student-group-group-cohort-assignment)
+
+### POST - adds a new group cohort assignment
+
+```json
+{
+  "group_cohort_id": "uuid (identifier of the associated group cohort)",
+  "discipline_id": "uuid (identifier of the discipline)",
+  "lesson_type_id": "uuid (identifier of the lesson type)"
+}
+```
+
+200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-group-cohort-assignment-id"></a>
+
+## /group-cohort-assignments/{id}
+
+### GET - finds a group cohort assignment by its ID provided in the URL path
+
+200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a group cohort assignment by its ID provided in the URL path
+
+200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a group cohort assignment by its ID with the data provided in the request body
+
+```json
+{
+  "group_cohort_id": "uuid (identifier of the associated group cohort)",
+  "discipline_id": "uuid (identifier of the discipline)",
+  "lesson_type_id": "uuid (identifier of the lesson type)"
+}
+```
+
+200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

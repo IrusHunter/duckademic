@@ -23,22 +23,31 @@ func NewDatabaseHandler(
 	gcs services.GroupCohortService,
 	sgs services.StudentGroupService,
 	gms services.GroupMemberService,
+	ds services.DisciplineService,
+	ls services.LessonTypeService,
+	gcas services.GroupCohortAssignmentService,
 ) DatabaseHandler {
 	return &databaseHandler{
-		studentService:      ss,
-		semesterService:     semS,
-		groupCohortService:  gcs,
-		studentGroupService: sgs,
-		groupMembersService: gms,
+		studentService:               ss,
+		semesterService:              semS,
+		groupCohortService:           gcs,
+		studentGroupService:          sgs,
+		groupMembersService:          gms,
+		disciplineService:            ds,
+		lessonTypeService:            ls,
+		groupCohortAssignmentService: gcas,
 	}
 }
 
 type databaseHandler struct {
-	studentService      services.StudentService
-	semesterService     services.SemesterService
-	groupCohortService  services.GroupCohortService
-	studentGroupService services.StudentGroupService
-	groupMembersService services.GroupMemberService
+	studentService               services.StudentService
+	semesterService              services.SemesterService
+	groupCohortService           services.GroupCohortService
+	studentGroupService          services.StudentGroupService
+	groupMembersService          services.GroupMemberService
+	disciplineService            services.DisciplineService
+	lessonTypeService            services.LessonTypeService
+	groupCohortAssignmentService services.GroupCohortAssignmentService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -48,6 +57,8 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 		h.groupCohortService.Seed(ctx)
 		ctx = contextutil.SetTraceID(context.Background())
 		h.studentGroupService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.groupCohortAssignmentService.Seed(ctx)
 
 		time.Sleep(events.ExternalSeedCooldown)
 		ctx = contextutil.SetTraceID(context.Background())
@@ -57,6 +68,10 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.groupCohortAssignmentService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group cohort assignments: %w", err))
+		return
+	}
 	if err := h.groupMembersService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group members: %w", err))
 		return
@@ -75,6 +90,14 @@ func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *h
 	}
 	if err := h.semesterService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear semesters: %w", err))
+		return
+	}
+	if err := h.lessonTypeService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear lesson types: %w", err))
+		return
+	}
+	if err := h.disciplineService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear disciplines: %w", err))
 		return
 	}
 

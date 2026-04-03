@@ -1,0 +1,22 @@
+[
+  {
+    "discipline_name": "Математика",
+    "lesson_type_name": "Лекція"
+  },
+  {
+    "discipline_name": "Фізика",
+    "lesson_type_name": "Практичне заняття"
+  },
+  {
+    "discipline_name": "Інформатика",
+    "lesson_type_name": "Лабораторна робота"
+  },
+  {
+    "discipline_name": "Хімія",
+    "lesson_type_name": "Семінар"
+  },
+  {
+    "discipline_name": "Біологія",
+    "lesson_type_name": "Лекція"
+  }
+]

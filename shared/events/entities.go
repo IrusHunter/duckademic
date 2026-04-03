@@ -215,3 +215,23 @@ func (tl TeacherLoadRE) String() string {
 
 	return fmt.Sprintf("TeacherLoadRE{%s}", strings.Join(parts, ", "))
 }
+
+type GroupCohortAssignmentRE struct {
+	Event         EventType
+	ID            uuid.UUID
+	GroupCohortID uuid.UUID
+	DisciplineID  uuid.UUID
+	LessonTypeID  uuid.UUID
+}
+
+func (gca GroupCohortAssignmentRE) String() string {
+	parts := make([]string, 0, 4)
+
+	parts = append(parts, fmt.Sprintf("event: %s", gca.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", gca.ID))
+	parts = append(parts, fmt.Sprintf("group_cohort_id: %s", gca.GroupCohortID))
+	parts = append(parts, fmt.Sprintf("discipline_id: %s", gca.DisciplineID))
+	parts = append(parts, fmt.Sprintf("lesson_type_id: %s", gca.LessonTypeID))
+
+	return fmt.Sprintf("GroupCohortAssignmentRE{%s}", strings.Join(parts, ", "))
+}

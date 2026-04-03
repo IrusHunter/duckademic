@@ -45,6 +45,9 @@ func main() {
 	groupCohortRepository := repositories.NewGroupCohortRepository(database)
 	studentGroupRepository := repositories.NewStudentGroupRepository(database)
 	groupMemberRepository := repositories.NewGroupMemberRepository(database)
+	disciplineRepository := repositories.NewDisciplineRepository(database)
+	lessonTypeRepository := repositories.NewLessonTypeRepository(database)
+	groupCohortAssignmentRepository := repositories.NewGroupCohortAssignmentRepository(database)
 
 	semesterService := services.NewSemesterService(semesterRepository, eventBus)
 	studentService := services.NewStudentService(studentRepository, eventBus)
@@ -52,17 +55,24 @@ func main() {
 	studentGroupService := services.NewStudentGroupService(studentGroupRepository, groupCohortRepository, eventBus)
 	groupMemberService := services.NewGroupMemberService(groupMemberRepository, studentRepository, groupCohortRepository,
 		studentGroupRepository, eventBus)
+	disciplineService := services.NewDisciplineService(disciplineRepository, eventBus)
+	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
+	groupCohortAssignmentService := services.NewGroupCohortAssignmentService(groupCohortAssignmentRepository,
+		groupCohortRepository, disciplineRepository, lessonTypeRepository, eventBus)
 
 	semesterHandler := resthandlers.NewSemesterHandler(semesterService)
 	studentHandler := resthandlers.NewStudentHandler(studentService)
 	groupCohortHandler := resthandlers.NewGroupCohortHandler(groupCohortService)
 	studentGroupHandler := resthandlers.NewStudentGroupHandler(studentGroupService)
 	groupMemberHandler := resthandlers.NewGroupMemberHandler(groupMemberService)
+	disciplineHandler := resthandlers.NewDisciplineHandler(disciplineService)
+	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
+	groupCohortAssignmentHandler := resthandlers.NewGroupCohortAssignmentHandler(groupCohortAssignmentService)
 	databaseHandler := resthandlers.NewDatabaseHandler(studentService, semesterService, groupCohortService,
-		studentGroupService, groupMemberService)
+		studentGroupService, groupMemberService, disciplineService, lessonTypeService, groupCohortAssignmentService)
 
 	restapi := NewRESTAPI(studentHandler, semesterHandler, groupCohortHandler, studentGroupHandler,
-		groupMemberHandler, databaseHandler)
+		groupMemberHandler, lessonTypeHandler, disciplineHandler, groupCohortAssignmentHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)
