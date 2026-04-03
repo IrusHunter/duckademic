@@ -97,7 +97,11 @@ func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*Schedu
 	return &scheduleGenerator, nil
 }
 
-func (g *ScheduleGenerator) SetTeachers(teachers []types.Teacher) error {
+func (g *ScheduleGenerator) SetTeachers(teachers []externalEntities.Teacher) error {
+	if g.teacherService != nil {
+		return fmt.Errorf("teachers already set")
+	}
+
 	ts, err := services.NewTeacherService(teachers, g.busyGrid)
 	if err != nil {
 		return err

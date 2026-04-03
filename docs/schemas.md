@@ -239,6 +239,18 @@
 }
 ```
 
+<a id="schedule-generator-teacher"></a>
+
+### Teacher
+
+```json
+{
+  "id": "uuid (identifier of the teacher)",
+  "name": "string (short full name of the teacher)",
+  "priority": "int (determines the rank's priority: higher value = higher rank)"
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>

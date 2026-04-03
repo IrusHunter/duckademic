@@ -38,6 +38,7 @@
 
 - Schedule Generator Service (/schedule-generator)
   - [/init](#schedule-generator-init)
+  - [/set-teachers](#schedule-generator-set-teachers)
   - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
@@ -397,22 +398,27 @@
 
 ### ANY - creates a new schedule generator using configuration from the request body, validates the input, and initializes the generator if it does not already exist
 
-```json
-{
-  "start_date": "timestamp (start date and time of the study period)",
-  "end_date": "timestamp (end date and time of the study period, inclusive of the last day)",
-  "slot_preference": [
-    [
-      "float (preference coefficient for a time slot; ordered by days starting from Sunday: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)"
-    ]
-  ],
-  "max_daily_student_load": "integer (maximum number of classes per student per day)",
-  "lesson_fill_rate": "float (percentage of lesson type utilization used to determine the number of study days)",
-  "classroom_occupancy": "float (percentage of classroom occupancy)"
-}
-```
+[<= GeneratorConfig](schemas.md#schedule-generator-generator-config)
 
 201 CREATED => null
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-teachers"></a>
+
+## /set-teachers
+
+### ANY - assigns the teachers to the schedule generator
+
+[<= Teacher[]](schemas.md#schedule-generator-teaacher)
+
+200 OK
+
+```json
+{
+  "message": "n teachers assigned"
+}
+```
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

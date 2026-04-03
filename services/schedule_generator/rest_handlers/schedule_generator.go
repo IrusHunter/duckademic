@@ -17,18 +17,24 @@ import (
 type ScheduleGeneratorHandler interface {
 	CreateGenerator(context.Context, http.ResponseWriter, *http.Request)
 	GetDefaultConfig(context.Context, http.ResponseWriter, *http.Request)
+	SetTeachers(context.Context, http.ResponseWriter, *http.Request)
 }
 
-func NewScheduleGeneratorHandler(gcs services.GeneratorConfigService) ScheduleGeneratorHandler {
+func NewScheduleGeneratorHandler(
+	gcs services.GeneratorConfigService,
+	ts services.TeacherService,
+) ScheduleGeneratorHandler {
 
 	return &scheduleGeneratorHandler{
 		generatorConfigService: gcs,
+		teacherService:         ts,
 		logger:                 logger.NewLogger("ScheduleGeneratorHandler.txt", "ScheduleGeneratorHandler"),
 	}
 }
 
 type scheduleGeneratorHandler struct {
 	generatorConfigService services.GeneratorConfigService
+	teacherService         services.TeacherService
 	generator              *core.ScheduleGenerator
 	logger                 logger.Logger
 }
@@ -36,7 +42,7 @@ type scheduleGeneratorHandler struct {
 func (h *scheduleGeneratorHandler) CreateGenerator(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if h.generator != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "CreateGenerator",
-			fmt.Errorf("failed to create generator: generator already exists"), logger.HandlerBadRequest,
+			fmt.Errorf("failed to create generator: generator already exists"), logger.HandlerRequestFailed,
 		))
 		return
 	}
@@ -46,14 +52,14 @@ func (h *scheduleGeneratorHandler) CreateGenerator(ctx context.Context, w http.R
 	defer r.Body.Close()
 	if err != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "CreateGenerator",
-			fmt.Errorf("failed to extract generator config from body: %w", err), logger.HandlerBadRequest,
+			fmt.Errorf("failed to extract generator config from body: %w", err), logger.HandlerRequestFailed,
 		))
 		return
 	}
 
 	if err := h.generatorConfigService.ValidateScheduleConfig(generatorConfig); err != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "CreateGenerator",
-			fmt.Errorf("validation failed: %w", err), logger.HandlerBadRequest,
+			fmt.Errorf("validation failed: %w", err), logger.HandlerRequestFailed,
 		))
 		return
 	}
@@ -78,4 +84,32 @@ func (h *scheduleGeneratorHandler) GetDefaultConfig(ctx context.Context, w http.
 	}
 
 	jsonutil.ResponseWithJSON(w, 200, cfg)
+}
+
+func (h *scheduleGeneratorHandler) SetTeachers(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var teachers []entities.Teacher
+	err := json.NewDecoder(r.Body).Decode(&teachers)
+	defer r.Body.Close()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetTeachers",
+			fmt.Errorf("failed to extract teachers from body: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.teacherService.ValidateTeachers(teachers); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetTeachers",
+			fmt.Errorf("validation failed: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.generator.SetTeachers(teachers); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetTeachers",
+			fmt.Errorf("failed to set teachers: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, map[string]any{"message": fmt.Sprintf("%d teachers assigned", len(teachers))})
 }

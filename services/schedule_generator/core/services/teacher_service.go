@@ -1,10 +1,8 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
+	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	"github.com/google/uuid"
 )
 
@@ -21,19 +19,19 @@ type TeacherService interface {
 // It requires an array of database teachers (t) and a busy grid for them (bg).
 //
 // Returns an error if any teacher is an invalid model.
-func NewTeacherService(t []types.Teacher, bg [][]float32) (TeacherService, error) {
+func NewTeacherService(t []externalEntities.Teacher, bg [][]float32) (TeacherService, error) {
 	ts := teacherService{teachers: make([]*entities.Teacher, 0, len(t))}
 
 	for i := range t {
-		teacher := entities.NewDefaultTeacher(t[i].ID, t[i].UserName, t[i].Priority, entities.NewBusyGrid(bg))
-		for _, day := range t[i].BusyDays {
-			err := teacher.BlockWeekDay(int(day))
-			if err != nil {
-				return nil, fmt.Errorf("teacher %s (%s) has invalid busy day %d (err: %s)",
-					teacher.UserName, teacher.ID, day, err.Error(),
-				)
-			}
-		}
+		teacher := entities.NewDefaultTeacher(t[i].ID, t[i].Name, t[i].Priority, entities.NewBusyGrid(bg))
+		// for _, day := range t[i].BusyDays {
+		// 	err := teacher.BlockWeekDay(int(day))
+		// 	if err != nil {
+		// 		return nil, fmt.Errorf("teacher %s (%s) has invalid busy day %d (err: %s)",
+		// 			teacher.UserName, teacher.ID, day, err.Error(),
+		// 		)
+		// 	}
+		// }
 
 		// sort in priority order (not necessary now)
 		// success := false
