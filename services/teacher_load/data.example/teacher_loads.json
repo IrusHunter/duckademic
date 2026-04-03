@@ -1,35 +1,30 @@
 [
   {
     "teacher_name": "Олександр Іваненко",
-    "group_cohort_name": "Група А-101",
     "discipline_name": "Математика",
     "lesson_type_name": "Лекція",
     "group_count": 3
   },
   {
     "teacher_name": "Марія Ковальчук",
-    "group_cohort_name": "Група Б-202",
     "discipline_name": "Фізика",
     "lesson_type_name": "Практичне заняття",
     "group_count": 2
   },
   {
     "teacher_name": "Володимир Шевченко",
-    "group_cohort_name": "Група В-303",
     "discipline_name": "Інформатика",
     "lesson_type_name": "Лабораторна робота",
     "group_count": 4
   },
   {
     "teacher_name": "Ірина Петренко",
-    "group_cohort_name": "Група Г-404",
     "discipline_name": "Хімія",
     "lesson_type_name": "Семінар",
     "group_count": 1
   },
   {
     "teacher_name": "Сергій Бондаренко",
-    "group_cohort_name": "Група Д-505",
     "discipline_name": "Біологія",
     "lesson_type_name": "Лекція",
     "group_count": 5

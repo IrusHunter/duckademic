@@ -72,7 +72,6 @@
 
 - Teacher Load Service (/teacher-load)
   - [/teachers](#teacher-load-teachers)
-  - [/group-cohorts](#teacher-load-group-cohorts)
   - [/lesson-types](#teacher-load-lesson-types)
   - [/disciplines](#teacher-load-disciplines)
   - [/teacher-loads](#teacher-load-teacher-loads)
@@ -985,15 +984,7 @@
 
 ### GET - gets all teachers from the database
 
-**200 OK** [=> Teacher[]](schemas.md#teacher-load-teacher)
-
-<a id="teacher-load-group-cohorts"></a>
-
-## /group-cohorts
-
-### GET - gets all group cohorts from the database
-
-200 OK [=> GroupCohort[]](schemas.md#teacher-load-group-cohort)
+200 OK [=> Teacher[]](schemas.md#teacher-load-teacher)
 
 <a id="teacher-load-lesson-types"></a>
 
@@ -1026,7 +1017,6 @@
   "teacher_id": "uuid (unique identifier of the teacher)",
   "discipline_id": "uuid (unique identifier of the discipline)",
   "lesson_type_id": "uuid (unique identifier of the lesson type)",
-  "group_cohort_id": "uuid (unique identifier of the group cohort)",
   "group_count": "integer (number of groups assigned for this load)"
 }
 ```

@@ -10,14 +10,13 @@ import (
 )
 
 type TeacherLoad struct {
-	ID            uuid.UUID `db:"id" json:"id"`
-	TeacherID     uuid.UUID `db:"teacher_id" json:"teacher_id"`
-	DisciplineID  uuid.UUID `db:"discipline_id" json:"discipline_id"`
-	LessonTypeID  uuid.UUID `db:"lesson_type_id" json:"lesson_type_id"`
-	GroupCohortID uuid.UUID `db:"group_cohort_id" json:"group_cohort_id"`
-	GroupCount    int       `db:"group_count" json:"group_count"`
-	CreatedAt     time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt     time.Time `db:"updated_at" json:"updated_at"`
+	ID           uuid.UUID `db:"id" json:"id"`
+	TeacherID    uuid.UUID `db:"teacher_id" json:"teacher_id"`
+	DisciplineID uuid.UUID `db:"discipline_id" json:"discipline_id"`
+	LessonTypeID uuid.UUID `db:"lesson_type_id" json:"lesson_type_id"`
+	GroupCount   int       `db:"group_count" json:"group_count"`
+	CreatedAt    time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
 }
 
 func (t TeacherLoad) String() string {
@@ -30,7 +29,6 @@ func (t TeacherLoad) String() string {
 	parts = append(parts, fmt.Sprintf("teacher_id: %s", t.TeacherID))
 	parts = append(parts, fmt.Sprintf("discipline_id: %s", t.DisciplineID))
 	parts = append(parts, fmt.Sprintf("lesson_type_id: %s", t.LessonTypeID))
-	parts = append(parts, fmt.Sprintf("group_cohort_id: %s", t.GroupCohortID))
 	parts = append(parts, fmt.Sprintf("group_count: %d", t.GroupCount))
 
 	if !t.CreatedAt.IsZero() {

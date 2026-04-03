@@ -100,6 +100,7 @@
 ```json
 {
   "id": "uuid (identifier of the teacher)",
+  "slug": "string (unique slug used internally)",
   "name": "string (short full name of the teacher)",
   "academic_rank_id": "uuid (reference to academic rank)",
   "created_at": "timestamp (record creation timestamp)",
@@ -475,21 +476,8 @@
 ```json
 {
   "id": "uuid (identifier of the teacher)",
-  "name": "string (short full name of the teacher)",
-  "created_at": "timestamp (record creation timestamp)",
-  "updated_at": "timestamp (record last update timestamp)"
-}
-```
-
-<a id="teacher-load-group-cohort"></a>
-
-### Group Cohort
-
-```json
-{
-  "id": "uuid (unique identifier of the group cohort)",
   "slug": "string (unique slug used internally)",
-  "name": "string (name of the cohort)",
+  "name": "string (short full name of the teacher)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"
 }
@@ -533,7 +521,6 @@
   "teacher_id": "uuid (unique identifier of the teacher)",
   "discipline_id": "uuid (unique identifier of the discipline)",
   "lesson_type_id": "uuid (unique identifier of the lesson type)",
-  "group_cohort_id": "uuid (unique identifier of the group cohort)",
   "group_count": "integer (number of groups assigned for this load)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"

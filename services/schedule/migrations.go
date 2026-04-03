@@ -322,5 +322,15 @@ func teacherLoadMigrations(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create on update trigger for teacher_loads: %w", err)
 	}
 
+	// WARNING: it should be removed if group_cohort_id will be needed
+	dropColumn := `
+	ALTER TABLE teacher_loads
+	DROP COLUMN IF EXISTS group_cohort_id;
+	`
+
+	if _, err := database.Exec(dropColumn); err != nil {
+		return fmt.Errorf("failed to drop group_cohort_id column: %w", err)
+	}
+
 	return nil
 }
