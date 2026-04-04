@@ -154,7 +154,7 @@ func (g *ScheduleGenerator) SetDisciplines(disciplines []externalEntities.Discip
 	return nil
 }
 
-func (g *ScheduleGenerator) SetLessonTypes(lTypes []types.LessonType) error {
+func (g *ScheduleGenerator) SetLessonTypes(lTypes []externalEntities.LessonType) error {
 	lts, err := services.NewLessonTypeService(lTypes)
 	if err != nil {
 		return err

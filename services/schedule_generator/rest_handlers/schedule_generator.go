@@ -19,6 +19,7 @@ type ScheduleGeneratorHandler interface {
 	GetDefaultConfig(context.Context, http.ResponseWriter, *http.Request)
 	SetTeachers(context.Context, http.ResponseWriter, *http.Request)
 	SetDisciplines(context.Context, http.ResponseWriter, *http.Request)
+	SetLessonTypes(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -141,5 +142,59 @@ func (h *scheduleGeneratorHandler) SetDisciplines(ctx context.Context, w http.Re
 
 	jsonutil.ResponseWithJSON(w, 200, map[string]any{
 		"message": fmt.Sprintf("%d disciplines assigned", len(disciplines)),
+	})
+}
+func (h *scheduleGeneratorHandler) SetLessonTypes(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var requests []entities.LessonTypeRequest
+	err := json.NewDecoder(r.Body).Decode(&requests)
+	defer r.Body.Close()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetLessonTypes",
+			fmt.Errorf("failed to extract lesson types from body: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.validationService.ValidateLessonTypeRequests(requests); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetLessonTypes",
+			fmt.Errorf("validation failed: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	lessonTypes := make([]entities.LessonType, 0, len(requests))
+	for i, req := range requests {
+		lt, err := req.ToLessonType()
+		if err != nil {
+			jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"SetLessonTypes",
+				fmt.Errorf("conversion failed for item %d: %w", i, err),
+				logger.HandlerRequestFailed,
+			))
+			return
+		}
+
+		lessonTypes = append(lessonTypes, lt)
+	}
+
+	if err := h.generator.SetLessonTypes(lessonTypes); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetLessonTypes",
+			fmt.Errorf("failed to set lesson types: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, map[string]any{
+		"message": fmt.Sprintf("%d lesson types assigned", len(lessonTypes)),
 	})
 }

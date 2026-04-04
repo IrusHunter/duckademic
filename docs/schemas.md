@@ -293,6 +293,20 @@
 }
 ```
 
+<a id="schedule-generator-lesson-type"></a>
+
+### Lesson Type
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson type)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the lesson type)",
+  "hours_value": "integer (number of hours per lesson)",
+  "reserved_weeks": "string (comma-separated week numbers where only this lesson type is allowed)"
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>

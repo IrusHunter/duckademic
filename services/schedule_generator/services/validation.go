@@ -9,6 +9,7 @@ import (
 type ValidationService interface {
 	ValidateTeachers([]entities.Teacher) error
 	ValidateDisciplines([]entities.Discipline) error
+	ValidateLessonTypeRequests([]entities.LessonTypeRequest) error
 }
 
 func NewValidationService() ValidationService {
@@ -37,7 +38,6 @@ func (s *validationService) ValidateTeachers(teachers []entities.Teacher) error 
 
 	return nil
 }
-
 func (s *validationService) ValidateDisciplines(disciplines []entities.Discipline) error {
 	if len(disciplines) == 0 {
 		return fmt.Errorf("disciplines list cannot be empty")
@@ -54,6 +54,26 @@ func (s *validationService) ValidateDisciplines(disciplines []entities.Disciplin
 			return fmt.Errorf("duplicate discipline ID found: %s", d.ID)
 		}
 		seenIDs[d.ID.String()] = struct{}{}
+	}
+
+	return nil
+}
+func (s *validationService) ValidateLessonTypeRequests(lessonTypes []entities.LessonTypeRequest) error {
+	if len(lessonTypes) == 0 {
+		return fmt.Errorf("lesson type list cannot be empty")
+	}
+
+	seenIDs := make(map[string]struct{})
+
+	for i, lt := range lessonTypes {
+		if err := lt.ValidateName(); err != nil {
+			return fmt.Errorf("failed name validation for lesson type at index %d: %w", i, err)
+		}
+
+		if _, exists := seenIDs[lt.ID.String()]; exists {
+			return fmt.Errorf("duplicate lesson type ID found: %s", lt.ID)
+		}
+		seenIDs[lt.ID.String()] = struct{}{}
 	}
 
 	return nil

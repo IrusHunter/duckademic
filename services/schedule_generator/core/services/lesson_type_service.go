@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
+	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	"github.com/google/uuid"
 )
 
@@ -15,18 +15,17 @@ type LessonTypeService interface {
 // NewLessonTypeService creates a new basic LessonTypeService instance.
 //
 // It requires an array of database lesson types (lt).
-func NewLessonTypeService(lt []types.LessonType) (LessonTypeService, error) {
+func NewLessonTypeService(lt []externalEntities.LessonType) (LessonTypeService, error) {
 	lts := lessonTypeService{
 		lessonTypes: make([]*entities.LessonType, len(lt)),
 	}
 
 	for i, lt := range lt {
 		lts.lessonTypes[i] = &entities.LessonType{
-			ID:          lt.ID,
-			Name:        lt.Name,
-			Weeks:       lt.Weeks,
-			Value:       lt.Value,
-			DayRequired: lt.DayRequired,
+			ID:    lt.ID,
+			Name:  lt.Name,
+			Weeks: lt.ReservedWeeks,
+			Value: lt.HoursValue,
 		}
 	}
 
