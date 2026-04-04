@@ -307,6 +307,19 @@
 }
 ```
 
+<a id="schedule-generator-lesson-type-assignment"></a>
+
+### Lesson Type Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of this lesson type assignment)",
+  "lesson_type_id": "uuid (identifier of the associated lesson type)",
+  "discipline_id": "uuid (identifier of the associated discipline)",
+  "required_hours": "integer (number of hours required for this lesson type in this discipline)"
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>

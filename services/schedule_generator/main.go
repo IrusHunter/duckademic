@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
+	"time"
 
 	resthandlers "github.com/IrusHunter/duckademic/services/schedule_generator/rest_handlers"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/services"
@@ -10,7 +12,10 @@ import (
 )
 
 func main() {
-	// testGeneration()
+	go func() {
+		time.Sleep(time.Second * 1)
+		testGeneration(context.Background(), "http://localhost:10000")
+	}()
 
 	if err := envutil.LoadENV(); err != nil {
 		log.Fatalf(".env load failed: %s", err.Error())

@@ -44,6 +44,7 @@
   - [/set-teachers](#schedule-generator-set-teachers)
   - [/set-disciplines](#schedule-generator-set-disciplines)
   - [/set-lesson-types](#schedule-generator-set-lesson-types)
+  - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
   - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
@@ -499,6 +500,24 @@
 ```json
 {
   "message": "n lesson types assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-lesson-type-assignments"></a>
+
+## /set-lesson-type-assignments
+
+### ANY - assigns the lesson type assignments to the schedule generator
+
+[<= LessonTypeAssignment[]](schemas.md#schedule-generator-lesson-type-assignment)
+
+200 OK
+
+```json
+{
+  "message": "n lesson type assignments assigned"
 }
 ```
 

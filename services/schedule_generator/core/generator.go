@@ -165,8 +165,45 @@ func (g *ScheduleGenerator) SetLessonTypes(lTypes []externalEntities.LessonType)
 		return err
 	}
 
-	g.lessonTypeService = lts
+	g.fullData.lessonTypeService = lts
 	g.weekData.lessonTypeService = weekLTS
+	return nil
+}
+
+func (g *ScheduleGenerator) SetLessonTypeAssignments(ltAssignments []externalEntities.LessonTypeAssignment) error {
+	helperFunc := func(
+		ds services.DisciplineService,
+		lts services.LessonTypeService,
+		assignment externalEntities.LessonTypeAssignment,
+	) error {
+		lessonType := lts.Find(assignment.LessonTypeID)
+		if lessonType == nil {
+			return fmt.Errorf("lesson type with id %q not found", assignment.LessonTypeID)
+		}
+		discipline := ds.Find(assignment.DisciplineID)
+		if discipline == nil {
+			return fmt.Errorf("discipline with id %q not found", assignment.DisciplineID)
+		}
+
+		err := discipline.AddLoad(lessonType, assignment.RequiredHours)
+		if err != nil {
+			return fmt.Errorf("failed to add load with id %q: %w", assignment.ID, err)
+		}
+
+		return nil
+	}
+
+	for _, assignment := range ltAssignments {
+		if err := helperFunc(g.fullData.disciplineService, g.fullData.lessonTypeService, assignment); err != nil {
+			return err
+		}
+
+		assignment.RequiredHours = 2
+		if err := helperFunc(g.weekData.disciplineService, g.weekData.lessonTypeService, assignment); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

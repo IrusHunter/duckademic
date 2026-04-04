@@ -20,6 +20,7 @@ type ScheduleGeneratorHandler interface {
 	SetTeachers(context.Context, http.ResponseWriter, *http.Request)
 	SetDisciplines(context.Context, http.ResponseWriter, *http.Request)
 	SetLessonTypes(context.Context, http.ResponseWriter, *http.Request)
+	SetLessonTypeAssignments(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -89,6 +90,13 @@ func (h *scheduleGeneratorHandler) GetDefaultConfig(ctx context.Context, w http.
 }
 
 func (h *scheduleGeneratorHandler) SetTeachers(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "CreateGenerator",
+			fmt.Errorf("failed to set teachers: generator wasn't init"), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
 	var teachers []entities.Teacher
 	err := json.NewDecoder(r.Body).Decode(&teachers)
 	defer r.Body.Close()
@@ -116,6 +124,13 @@ func (h *scheduleGeneratorHandler) SetTeachers(ctx context.Context, w http.Respo
 	jsonutil.ResponseWithJSON(w, 200, map[string]any{"message": fmt.Sprintf("%d teachers assigned", len(teachers))})
 }
 func (h *scheduleGeneratorHandler) SetDisciplines(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "CreateGenerator",
+			fmt.Errorf("failed to set disciplines: generator wasn't init"), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
 	var disciplines []entities.Discipline
 	err := json.NewDecoder(r.Body).Decode(&disciplines)
 	defer r.Body.Close()
@@ -145,6 +160,13 @@ func (h *scheduleGeneratorHandler) SetDisciplines(ctx context.Context, w http.Re
 	})
 }
 func (h *scheduleGeneratorHandler) SetLessonTypes(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "CreateGenerator",
+			fmt.Errorf("failed to set lesson types: generator wasn't init"), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
 	var requests []entities.LessonTypeRequest
 	err := json.NewDecoder(r.Body).Decode(&requests)
 	defer r.Body.Close()
@@ -196,5 +218,50 @@ func (h *scheduleGeneratorHandler) SetLessonTypes(ctx context.Context, w http.Re
 
 	jsonutil.ResponseWithJSON(w, 200, map[string]any{
 		"message": fmt.Sprintf("%d lesson types assigned", len(lessonTypes)),
+	})
+}
+func (h *scheduleGeneratorHandler) SetLessonTypeAssignments(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "CreateGenerator",
+			fmt.Errorf("failed to set lesson type assignments: generator wasn't init"), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	var assignments []entities.LessonTypeAssignment
+	err := json.NewDecoder(r.Body).Decode(&assignments)
+	defer r.Body.Close()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetLessonTypeAssignments",
+			fmt.Errorf("failed to extract lesson type assignments from body: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.validationService.ValidateLessonTypeAssignments(assignments); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetLessonTypeAssignments",
+			fmt.Errorf("validation failed: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.generator.SetLessonTypeAssignments(assignments); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetLessonTypeAssignments",
+			fmt.Errorf("failed to set lesson type assignments: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, map[string]any{
+		"message": fmt.Sprintf("%d lesson type assignments assigned", len(assignments)),
 	})
 }

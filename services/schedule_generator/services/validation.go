@@ -10,6 +10,7 @@ type ValidationService interface {
 	ValidateTeachers([]entities.Teacher) error
 	ValidateDisciplines([]entities.Discipline) error
 	ValidateLessonTypeRequests([]entities.LessonTypeRequest) error
+	ValidateLessonTypeAssignments([]entities.LessonTypeAssignment) error
 }
 
 func NewValidationService() ValidationService {
@@ -74,6 +75,26 @@ func (s *validationService) ValidateLessonTypeRequests(lessonTypes []entities.Le
 			return fmt.Errorf("duplicate lesson type ID found: %s", lt.ID)
 		}
 		seenIDs[lt.ID.String()] = struct{}{}
+	}
+
+	return nil
+}
+func (s *validationService) ValidateLessonTypeAssignments(assignments []entities.LessonTypeAssignment) error {
+	if len(assignments) == 0 {
+		return fmt.Errorf("lesson type assignment list cannot be empty")
+	}
+
+	seenIDs := make(map[string]struct{})
+
+	for i, a := range assignments {
+		if err := a.ValidateRequiredHours(); err != nil {
+			return fmt.Errorf("failed required hours validation for assignment at index %d: %w", i, err)
+		}
+
+		if _, exists := seenIDs[a.ID.String()]; exists {
+			return fmt.Errorf("duplicate lesson type assignment ID found: %s", a.ID)
+		}
+		seenIDs[a.ID.String()] = struct{}{}
 	}
 
 	return nil
