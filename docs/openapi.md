@@ -28,6 +28,7 @@
   - [/academic-ranks](#schedule-academic-ranks)
   - [/academic-rank/{id}](#schedule-academic-rank-id)
   - [/lesson-types](#schedule-lesson-types)
+  - [/lesson-type/{id}](#schedule-lesson-type-id)
   - [/teachers](#schedule-teachers)
   - [/disciplines](#schedule-disciplines)
   - [/lesson-type-assignments](#schedule-lesson-type-assignments)
@@ -347,6 +348,28 @@
 ### GET - gets all lesson types from the database
 
 200 OK [=> LessonType[]](schemas.md#schedule-lesson-type)
+
+<a id="schedule-lesson-type-id"></a>
+
+## /lesson-type/{id}
+
+### GET - finds lesson type by ID (provided as a URL parameter)
+
+200 OK [=> LessonType](schemas.md#schedule-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a lesson type by its ID using the request body
+
+```json
+{
+  "reserved_weeks": "string (comma-separated week numbers where only this lesson type is allowed)"
+}
+```
+
+200 OK [=> LessonType](schemas.md#schedule-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="schedule-disciplines"></a>
 

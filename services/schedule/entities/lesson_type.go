@@ -10,12 +10,13 @@ import (
 )
 
 type LessonType struct {
-	ID         uuid.UUID `db:"id" json:"id"`
-	Slug       string    `db:"slug" json:"slug"`
-	Name       string    `db:"name" json:"name"`
-	HoursValue int       `db:"hours_value" json:"hours_value"`
-	CreatedAt  time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt  time.Time `db:"updated_at" json:"updated_at"`
+	ID            uuid.UUID `db:"id" json:"id"`
+	Slug          string    `db:"slug" json:"slug"`
+	Name          string    `db:"name" json:"name"`
+	HoursValue    int       `db:"hours_value" json:"hours_value"`
+	ReservedWeeks string    `db:"reserved_weeks" json:"reserved_weeks"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at" json:"updated_at"`
 }
 
 func (lt LessonType) String() string {
@@ -29,8 +30,8 @@ func (lt LessonType) String() string {
 	}
 
 	parts = append(parts, fmt.Sprintf("name: %s", lt.Name))
-
 	parts = append(parts, fmt.Sprintf("value: %d", lt.HoursValue))
+	parts = append(parts, fmt.Sprintf("reserved_weeks: %s", lt.ReservedWeeks))
 
 	if !lt.CreatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("created_at: %s", lt.CreatedAt.Format(db.TimeFormat)))
@@ -38,6 +39,14 @@ func (lt LessonType) String() string {
 	}
 
 	return fmt.Sprintf("LessonType{%s}", strings.Join(parts, ", "))
+}
+
+func (lt *LessonType) ValidateReservedWeeks() error {
+	if _, err := db.StringToIntSlice(lt.ReservedWeeks); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (lt LessonType) TableName() string {

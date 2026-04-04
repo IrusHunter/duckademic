@@ -172,11 +172,20 @@ func lessonTypeMigrations(database *sqlx.DB) error {
 	ON lesson_types (slug);
 	`
 	if _, err := database.Exec(createSlugIndex); err != nil {
-		return fmt.Errorf("failed to create lesson_types slug index: %w", err)
+		return fmt.Errorf("failed to create lesson_types slug index for lesson_types: %w", err)
 	}
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "lesson_types"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for lesson_types: %w", err)
+	}
+
+	addReservedWeeksColumn := `
+	ALTER TABLE lesson_types
+	ADD COLUMN IF NOT EXISTS reserved_weeks TEXT NOT NULL DEFAULT '';
+	`
+
+	if _, err := database.Exec(addReservedWeeksColumn); err != nil {
+		return fmt.Errorf("failed to add  reserved_weeks for lesson_types: %w", err)
 	}
 
 	return nil

@@ -26,7 +26,9 @@ func NewLessonTypeService(ltr repositories.LessonTypeRepository, eb events.Event
 		repository: ltr,
 	}
 	res.BaseService = platform.NewBaseService(sc, ltr,
-		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.LessonType]{},
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.LessonType]{
+			platform.OnUpdateValidation: res.onUpdateValidation,
+		},
 	)
 	res.logger = res.GetLogger()
 
@@ -41,6 +43,13 @@ type lessonTypeService struct {
 	logger     logger.Logger
 }
 
+func (s *lessonTypeService) onUpdateValidation(ctx context.Context, lt *entities.LessonType) error {
+	if err := lt.ValidateReservedWeeks(); err != nil {
+		return err
+	}
+
+	return nil
+}
 func (s *lessonTypeService) eventHandler(ctx context.Context, b []byte) {
 	ltr, err := events.FromByteConvertor[events.LessonTypeRE](b)
 	if err != nil {
