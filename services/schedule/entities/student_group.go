@@ -10,11 +10,12 @@ import (
 )
 
 type StudentGroup struct {
-	ID        uuid.UUID `db:"id" json:"id"`
-	Slug      string    `db:"slug" json:"slug"`
-	Name      string    `db:"name" json:"name"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	ID            uuid.UUID `db:"id" json:"id"`
+	Slug          string    `db:"slug" json:"slug"`
+	Name          string    `db:"name" json:"name"`
+	GroupCohortID uuid.UUID `db:"group_cohort_id" json:"group_cohort_id"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at" json:"updated_at"`
 }
 
 func (sg StudentGroup) String() string {
@@ -28,6 +29,7 @@ func (sg StudentGroup) String() string {
 	}
 
 	parts = append(parts, fmt.Sprintf("name: %s", sg.Name))
+	parts = append(parts, fmt.Sprintf("group_cohort_id: %s", sg.GroupCohortID))
 
 	if !sg.CreatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("created_at: %s", sg.CreatedAt.Format(db.TimeFormat)))

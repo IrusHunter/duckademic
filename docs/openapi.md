@@ -35,6 +35,8 @@
   - [/student-groups](#schedule-student-groups)
   - [/group_members](#schedule-group-members)
   - [/teacher-loads](#schedule-teacher-loads)
+  - [/group-cohorts](#schedule-group-cohorts)
+  - [/group-cohort-assignments](#schedule-group-cohort-assignments)
 
 - Schedule Generator Service (/schedule-generator)
   - [/init](#schedule-generator-init)
@@ -392,6 +394,22 @@
 ### GET – gets all teacher loads from the database
 
 200 OK [=> TeacherLoad[]](schemas.md#schedule-teacher-load)
+
+<a id="schedule-group-cohorts"></a>
+
+## /group-cohorts
+
+### GET - gets all group cohorts from the database
+
+200 OK [=> GroupCohort[]](schemas.md#schedule-group-cohort)
+
+<a id="schedule-group-cohort-assignments"></a>
+
+## /group-cohort-assignments
+
+### GET - gets all group cohort assignments from the database
+
+200 OK [=> GroupCohortAssignment[]](schemas.md#schedule-group-cohort-assignment)
 
 # Schedule Generator Service
 

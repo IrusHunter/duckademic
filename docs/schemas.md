@@ -219,6 +219,35 @@
 }
 ```
 
+<a id="schedule-group-cohort"></a>
+
+### Group Cohort
+
+```json
+{
+  "id": "uuid (unique identifier of the group cohort)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the cohort)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-group-cohort-assignment"></a>
+
+### Group Cohort Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of the assignment)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 ## Schedule Generator Service
 
 <a id="schedule-generator-generator-config"></a>

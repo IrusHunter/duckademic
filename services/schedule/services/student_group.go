@@ -54,9 +54,10 @@ func (s *studentGroupService) eventHandler(ctx context.Context, b []byte) {
 	)
 
 	trueG := entities.StudentGroup{
-		ID:   groupEvent.ID,
-		Slug: groupEvent.Slug,
-		Name: groupEvent.Name,
+		ID:            groupEvent.ID,
+		Slug:          groupEvent.Slug,
+		Name:          groupEvent.Name,
+		GroupCohortID: groupEvent.GroupCohortID,
 	}
 
 	switch groupEvent.Event {
