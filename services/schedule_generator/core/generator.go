@@ -49,6 +49,7 @@ type ScheduleGenerator struct {
 	generatorData
 	errorService     components.ErrorService
 	weekData         generatorData
+	fullData         generatorData
 	classroomService services.ClassroomService
 }
 
@@ -58,20 +59,20 @@ func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*Schedu
 	}
 
 	index := 0
-
+	fullBusyGrid := [][]float32{}
 	for range cfg.StartDate.Weekday() {
-		scheduleGenerator.busyGrid = append(scheduleGenerator.busyGrid, []float32{})
-	}
-
-	for date := cfg.StartDate; !date.After(cfg.EndDate); date = date.AddDate(0, 0, 1) {
-		scheduleGenerator.busyGrid = append(scheduleGenerator.busyGrid, make([]float32, len(cfg.SlotPreference[date.Weekday()])))
-		copy(scheduleGenerator.busyGrid[index], cfg.SlotPreference[date.Weekday()])
+		fullBusyGrid = append(fullBusyGrid, []float32{})
 		index++
 	}
-
-	for range 6 - cfg.EndDate.Weekday() {
-		scheduleGenerator.busyGrid = append(scheduleGenerator.busyGrid, []float32{})
+	for date := cfg.StartDate; !date.After(cfg.EndDate); date = date.AddDate(0, 0, 1) {
+		fullBusyGrid = append(fullBusyGrid, make([]float32, len(cfg.SlotPreference[date.Weekday()])))
+		copy(fullBusyGrid[index], cfg.SlotPreference[date.Weekday()])
+		index++
 	}
+	for range 6 - cfg.EndDate.Weekday() {
+		fullBusyGrid = append(scheduleGenerator.busyGrid, []float32{})
+	}
+	scheduleGenerator.fullData.busyGrid = fullBusyGrid
 
 	for i := range 7 {
 		scheduleGenerator.weekData.busyGrid = append(scheduleGenerator.weekData.busyGrid,
@@ -89,7 +90,7 @@ func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*Schedu
 		return nil, err
 	}
 
-	scheduleGenerator.lessonService = ls
+	scheduleGenerator.fullData.lessonService = ls
 	scheduleGenerator.weekData.lessonService = weekLS
 
 	scheduleGenerator.errorService = components.NewErrorService()
@@ -112,7 +113,7 @@ func (g *ScheduleGenerator) SetTeachers(teachers []externalEntities.Teacher) err
 		return err
 	}
 
-	g.teacherService = ts
+	g.fullData.teacherService = ts
 	g.weekData.teacherService = weekTS
 	return nil
 }
@@ -133,7 +134,11 @@ func (g *ScheduleGenerator) SetStudentGroups(studentGroups []types.StudentGroup)
 	return nil
 }
 
-func (g *ScheduleGenerator) SetDisciplines(disciplines []types.Discipline) error {
+func (g *ScheduleGenerator) SetDisciplines(disciplines []externalEntities.Discipline) error {
+	if g.disciplineService != nil {
+		return fmt.Errorf("disciplines already set")
+	}
+
 	ds, err := services.NewDisciplineService(disciplines)
 	if err != nil {
 		return err
@@ -144,7 +149,7 @@ func (g *ScheduleGenerator) SetDisciplines(disciplines []types.Discipline) error
 		return err
 	}
 
-	g.disciplineService = ds
+	g.fullData.disciplineService = ds
 	g.weekData.disciplineService = weekDS
 	return nil
 }

@@ -24,9 +24,9 @@ func main() {
 	logger.LoadDefaultLogConfig()
 
 	generatorConfigService := services.NewGeneratorConfigService()
-	teacherService := services.NewTeacherService()
+	validationService := services.NewValidationService()
 
-	scheduleGeneratorHandler := resthandlers.NewScheduleGeneratorHandler(generatorConfigService, teacherService)
+	scheduleGeneratorHandler := resthandlers.NewScheduleGeneratorHandler(generatorConfigService, validationService)
 
 	restapi := NewRESTAPI(scheduleGeneratorHandler)
 

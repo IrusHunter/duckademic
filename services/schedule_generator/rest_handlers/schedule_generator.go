@@ -18,23 +18,24 @@ type ScheduleGeneratorHandler interface {
 	CreateGenerator(context.Context, http.ResponseWriter, *http.Request)
 	GetDefaultConfig(context.Context, http.ResponseWriter, *http.Request)
 	SetTeachers(context.Context, http.ResponseWriter, *http.Request)
+	SetDisciplines(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
 	gcs services.GeneratorConfigService,
-	ts services.TeacherService,
+	vs services.ValidationService,
 ) ScheduleGeneratorHandler {
 
 	return &scheduleGeneratorHandler{
 		generatorConfigService: gcs,
-		teacherService:         ts,
+		validationService:      vs,
 		logger:                 logger.NewLogger("ScheduleGeneratorHandler.txt", "ScheduleGeneratorHandler"),
 	}
 }
 
 type scheduleGeneratorHandler struct {
 	generatorConfigService services.GeneratorConfigService
-	teacherService         services.TeacherService
+	validationService      services.ValidationService
 	generator              *core.ScheduleGenerator
 	logger                 logger.Logger
 }
@@ -97,7 +98,7 @@ func (h *scheduleGeneratorHandler) SetTeachers(ctx context.Context, w http.Respo
 		return
 	}
 
-	if err := h.teacherService.ValidateTeachers(teachers); err != nil {
+	if err := h.validationService.ValidateTeachers(teachers); err != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetTeachers",
 			fmt.Errorf("validation failed: %w", err), logger.HandlerRequestFailed,
 		))
@@ -112,4 +113,33 @@ func (h *scheduleGeneratorHandler) SetTeachers(ctx context.Context, w http.Respo
 	}
 
 	jsonutil.ResponseWithJSON(w, 200, map[string]any{"message": fmt.Sprintf("%d teachers assigned", len(teachers))})
+}
+func (h *scheduleGeneratorHandler) SetDisciplines(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var disciplines []entities.Discipline
+	err := json.NewDecoder(r.Body).Decode(&disciplines)
+	defer r.Body.Close()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetDisciplines",
+			fmt.Errorf("failed to extract disciplines from body: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.validationService.ValidateDisciplines(disciplines); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetDisciplines",
+			fmt.Errorf("validation failed: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.generator.SetDisciplines(disciplines); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetDisciplines",
+			fmt.Errorf("failed to set disciplines: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, map[string]any{
+		"message": fmt.Sprintf("%d disciplines assigned", len(disciplines)),
+	})
 }

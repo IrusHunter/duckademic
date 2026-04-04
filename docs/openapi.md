@@ -41,6 +41,7 @@
 - Schedule Generator Service (/schedule-generator)
   - [/init](#schedule-generator-init)
   - [/set-teachers](#schedule-generator-set-teachers)
+  - [/set-disciplines](#schedule-generator-set-disciplines)
   - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
@@ -438,6 +439,24 @@
 ```json
 {
   "message": "n teachers assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-disciplines"></a>
+
+## /set-disciplines
+
+### ANY - assigns the disciplines to the schedule generator
+
+[<= Disciplines[]](schemas.md#schedule-generator-discipline)
+
+200 OK
+
+```json
+{
+  "message": "n disciplines assigned"
 }
 ```
 

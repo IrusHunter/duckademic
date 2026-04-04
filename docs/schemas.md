@@ -281,6 +281,17 @@
 }
 ```
 
+<a id="schedule-generator-discipline"></a>
+
+### Discipline
+
+```json
+{
+  "id": "uuid (unique identifier of the discipline)",
+  "name": "string (name of the discipline)"
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>
