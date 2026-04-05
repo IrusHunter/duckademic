@@ -11,6 +11,7 @@ type ValidationService interface {
 	ValidateDisciplines([]entities.Discipline) error
 	ValidateLessonTypeRequests([]entities.LessonTypeRequest) error
 	ValidateLessonTypeAssignments([]entities.LessonTypeAssignment) error
+	ValidateGroupCohorts([]entities.GroupCohort) error
 }
 
 func NewValidationService() ValidationService {
@@ -95,6 +96,47 @@ func (s *validationService) ValidateLessonTypeAssignments(assignments []entities
 			return fmt.Errorf("duplicate lesson type assignment ID found: %s", a.ID)
 		}
 		seenIDs[a.ID.String()] = struct{}{}
+	}
+
+	return nil
+}
+func (s *validationService) ValidateGroupCohorts(cohorts []entities.GroupCohort) error {
+	if len(cohorts) == 0 {
+		return fmt.Errorf("group cohort list cannot be empty")
+	}
+
+	seenCohortIDs := make(map[string]struct{})
+
+	for i, cohort := range cohorts {
+		if err := cohort.ValidateGroups(); err != nil {
+			return fmt.Errorf("failed groups validation for cohort at index %d: %w", i, err)
+		}
+
+		if _, exists := seenCohortIDs[cohort.ID.String()]; exists {
+			return fmt.Errorf("duplicate group cohort ID found: %s", cohort.ID)
+		}
+		seenCohortIDs[cohort.ID.String()] = struct{}{}
+
+		seenGroupIDs := make(map[string]struct{})
+
+		for j, g := range cohort.Groups {
+			if err := g.ValidateName(); err != nil {
+				return fmt.Errorf("failed name validation for group at index %d in cohort %d: %w", j, i, err)
+			}
+
+			if err := g.ValidateConnectedGroups(); err != nil {
+				return fmt.Errorf("failed connected groups validation for group at index %d in cohort %d: %w", j, i, err)
+			}
+
+			if err := g.ValidateStudentCount(); err != nil {
+				return fmt.Errorf("failed student count validation for group at index %d in cohort %d: %w", j, i, err)
+			}
+
+			if _, exists := seenGroupIDs[g.ID.String()]; exists {
+				return fmt.Errorf("duplicate student group ID found in cohort %d: %s", i, g.ID)
+			}
+			seenGroupIDs[g.ID.String()] = struct{}{}
+		}
 	}
 
 	return nil

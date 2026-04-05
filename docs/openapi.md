@@ -45,6 +45,7 @@
   - [/set-disciplines](#schedule-generator-set-disciplines)
   - [/set-lesson-types](#schedule-generator-set-lesson-types)
   - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
+  - [/set-student-groups](#schedule-generator-set-student-groups)
   - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
@@ -518,6 +519,29 @@
 ```json
 {
   "message": "n lesson type assignments assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-student-groups"></a>
+
+## /set-student-groups
+
+### ANY – assigns the student groups and group cohort assignments to the schedule generator
+
+```json
+{
+	"group_cohorts": [GroupCohort[]](schemas.md#schedule-generator-group-cohort),
+	"group_cohort_assignments": [GroupCohortAssignment[]](schemas.md#schedule-generator-group-cohort-assignment)
+}
+```
+
+200 OK
+
+```json
+{
+  "message": "n group cohorts assigned, n assignments assigned"
 }
 ```
 

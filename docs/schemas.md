@@ -320,6 +320,41 @@
 }
 ```
 
+<a id="schedule-generator-group-cohort"></a>
+
+### Group Cohort
+
+```json
+{
+  "id": "uuid (unique identifier of the group cohort)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the cohort)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+  "groups": [
+    {
+      "id": "uuid (unique identifier of the student group)",
+      "name": "string (name of the student group)",
+      "connected_groups": ["uuid (ID of connected student group)"],
+      "student_count": "int (number of students in this group)"
+    }
+  ]
+}
+```
+
+<a id="schedule-generator-group-cohort-assignment"></a>
+
+### Group Cohort Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of the assignment)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)"
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>

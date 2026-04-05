@@ -21,6 +21,7 @@ type ScheduleGeneratorHandler interface {
 	SetDisciplines(context.Context, http.ResponseWriter, *http.Request)
 	SetLessonTypes(context.Context, http.ResponseWriter, *http.Request)
 	SetLessonTypeAssignments(context.Context, http.ResponseWriter, *http.Request)
+	SetStudentGroups(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -263,5 +264,57 @@ func (h *scheduleGeneratorHandler) SetLessonTypeAssignments(ctx context.Context,
 
 	jsonutil.ResponseWithJSON(w, 200, map[string]any{
 		"message": fmt.Sprintf("%d lesson type assignments assigned", len(assignments)),
+	})
+}
+func (h *scheduleGeneratorHandler) SetStudentGroups(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetStudentGroups",
+			fmt.Errorf("failed to set group cohorts: generator wasn't init"),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	req := struct {
+		GroupCohorts           []entities.GroupCohort           `json:"group_cohorts"`
+		GroupCohortAssignments []entities.GroupCohortAssignment `json:"group_cohort_assignments"`
+	}{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	defer r.Body.Close()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetStudentGroups",
+			fmt.Errorf("failed to extract data from body: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.validationService.ValidateGroupCohorts(req.GroupCohorts); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetStudentGroups",
+			fmt.Errorf("validation failed: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.generator.SetStudentGroups(req.GroupCohorts, req.GroupCohortAssignments); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetStudentGroups",
+			fmt.Errorf("failed to set student groups: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, map[string]any{
+		"message": fmt.Sprintf("%d group cohorts assigned, %d assignments assigned",
+			len(req.GroupCohorts), len(req.GroupCohortAssignments)),
 	})
 }
