@@ -355,6 +355,20 @@
 }
 ```
 
+<a id="schedule-generator-teacher-load"></a>
+
+### Teacher Load
+
+```json
+{
+  "id": "uuid (unique identifier of the teacher load record)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "group_count": "integer (number of groups assigned for this load)"
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>

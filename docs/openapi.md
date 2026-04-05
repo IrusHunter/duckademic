@@ -46,6 +46,7 @@
   - [/set-lesson-types](#schedule-generator-set-lesson-types)
   - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
   - [/set-student-groups](#schedule-generator-set-student-groups)
+  - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
   - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
@@ -538,6 +539,24 @@
 ```json
 {
   "message": "n group cohorts assigned, n assignments assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-study-loads"></a>
+
+## /set-study-loads
+
+### ANY – assigns the teacher loads to the schedule generator
+
+[<= TeacherLoad[]](schemas.md#schedule-generator-teahcer-load)
+
+200 OK
+
+```json
+{
+  "message": "n teacher loads assigned"
 }
 ```
 

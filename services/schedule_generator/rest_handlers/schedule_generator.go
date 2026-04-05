@@ -22,6 +22,7 @@ type ScheduleGeneratorHandler interface {
 	SetLessonTypes(context.Context, http.ResponseWriter, *http.Request)
 	SetLessonTypeAssignments(context.Context, http.ResponseWriter, *http.Request)
 	SetStudentGroups(context.Context, http.ResponseWriter, *http.Request)
+	SetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -316,5 +317,34 @@ func (h *scheduleGeneratorHandler) SetStudentGroups(ctx context.Context, w http.
 	jsonutil.ResponseWithJSON(w, 200, map[string]any{
 		"message": fmt.Sprintf("%d group cohorts assigned, %d assignments assigned",
 			len(req.GroupCohorts), len(req.GroupCohortAssignments)),
+	})
+}
+func (h *scheduleGeneratorHandler) SetStudyLoads(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetStudyLoads",
+			fmt.Errorf("failed to set teacher loads: generator wasn't init"), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	var loads []entities.TeacherLoad
+	err := json.NewDecoder(r.Body).Decode(&loads)
+	defer r.Body.Close()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetStudyLoads",
+			fmt.Errorf("failed to extract teacher loads from body: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.generator.SetStudyLoads(loads); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetStudyLoads",
+			fmt.Errorf("failed to set teacher loads: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, map[string]any{
+		"message": fmt.Sprintf("%d teacher loads assigned", len(loads)),
 	})
 }

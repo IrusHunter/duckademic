@@ -116,7 +116,7 @@ func (g *ScheduleGenerator) SetStudentGroups(
 
 	groupCohortsMap := make(map[uuid.UUID]externalEntities.GroupCohort, len(groupCohorts))
 	studentGroups := []externalEntities.StudentGroup{}
-	studyLoads := []entities.StudyLoad{}
+	studyLoads := []*entities.StudyLoad{}
 
 	for _, groupCohort := range groupCohorts {
 		groupCohortsMap[groupCohort.ID] = groupCohort
@@ -152,13 +152,20 @@ func (g *ScheduleGenerator) SetStudentGroups(
 				panic("already set but not found")
 			}
 
-			studyLoads = append(studyLoads, *entities.NewStudyLoad(
+			for week := range lessonType.Weeks {
+				studentGroup.BindWeek(lessonType, week)
+			}
+
+			studyLoad := entities.NewStudyLoad(
 				*entities.NewUnassignedLesson(lessonType, nil, studentGroup, discipline),
-			))
+			)
+			studyLoads = append(studyLoads, studyLoad)
+			studentGroup.AddLoad(studyLoad)
 		}
 	}
 
-	g.studentGroupService = sgs
+	g.fullData.studentGroupService = sgs
+	g.fullData.studyLoadService, _ = services.NewStudyLoadService(studyLoads)
 	return nil
 }
 
@@ -206,29 +213,63 @@ func (g *ScheduleGenerator) SetLessonTypeAssignments(ltAssignments []externalEnt
 	return nil
 }
 
-func (g *ScheduleGenerator) SetStudyLoads(studyLoads []types.StudyLoad) error {
-	if err := g.CheckServices([]bool{true, true, true, true}); err != nil {
-		return err
-	}
-	if err := g.weekData.CheckServices([]bool{true, true, true, true}); err != nil {
+func (g *ScheduleGenerator) SetStudyLoads(teacherLoads []externalEntities.TeacherLoad) error {
+	if err := g.fullData.CheckServices([]bool{true, true, true, true}); err != nil {
 		return err
 	}
 
-	sls, err := services.NewStudyLoadService(studyLoads, g.teacherService, g.studentGroupService,
-		g.disciplineService, g.lessonTypeService)
-	if err != nil {
-		return err
+	type key struct {
+		LessonTypeID uuid.UUID
+		DisciplineID uuid.UUID
 	}
 
-	weekSLS, err := services.NewStudyLoadService(studyLoads, g.weekData.teacherService, g.weekData.studentGroupService,
-		g.weekData.disciplineService, g.weekData.lessonTypeService)
-	if err != nil {
-		return err
+	teacherLoadsMap := map[key][]externalEntities.TeacherLoad{}
+	for _, teacherLoad := range teacherLoads {
+		key := key{
+			LessonTypeID: teacherLoad.LessonTypeID,
+			DisciplineID: teacherLoad.DisciplineID,
+		}
+		_, ok := teacherLoadsMap[key]
+		if !ok {
+			teacherLoadsMap[key] = []externalEntities.TeacherLoad{}
+		}
+		teacherLoadsMap[key] = append(teacherLoadsMap[key], teacherLoad)
 	}
-	g.weekData.studentGroupService.UnbindWeeks()
 
-	g.studyLoadService = sls
-	g.weekData.studyLoadService = weekSLS
+	studyLoads := g.fullData.studyLoadService.GetAll()
+	for _, studyLoad := range studyLoads {
+		key := key{
+			LessonTypeID: studyLoad.Type.ID,
+			DisciplineID: studyLoad.Discipline.ID,
+		}
+
+		tLoads, ok := teacherLoadsMap[key]
+		if !ok {
+			return fmt.Errorf("teacher load for %s %s not found", studyLoad.Discipline.Name, studyLoad.Type.Name)
+		}
+		for {
+			if len(tLoads) == 0 {
+				return fmt.Errorf("not enough groups in teacher loads for %s %s", studyLoad.Discipline.Name, studyLoad.Type.Name)
+			}
+			tLoad := tLoads[0]
+			if tLoad.GroupCount == 0 {
+				tLoads = tLoads[1:]
+				continue
+			}
+			break
+		}
+		tLoads[0].GroupCount -= 1
+
+		teacher := g.fullData.teacherService.Find(tLoads[0].TeacherID)
+		if teacher == nil {
+			return fmt.Errorf("teacher with id %q not found", tLoads[0].TeacherID)
+		}
+		studyLoad.Teacher = teacher
+		teacher.AddLoad(studyLoad)
+
+		teacherLoadsMap[key] = tLoads
+	}
+
 	return nil
 }
 
