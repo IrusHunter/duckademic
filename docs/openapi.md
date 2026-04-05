@@ -528,14 +528,10 @@
 
 ## /set-student-groups
 
-### ANY – assigns the student groups and group cohort assignments to the schedule generator
+### ANY – assigns the student groups to the schedule generator
 
-```json
-{
-	"group_cohorts": [GroupCohort[]](schemas.md#schedule-generator-group-cohort),
-	"group_cohort_assignments": [GroupCohortAssignment[]](schemas.md#schedule-generator-group-cohort-assignment)
-}
-```
+[<= GroupCohort[]](schemas.md#schedule-generator-group-cohort) as "group_cohorts",<br>
+[<= GroupCohortAssignment[]](schemas.md#schedule-generator-group-cohort-assignment) as "group_cohort_assignments"
 
 200 OK
 
