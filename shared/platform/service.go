@@ -80,15 +80,17 @@ func NewBaseService[T fmt.Stringer](sc ServiceConfig, r BaseRepository[T],
 	validateEntity := getOrDefault(mf, ValidateEntity, func(ctx context.Context, t *T) error { return nil })
 	hardDeleteCheck := getOrDefault(mf, HardDeleteCheck, func(ctx context.Context, t *T) error { return nil })
 	onUpdatePrepare := getOrDefault(mf, OnUpdatePrepare, func(ctx context.Context, t *T) error { return nil })
+	onUpdateValidation := getOrDefault(mf, OnUpdateValidation, func(ctx context.Context, t *T) error { return nil })
 
 	return &baseService[T]{
-		ServiceConfig:   sc,
-		repository:      r,
-		logger:          logger.NewLogger(sc.ClassName+".txt", sc.ClassName),
-		validateEntity:  validateEntity,
-		onAddPrepare:    onAddPrepare,
-		hardDeleteCheck: hardDeleteCheck,
-		onUpdatePrepare: onUpdatePrepare,
+		ServiceConfig:      sc,
+		repository:         r,
+		logger:             logger.NewLogger(sc.ClassName+".txt", sc.ClassName),
+		validateEntity:     validateEntity,
+		onAddPrepare:       onAddPrepare,
+		hardDeleteCheck:    hardDeleteCheck,
+		onUpdatePrepare:    onUpdatePrepare,
+		onUpdateValidation: onUpdateValidation,
 	}
 }
 

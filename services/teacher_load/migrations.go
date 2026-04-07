@@ -146,7 +146,6 @@ func teacherLoadMigrations(database *sqlx.DB) error {
 		teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
 		discipline_id UUID NOT NULL REFERENCES disciplines(id) ON DELETE CASCADE,
 		lesson_type_id UUID NOT NULL REFERENCES lesson_types(id) ON DELETE CASCADE,
-		group_cohort_id UUID NOT NULL REFERENCES group_cohorts(id) ON DELETE CASCADE,
 		group_count INT NOT NULL,
 		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -159,7 +158,7 @@ func teacherLoadMigrations(database *sqlx.DB) error {
 
 	createUniqueIndex := `
 	CREATE UNIQUE INDEX IF NOT EXISTS idx_teacher_loads_unique
-	ON teacher_loads (teacher_id, discipline_id, lesson_type_id, group_cohort_id);
+	ON teacher_loads (teacher_id, discipline_id, lesson_type_id);
 	`
 	if _, err := database.Exec(createUniqueIndex); err != nil {
 		return fmt.Errorf("failed to create teacher_loads unique index: %w", err)

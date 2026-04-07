@@ -28,5 +28,10 @@
     "name": "teacher-load-service",
     "url": "http://teacher-load-service:10006",
     "enabled": true
+  },
+  {
+    "name": "schedule-generator-service",
+    "url": "http://schedule-generator-service:10007",
+    "enabled": true
   }
 ]

@@ -22,5 +22,9 @@
   {
     "path": "teacher-load",
     "upstream_name": "teacher-load-service"
+  },
+  {
+    "path": "schedule-generator",
+    "upstream_name": "schedule-generator-service"
   }
 ]

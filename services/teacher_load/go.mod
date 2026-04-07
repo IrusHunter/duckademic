@@ -3,7 +3,7 @@ module github.com/IrusHunter/duckademic/services/teacher_load
 go 1.23.4
 
 require (
-	github.com/IrusHunter/duckademic/shared v0.0.0-20260328112156-79e6bc634caf
+	github.com/IrusHunter/duckademic/shared v0.0.0-20260407072754-c4eb222cdcc6
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
 )
