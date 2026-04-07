@@ -66,6 +66,8 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 		time.Sleep(events.ExternalSeedCooldown)
 		ctx := contextutil.SetTraceID(context.Background())
 		h.academicRankService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.lessonTypeService.Seed(ctx)
 	}()
 
 	jsonutil.ResponseWithJSON(w, 204, nil)

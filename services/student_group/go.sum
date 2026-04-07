@@ -1,7 +1,7 @@
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
-github.com/IrusHunter/duckademic/shared v0.0.0-20260407072754-c4eb222cdcc6 h1:4VURpn4Qxh16QLezxq1//MWpbCOsrfHXk909qtPvvE4=
-github.com/IrusHunter/duckademic/shared v0.0.0-20260407072754-c4eb222cdcc6/go.mod h1:ectoByatfVhm32UvxDAFLW//0FPr64pnrvOjwJBZOwo=
+github.com/IrusHunter/duckademic/shared v0.0.0-20260407075026-e200fd17916a h1:backXbXCHP2nxgEZ5t7AbO+scSE0MtUcCWBEnalOGgQ=
+github.com/IrusHunter/duckademic/shared v0.0.0-20260407075026-e200fd17916a/go.mod h1:ectoByatfVhm32UvxDAFLW//0FPr64pnrvOjwJBZOwo=
 github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
 github.com/cespare/xxhash/v2 v2.1.2/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=
