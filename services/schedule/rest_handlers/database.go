@@ -29,30 +29,36 @@ func NewDatabaseHandler(
 	sgs services.StudentGroupService,
 	gmg services.GroupMemberService,
 	tls services.TeacherLoadService,
+	gcs services.GroupCohortService,
+	gcas services.GroupCohortAssignmentService,
 ) DatabaseHandler {
 	return &databaseHandler{
-		academicRankService:         ars,
-		teacherService:              ts,
-		disciplineService:           ds,
-		lessonTypeService:           lts,
-		lessonTypeAssignmentService: ltas,
-		studentService:              ss,
-		studentGroupService:         sgs,
-		groupMemberService:          gmg,
-		teacherLoadService:          tls,
+		academicRankService:          ars,
+		teacherService:               ts,
+		disciplineService:            ds,
+		lessonTypeService:            lts,
+		lessonTypeAssignmentService:  ltas,
+		studentService:               ss,
+		studentGroupService:          sgs,
+		groupMemberService:           gmg,
+		teacherLoadService:           tls,
+		groupCohortService:           gcs,
+		groupCohortAssignmentService: gcas,
 	}
 }
 
 type databaseHandler struct {
-	academicRankService         services.AcademicRankService
-	teacherService              services.TeacherService
-	disciplineService           services.DisciplineService
-	lessonTypeService           services.LessonTypeService
-	lessonTypeAssignmentService services.LessonTypeAssignmentService
-	studentService              services.StudentService
-	studentGroupService         services.StudentGroupService
-	groupMemberService          services.GroupMemberService
-	teacherLoadService          services.TeacherLoadService
+	academicRankService          services.AcademicRankService
+	teacherService               services.TeacherService
+	disciplineService            services.DisciplineService
+	lessonTypeService            services.LessonTypeService
+	lessonTypeAssignmentService  services.LessonTypeAssignmentService
+	studentService               services.StudentService
+	studentGroupService          services.StudentGroupService
+	groupMemberService           services.GroupMemberService
+	teacherLoadService           services.TeacherLoadService
+	groupCohortService           services.GroupCohortService
+	groupCohortAssignmentService services.GroupCohortAssignmentService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -99,6 +105,14 @@ func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *h
 	}
 	if err := h.studentGroupService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear student groups: %w", err))
+		return
+	}
+	if err := h.groupCohortService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group cohorts: %w", err))
+		return
+	}
+	if err := h.groupCohortAssignmentService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group cohort assignments: %w", err))
 		return
 	}
 

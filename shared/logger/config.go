@@ -23,6 +23,7 @@ const (
 	EventDataSentSuccess    LogType = "EVENT_DATA_SENT_SUCCESS"
 	// Indicates that an HTTP handler operation completed successfully.
 	HandlerOperationSuccess LogType = "HANDLER_OPERATION_SUCCESS"
+	HandlerRequestFailed    LogType = "HANDLER_REQUEST_FAILED"
 	// Indicates an internal failure while processing the request.
 	HandlerInternalError LogType = "HANDLER_INTERNAL_ERROR"
 	// Indicates that the request could not be processed due to invalid client input.
@@ -62,6 +63,7 @@ func LoadDefaultLogConfig() {
 	config[EventDataSentFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
 	config[HandlerOperationSuccess] = LogTypeConfig{ToFile: false, ToConsole: false}
 	config[HandlerInternalError] = LogTypeConfig{ToFile: false, ToConsole: true}
+	config[HandlerRequestFailed] = LogTypeConfig{ToFile: false, ToConsole: true}
 	config[HandlerBadRequest] = LogTypeConfig{ToFile: false, ToConsole: false}
 	config[MiddlewareRequestReceived] = LogTypeConfig{ToFile: false, ToConsole: true}
 	config[MiddlewareRequestFinished] = LogTypeConfig{ToFile: false, ToConsole: true}
@@ -84,6 +86,7 @@ func getAllLogTypes() []LogType {
 		HandlerOperationSuccess,
 		HandlerInternalError,
 		HandlerBadRequest,
+		HandlerRequestFailed,
 		MiddlewareRequestReceived,
 		MiddlewareRequestFinished,
 		MiddlewareFailed,

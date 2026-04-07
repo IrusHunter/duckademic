@@ -3,17 +3,18 @@ package events
 type RedisTopic string
 
 const (
-	AcademicRankRT         RedisTopic = "academic:ranks"
-	TeacherRT              RedisTopic = "teachers"
-	StudentRT              RedisTopic = "students" // 1 delay
-	LessonTypeRT           RedisTopic = "lesson:types"
-	DisciplineRT           RedisTopic = "disciplines"
-	LessonTypeAssignmentRT RedisTopic = "lesson:type:assignments"
-	SemesterRT             RedisTopic = "semesters"
-	StudentGroupRT         RedisTopic = "student:groups" // 1 delay
-	GroupMemberRT          RedisTopic = "group:members"  // 2 delay
-	GroupCohortRT          RedisTopic = "group:cohorts"  // 1 delay
-	TeacherLoadRT          RedisTopic = "teacher:loads"  // 2 delay
+	AcademicRankRT          RedisTopic = "academic:ranks"
+	TeacherRT               RedisTopic = "teachers"
+	StudentRT               RedisTopic = "students" // 1 delay
+	LessonTypeRT            RedisTopic = "lesson:types"
+	DisciplineRT            RedisTopic = "disciplines"
+	LessonTypeAssignmentRT  RedisTopic = "lesson:type:assignments"
+	SemesterRT              RedisTopic = "semesters"
+	StudentGroupRT          RedisTopic = "student:groups"          // 1 delay
+	GroupMemberRT           RedisTopic = "group:members"           // 2 delay
+	GroupCohortRT           RedisTopic = "group:cohorts"           // 1 delay
+	TeacherLoadRT           RedisTopic = "teacher:loads"           // 2 delay
+	GroupCohortAssignmentRT RedisTopic = "group:cohort:assignment" // 1 delay
 )
 
 type EventType string

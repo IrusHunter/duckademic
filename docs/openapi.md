@@ -28,6 +28,7 @@
   - [/academic-ranks](#schedule-academic-ranks)
   - [/academic-rank/{id}](#schedule-academic-rank-id)
   - [/lesson-types](#schedule-lesson-types)
+  - [/lesson-type/{id}](#schedule-lesson-type-id)
   - [/teachers](#schedule-teachers)
   - [/disciplines](#schedule-disciplines)
   - [/lesson-type-assignments](#schedule-lesson-type-assignments)
@@ -35,6 +36,18 @@
   - [/student-groups](#schedule-student-groups)
   - [/group_members](#schedule-group-members)
   - [/teacher-loads](#schedule-teacher-loads)
+  - [/group-cohorts](#schedule-group-cohorts)
+  - [/group-cohort-assignments](#schedule-group-cohort-assignments)
+
+- Schedule Generator Service (/schedule-generator)
+  - [/init](#schedule-generator-init)
+  - [/set-teachers](#schedule-generator-set-teachers)
+  - [/set-disciplines](#schedule-generator-set-disciplines)
+  - [/set-lesson-types](#schedule-generator-set-lesson-types)
+  - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
+  - [/set-student-groups](#schedule-generator-set-student-groups)
+  - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
+  - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
   - [/semesters](#student-semesters)
@@ -48,8 +61,12 @@
   - [/group-cohort/{id}](#student-group-group-cohort-id)
   - [/student-groups](#student-group-student-groups)
   - [/student-group/{id}](#student-group-student-group-id)
-  - [/group_members](#student-group-group-members)
-  - [/group_member/{id}](#student-group-group-member-id)
+  - [/group-members](#student-group-group-members)
+  - [/group-member/{id}](#student-group-group-member-id)
+  - [/lesson-types](#student-group-lesson-types)
+  - [/disciplines](#student-group-disciplines)
+  - [/group-cohort-assignments](#student-group-group-cohort-assignments)
+  - [/group-cohort-assignment/{id}](#student-group-group-cohort-assignment)
 
 - Curriculum Service (/curriculum)
   - [/curriculums](#curriculum-curriculum)
@@ -67,7 +84,6 @@
 
 - Teacher Load Service (/teacher-load)
   - [/teachers](#teacher-load-teachers)
-  - [/group-cohorts](#teacher-load-group-cohorts)
   - [/lesson-types](#teacher-load-lesson-types)
   - [/disciplines](#teacher-load-disciplines)
   - [/teacher-loads](#teacher-load-teacher-loads)
@@ -109,7 +125,7 @@
 
 ### DELETE - deletes an academic rank by its ID provided in the URL path
 
-**200 OK** [=> AcademicRank](schemas.md#employee-academic-rank)
+200 OK [=> AcademicRank](schemas.md#employee-academic-rank)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -337,6 +353,28 @@
 
 200 OK [=> LessonType[]](schemas.md#schedule-lesson-type)
 
+<a id="schedule-lesson-type-id"></a>
+
+## /lesson-type/{id}
+
+### GET - finds lesson type by ID (provided as a URL parameter)
+
+200 OK [=> LessonType](schemas.md#schedule-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a lesson type by its ID using the request body
+
+```json
+{
+  "reserved_weeks": "string (comma-separated week numbers where only this lesson type is allowed)"
+}
+```
+
+200 OK [=> LessonType](schemas.md#schedule-lesson-type)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
 <a id="schedule-disciplines"></a>
 
 ## /disciplines
@@ -384,6 +422,155 @@
 ### GET – gets all teacher loads from the database
 
 200 OK [=> TeacherLoad[]](schemas.md#schedule-teacher-load)
+
+<a id="schedule-group-cohorts"></a>
+
+## /group-cohorts
+
+### GET - gets all group cohorts from the database
+
+200 OK [=> GroupCohort[]](schemas.md#schedule-group-cohort)
+
+<a id="schedule-group-cohort-assignments"></a>
+
+## /group-cohort-assignments
+
+### GET - gets all group cohort assignments from the database
+
+200 OK [=> GroupCohortAssignment[]](schemas.md#schedule-group-cohort-assignment)
+
+# Schedule Generator Service
+
+<a id="schedule-generator-init"></a>
+
+## /init
+
+### ANY - creates a new schedule generator using configuration from the request body, validates the input, and initializes the generator if it does not already exist
+
+[<= GeneratorConfig](schemas.md#schedule-generator-generator-config)
+
+201 CREATED => null
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-teachers"></a>
+
+## /set-teachers
+
+### ANY - assigns the teachers to the schedule generator
+
+[<= Teacher[]](schemas.md#schedule-generator-teaacher)
+
+200 OK
+
+```json
+{
+  "message": "n teachers assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-disciplines"></a>
+
+## /set-disciplines
+
+### ANY - assigns the disciplines to the schedule generator
+
+[<= Disciplines[]](schemas.md#schedule-generator-discipline)
+
+200 OK
+
+```json
+{
+  "message": "n disciplines assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-lesson-types"></a>
+
+## /set-lesson-types
+
+### ANY - assigns the lesson types to the schedule generator
+
+[<= LessonType[]](schemas.md#schedule-generator-lesson-type)
+
+200 OK
+
+```json
+{
+  "message": "n lesson types assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-lesson-type-assignments"></a>
+
+## /set-lesson-type-assignments
+
+### ANY - assigns the lesson type assignments to the schedule generator
+
+[<= LessonTypeAssignment[]](schemas.md#schedule-generator-lesson-type-assignment)
+
+200 OK
+
+```json
+{
+  "message": "n lesson type assignments assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-student-groups"></a>
+
+## /set-student-groups
+
+### ANY – assigns the student groups to the schedule generator
+
+[<= GroupCohort[]](schemas.md#schedule-generator-group-cohort) as "group_cohorts",<br>
+[<= GroupCohortAssignment[]](schemas.md#schedule-generator-group-cohort-assignment) as "group_cohort_assignments"
+
+200 OK
+
+```json
+{
+  "message": "n group cohorts assigned, n assignments assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-set-study-loads"></a>
+
+## /set-study-loads
+
+### ANY – assigns the teacher loads to the schedule generator
+
+[<= TeacherLoad[]](schemas.md#schedule-generator-teahcer-load)
+
+200 OK
+
+```json
+{
+  "message": "n teacher loads assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-default-generator-config"></a>
+
+## /default-generator-config
+
+### GET - retrieves the default schedule generator configuration from the service
+
+200 OK [=> GeneratorConfig](schemas.md#schedule-generator-generator-config)
+
+500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Student Service
 
@@ -628,6 +815,74 @@
 ```
 
 200 OK [=> GroupMember](schemas.md#student-group-group-member)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-lesson-types"></a>
+
+## /lesson-types
+
+### GET - gets all lesson types from the database
+
+200 OK [=> LessonType[]](schemas.md#student-group-lesson-type)
+
+<a id="student-group-disciplines"></a>
+
+## /disciplines
+
+### GET – gets all disciplines from the database
+
+200 OK [=> Discipline[]](schemas.md#student-group-discipline)
+
+<a id="student-group-group-cohort-assignments"></a>
+
+## /group-cohort-assignments
+
+### GET - gets all group cohort assignments from the database
+
+200 OK [=> GroupCohortAssignment[]](schemas.md#student-group-group-cohort-assignment)
+
+### POST - adds a new group cohort assignment
+
+```json
+{
+  "group_cohort_id": "uuid (identifier of the associated group cohort)",
+  "discipline_id": "uuid (identifier of the discipline)",
+  "lesson_type_id": "uuid (identifier of the lesson type)"
+}
+```
+
+200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="student-group-group-cohort-assignment-id"></a>
+
+## /group-cohort-assignments/{id}
+
+### GET - finds a group cohort assignment by its ID provided in the URL path
+
+200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a group cohort assignment by its ID provided in the URL path
+
+200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a group cohort assignment by its ID with the data provided in the request body
+
+```json
+{
+  "group_cohort_id": "uuid (identifier of the associated group cohort)",
+  "discipline_id": "uuid (identifier of the discipline)",
+  "lesson_type_id": "uuid (identifier of the lesson type)"
+}
+```
+
+200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -938,15 +1193,7 @@
 
 ### GET - gets all teachers from the database
 
-**200 OK** [=> Teacher[]](schemas.md#teacher-load-teacher)
-
-<a id="teacher-load-group-cohorts"></a>
-
-## /group-cohorts
-
-### GET - gets all group cohorts from the database
-
-200 OK [=> GroupCohort[]](schemas.md#teacher-load-group-cohort)
+200 OK [=> Teacher[]](schemas.md#teacher-load-teacher)
 
 <a id="teacher-load-lesson-types"></a>
 
@@ -979,7 +1226,6 @@
   "teacher_id": "uuid (unique identifier of the teacher)",
   "discipline_id": "uuid (unique identifier of the discipline)",
   "lesson_type_id": "uuid (unique identifier of the lesson type)",
-  "group_cohort_id": "uuid (unique identifier of the group cohort)",
   "group_count": "integer (number of groups assigned for this load)"
 }
 ```

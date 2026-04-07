@@ -19,9 +19,11 @@ func Migrate(database *sqlx.DB) error {
 		lessonTypeMigrations,
 		lessonTypeAssignmentMigrations,
 		studentMigrations,
-		studentGroupMigrations,
 		groupMembersMigrations,
 		teacherLoadMigrations,
+		groupCohortMigrations,
+		studentGroupMigrations,
+		groupCohortAssignmentMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -170,11 +172,20 @@ func lessonTypeMigrations(database *sqlx.DB) error {
 	ON lesson_types (slug);
 	`
 	if _, err := database.Exec(createSlugIndex); err != nil {
-		return fmt.Errorf("failed to create lesson_types slug index: %w", err)
+		return fmt.Errorf("failed to create lesson_types slug index for lesson_types: %w", err)
 	}
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "lesson_types"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for lesson_types: %w", err)
+	}
+
+	addReservedWeeksColumn := `
+	ALTER TABLE lesson_types
+	ADD COLUMN IF NOT EXISTS reserved_weeks TEXT NOT NULL DEFAULT '';
+	`
+
+	if _, err := database.Exec(addReservedWeeksColumn); err != nil {
+		return fmt.Errorf("failed to add  reserved_weeks for lesson_types: %w", err)
 	}
 
 	return nil
@@ -269,6 +280,15 @@ func studentGroupMigrations(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create on update trigger for student_groups: %w", err)
 	}
 
+	groupCohortIdAdd := `
+	ALTER TABLE student_groups
+	ADD COLUMN IF NOT EXISTS group_cohort_id UUID NOT NULL REFERENCES group_cohorts(id) ON DELETE CASCADE;
+	`
+
+	if _, err := database.Exec(groupCohortIdAdd); err != nil {
+		return fmt.Errorf("failed to add group_cohort_id column to student_groups: %w", err)
+	}
+
 	return nil
 }
 func groupMembersMigrations(database *sqlx.DB) error {
@@ -312,7 +332,7 @@ func teacherLoadMigrations(database *sqlx.DB) error {
 
 	createUniqueIndex := `
 	CREATE UNIQUE INDEX IF NOT EXISTS idx_teacher_loads_unique
-	ON teacher_loads (teacher_id, discipline_id, lesson_type_id, group_cohort_id);
+	ON teacher_loads (teacher_id, discipline_id, lesson_type_id);
 	`
 	if _, err := database.Exec(createUniqueIndex); err != nil {
 		return fmt.Errorf("failed to create teacher_loads unique index: %w", err)
@@ -320,6 +340,75 @@ func teacherLoadMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "teacher_loads"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for teacher_loads: %w", err)
+	}
+
+	// WARNING: it should be removed if group_cohort_id will be needed
+	dropColumn := `
+	ALTER TABLE teacher_loads
+	DROP COLUMN IF EXISTS group_cohort_id;
+	`
+
+	if _, err := database.Exec(dropColumn); err != nil {
+		return fmt.Errorf("failed to drop group_cohort_id column: %w", err)
+	}
+
+	return nil
+}
+func groupCohortMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS group_cohorts (
+		id UUID PRIMARY KEY,
+		slug TEXT NOT NULL,
+		name TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create group_cohorts table: %w", err)
+	}
+
+	indexSlug := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_group_cohorts_slug
+	ON group_cohorts (slug);
+	`
+	if _, err := database.Exec(indexSlug); err != nil {
+		return fmt.Errorf("failed to create group_cohorts slug index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "group_cohorts"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for group_cohorts: %w", err)
+	}
+
+	return nil
+}
+func groupCohortAssignmentMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS group_cohort_assignments (
+		id UUID PRIMARY KEY,
+		group_cohort_id UUID NOT NULL REFERENCES group_cohorts(id) ON DELETE CASCADE,
+		discipline_id UUID NOT NULL REFERENCES disciplines(id) ON DELETE CASCADE,
+		lesson_type_id UUID NOT NULL REFERENCES lesson_types(id) ON DELETE CASCADE,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create group_cohort_assignments table: %w", err)
+	}
+
+	indexUnique := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_group_cohort_assignments_unique
+	ON group_cohort_assignments (group_cohort_id, discipline_id, lesson_type_id);
+	`
+	if _, err := database.Exec(indexUnique); err != nil {
+		return fmt.Errorf("failed to create unique index for group_cohort_assignments: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "group_cohort_assignments"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for group_cohort_assignments: %w", err)
 	}
 
 	return nil

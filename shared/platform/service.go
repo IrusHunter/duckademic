@@ -37,6 +37,7 @@ const (
 	ValidateEntity
 	HardDeleteCheck
 	OnUpdatePrepare
+	OnUpdateValidation
 )
 
 func getOrDefault[T fmt.Stringer](
@@ -98,29 +99,32 @@ func NewBaseServiceWithEventBus[T fmt.Stringer](sc ServiceConfig, r BaseReposito
 	validateEntity := getOrDefault(mf, ValidateEntity, func(ctx context.Context, t *T) error { return nil })
 	hardDeleteCheck := getOrDefault(mf, HardDeleteCheck, func(ctx context.Context, t *T) error { return nil })
 	onUpdatePrepare := getOrDefault(mf, OnUpdatePrepare, func(ctx context.Context, t *T) error { return nil })
+	onUpdateValidation := getOrDefault(mf, OnUpdateValidation, func(ctx context.Context, t *T) error { return nil })
 
 	return &baseService[T]{
-		ServiceConfig:   sc,
-		repository:      r,
-		logger:          logger.NewLogger(sc.ClassName+".txt", sc.ClassName),
-		validateEntity:  validateEntity,
-		onAddPrepare:    onAddPrepare,
-		hardDeleteCheck: hardDeleteCheck,
-		onUpdatePrepare: onUpdatePrepare,
-		eventBus:        eb,
+		ServiceConfig:      sc,
+		repository:         r,
+		logger:             logger.NewLogger(sc.ClassName+".txt", sc.ClassName),
+		validateEntity:     validateEntity,
+		onAddPrepare:       onAddPrepare,
+		hardDeleteCheck:    hardDeleteCheck,
+		onUpdatePrepare:    onUpdatePrepare,
+		onUpdateValidation: onUpdateValidation,
+		eventBus:           eb,
 	}
 }
 
 type baseService[T fmt.Stringer] struct {
 	ServiceConfig
-	repository      BaseRepository[T]
-	logger          logger.Logger
-	validateEntity  func(context.Context, *T) error
-	onAddPrepare    func(context.Context, *T) error
-	onUpdatePrepare func(context.Context, *T) error
-	hardDeleteCheck func(context.Context, *T) error
-	nilEntity       T
-	eventBus        events.EventBus
+	repository         BaseRepository[T]
+	logger             logger.Logger
+	validateEntity     func(context.Context, *T) error
+	onAddPrepare       func(context.Context, *T) error
+	onUpdatePrepare    func(context.Context, *T) error
+	onUpdateValidation func(context.Context, *T) error
+	hardDeleteCheck    func(context.Context, *T) error
+	nilEntity          T
+	eventBus           events.EventBus
 }
 
 func (s *baseService[T]) Add(ctx context.Context, entity T) (T, error) {
@@ -226,9 +230,21 @@ func (s *baseService[T]) Delete(ctx context.Context, id uuid.UUID) (T, error) {
 	}
 }
 func (s *baseService[T]) Update(ctx context.Context, id uuid.UUID, entity T) (T, error) {
-	if err := s.validateEntity(ctx, &entity); err != nil {
+	// if err := s.validateEntity(ctx, &entity); err != nil {
+	// 	return s.nilEntity, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Update",
+	// 		fmt.Errorf("%s failed validation: %w", entity, err), logger.ServiceValidationFailed,
+	// 	)
+	// }
+
+	if err := s.onUpdateValidation(ctx, &entity); err != nil {
 		return s.nilEntity, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Update",
-			fmt.Errorf("%s failed validation: %w", entity, err), logger.ServiceValidationFailed,
+			fmt.Errorf("%s failed on update validation: %w", entity, err), logger.ServiceValidationFailed,
+		)
+	}
+
+	if err := s.onUpdatePrepare(ctx, &entity); err != nil {
+		return s.nilEntity, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Update",
+			fmt.Errorf("failed to prepare entity %s: %w", entity.String(), err), logger.ServiceValidationFailed,
 		)
 	}
 

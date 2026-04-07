@@ -41,27 +41,24 @@ func main() {
 	eventBus := events.NewEventBus(rdc)
 
 	teacherRepository := repositories.NewTeacherRepository(database)
-	groupCohortRepository := repositories.NewGroupCohortRepository(database)
 	lessonTypeRepository := repositories.NewLessonTypeRepository(database)
 	disciplineRepository := repositories.NewDisciplineRepository(database)
 	teacherLoadRepository := repositories.NewTeacherLoadRepository(database)
 
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
-	groupCohortService := services.NewGroupCohortService(groupCohortRepository, eventBus)
 	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
 	disciplineService := services.NewDisciplineService(disciplineRepository, eventBus)
 	teacherLoadService := services.NewTeacherLoadService(teacherLoadRepository, teacherRepository, disciplineRepository,
-		lessonTypeRepository, groupCohortRepository, eventBus)
+		lessonTypeRepository, eventBus)
 
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
-	groupCohortHandler := resthandlers.NewGroupCohortHandler(groupCohortService)
 	lessonTypeHandler := resthandlers.NewLessonTypeHandler(lessonTypeService)
 	disciplineHandler := resthandlers.NewDisciplineHandler(disciplineService)
 	teacherLoadHandler := resthandlers.NewTeacherLoadHandler(teacherLoadService)
 	databaseHandler := resthandlers.NewDatabaseHandler(teacherLoadService, teacherService, disciplineService,
-		lessonTypeService, groupCohortService)
+		lessonTypeService)
 
-	restapi := NewRESTAPI(teacherHandler, groupCohortHandler, lessonTypeHandler, disciplineHandler,
+	restapi := NewRESTAPI(teacherHandler, lessonTypeHandler, disciplineHandler,
 		teacherLoadHandler, databaseHandler)
 
 	err = restapi.Run(port)

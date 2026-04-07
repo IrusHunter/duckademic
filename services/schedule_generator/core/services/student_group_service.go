@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
+	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
+
 	"github.com/google/uuid"
 )
 
@@ -25,25 +26,25 @@ type StudentGroupService interface {
 // It requires an array of database student groups (sg), day load limit (dll), and a busy grid for them (bg).
 //
 // Returns an error if any student group is an invalid model.
-func NewStudentGroupService(sg []types.StudentGroup, dl int, bg [][]float32) (StudentGroupService, error) {
+func NewStudentGroupService(sg []externalEntities.StudentGroup, dl int, bg [][]float32) (StudentGroupService, error) {
 	sgs := studentGroupService{
 		studentGroups: make([]*entities.StudentGroup, len(sg)),
 	}
 
 	for i := range sg {
 		sgs.studentGroups[i] = entities.NewDefaultStudentGroup(
-			sg[i].ID, sg[i].Name, dl, sg[i].StudentNumber, entities.NewBusyGrid(bg),
+			sg[i].ID, sg[i].Name, dl, sg[i].StudentCount, entities.NewBusyGrid(bg),
 		)
-		studentGroup := sgs.studentGroups[i]
+		// studentGroup := sgs.studentGroups[i]
 
 		// set military day by marks slots on this day as blocked
-		md := sg[i].MilitaryDay
-		if md != -1 {
-			if err := studentGroup.CheckWeekDay(md); err != nil {
-				return nil, err
-			}
-			studentGroup.BlockWeekDay(md)
-		}
+		// md := sg[i].MilitaryDay
+		// if md != -1 {
+		// 	if err := studentGroup.CheckWeekDay(md); err != nil {
+		// 		return nil, err
+		// 	}
+		// 	studentGroup.BlockWeekDay(md)
+		// }
 	}
 
 	// create connection for student groups

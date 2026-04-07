@@ -100,6 +100,7 @@
 ```json
 {
   "id": "uuid (identifier of the teacher)",
+  "slug": "string (unique slug used internally)",
   "name": "string (short full name of the teacher)",
   "academic_rank_id": "uuid (reference to academic rank)",
   "created_at": "timestamp (record creation timestamp)",
@@ -134,6 +135,7 @@
   "slug": "string (unique slug used internally)",
   "name": "string (name of the lesson type)",
   "hours_value": "integer (number of hours per lesson)",
+  "reserved_weeks": "string (comma-separated week numbers where only this lesson type is allowed)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"
 }
@@ -215,6 +217,155 @@
   "group_count": "integer (number of groups assigned for this load)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-group-cohort"></a>
+
+### Group Cohort
+
+```json
+{
+  "id": "uuid (unique identifier of the group cohort)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the cohort)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-group-cohort-assignment"></a>
+
+### Group Cohort Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of the assignment)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+## Schedule Generator Service
+
+<a id="schedule-generator-generator-config"></a>
+
+### Generator Config
+
+```json
+{
+  "start_date": "timestamp (start date and time of the study period)",
+  "end_date": "timestamp (end date and time of the study period, inclusive of the last day)",
+  "slot_preference": [
+    [
+      "float (preference coefficient for a time slot; ordered by days starting from Sunday: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)"
+    ]
+  ],
+  "max_daily_student_load": "integer (maximum number of classes per student per day)",
+  "lesson_fill_rate": "float (percentage of lesson type utilization used to determine the number of study days)",
+  "classroom_occupancy": "float (percentage of classroom occupancy)"
+}
+```
+
+<a id="schedule-generator-teacher"></a>
+
+### Teacher
+
+```json
+{
+  "id": "uuid (identifier of the teacher)",
+  "name": "string (short full name of the teacher)",
+  "priority": "int (determines the rank's priority: higher value = higher rank)"
+}
+```
+
+<a id="schedule-generator-discipline"></a>
+
+### Discipline
+
+```json
+{
+  "id": "uuid (unique identifier of the discipline)",
+  "name": "string (name of the discipline)"
+}
+```
+
+<a id="schedule-generator-lesson-type"></a>
+
+### Lesson Type
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson type)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the lesson type)",
+  "hours_value": "integer (number of hours per lesson)",
+  "reserved_weeks": "string (comma-separated week numbers where only this lesson type is allowed)"
+}
+```
+
+<a id="schedule-generator-lesson-type-assignment"></a>
+
+### Lesson Type Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of this lesson type assignment)",
+  "lesson_type_id": "uuid (identifier of the associated lesson type)",
+  "discipline_id": "uuid (identifier of the associated discipline)",
+  "required_hours": "integer (number of hours required for this lesson type in this discipline)"
+}
+```
+
+<a id="schedule-generator-group-cohort"></a>
+
+### Group Cohort
+
+```json
+{
+  "id": "uuid (unique identifier of the group cohort)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the cohort)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+  "groups": [
+    {
+      "id": "uuid (unique identifier of the student group)",
+      "name": "string (name of the student group)",
+      "connected_groups": ["uuid (ID of connected student group)"],
+      "student_count": "int (number of students in this group)"
+    }
+  ]
+}
+```
+
+<a id="schedule-generator-group-cohort-assignment"></a>
+
+### Group Cohort Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of the assignment)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)"
+}
+```
+
+<a id="schedule-generator-teacher-load"></a>
+
+### Teacher Load
+
+```json
+{
+  "id": "uuid (unique identifier of the teacher load record)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "group_count": "integer (number of groups assigned for this load)"
 }
 ```
 
@@ -339,6 +490,49 @@
 }
 ```
 
+<a id="student-group-discipline"></a>
+
+### Discipline
+
+```json
+{
+  "id": "uuid (unique identifier of the discipline)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the discipline)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="student-group-lesson-type"></a>
+
+### Lesson Type
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson type)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the lesson type)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="student-group-group-cohort-assignment"></a>
+
+### Group Cohort Assignment
+
+```json
+{
+  "id": "uuid (unique identifier of the assignment)",
+  "group_cohort_id": "uuid (unique identifier of the group cohort)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 ## Curriculum Service
 
 <a id="curriculum-curriculum"></a>
@@ -442,21 +636,8 @@
 ```json
 {
   "id": "uuid (identifier of the teacher)",
-  "name": "string (short full name of the teacher)",
-  "created_at": "timestamp (record creation timestamp)",
-  "updated_at": "timestamp (record last update timestamp)"
-}
-```
-
-<a id="teacher-load-group-cohort"></a>
-
-### Group Cohort
-
-```json
-{
-  "id": "uuid (unique identifier of the group cohort)",
   "slug": "string (unique slug used internally)",
-  "name": "string (name of the cohort)",
+  "name": "string (short full name of the teacher)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"
 }
@@ -500,7 +681,6 @@
   "teacher_id": "uuid (unique identifier of the teacher)",
   "discipline_id": "uuid (unique identifier of the discipline)",
   "lesson_type_id": "uuid (unique identifier of the lesson type)",
-  "group_cohort_id": "uuid (unique identifier of the group cohort)",
   "group_count": "integer (number of groups assigned for this load)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"

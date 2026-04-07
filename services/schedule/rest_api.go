@@ -24,35 +24,41 @@ func NewRESTAPI(
 	sgh resthandlers.StudentGroupHandler,
 	gmh resthandlers.GroupMemberHandler,
 	tlh resthandlers.TeacherLoadHandler,
+	gch resthandlers.GroupCohortHandler,
+	gcah resthandlers.GroupCohortAssignmentHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:               platform.NewRESTAPIHelper("RESTAPI"),
-		academicRankHandler:         arh,
-		teacherHandler:              th,
-		databaseHandler:             dh,
-		lessonTypeHandler:           lth,
-		lessonTypeAssignmentHandler: ltah,
-		disciplineHandler:           disH,
-		studentHandler:              sh,
-		studentGroupHandler:         sgh,
-		groupMemberHandler:          gmh,
-		teacherLoadHandler:          tlh,
+		RESTAPIHelper:                platform.NewRESTAPIHelper("RESTAPI"),
+		academicRankHandler:          arh,
+		teacherHandler:               th,
+		databaseHandler:              dh,
+		lessonTypeHandler:            lth,
+		lessonTypeAssignmentHandler:  ltah,
+		disciplineHandler:            disH,
+		studentHandler:               sh,
+		studentGroupHandler:          sgh,
+		groupMemberHandler:           gmh,
+		teacherLoadHandler:           tlh,
+		groupCohortHandler:           gch,
+		groupCohortAssignmentHandler: gcah,
 	}
 }
 
 type restapi struct {
 	platform.RESTAPIHelper
-	academicRankHandler         resthandlers.AcademicRankHandler
-	teacherHandler              resthandlers.TeacherHandler
-	disciplineHandler           resthandlers.DisciplineHandler
-	lessonTypeHandler           resthandlers.LessonTypeHandler
-	lessonTypeAssignmentHandler resthandlers.LessonTypeAssignmentHandler
-	studentHandler              resthandlers.StudentHandler
-	studentGroupHandler         resthandlers.StudentGroupHandler
-	groupMemberHandler          resthandlers.GroupMemberHandler
-	databaseHandler             resthandlers.DatabaseHandler
-	teacherLoadHandler          resthandlers.TeacherLoadHandler
+	academicRankHandler          resthandlers.AcademicRankHandler
+	teacherHandler               resthandlers.TeacherHandler
+	disciplineHandler            resthandlers.DisciplineHandler
+	lessonTypeHandler            resthandlers.LessonTypeHandler
+	lessonTypeAssignmentHandler  resthandlers.LessonTypeAssignmentHandler
+	studentHandler               resthandlers.StudentHandler
+	studentGroupHandler          resthandlers.StudentGroupHandler
+	groupMemberHandler           resthandlers.GroupMemberHandler
+	databaseHandler              resthandlers.DatabaseHandler
+	groupCohortHandler           resthandlers.GroupCohortHandler
+	groupCohortAssignmentHandler resthandlers.GroupCohortAssignmentHandler
+	teacherLoadHandler           resthandlers.TeacherLoadHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -75,6 +81,10 @@ func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/lesson-types", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.GetAll),
 	})
+	ra.NewRoute("/lesson-type/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.Find),
+		http.MethodPut: ra.NewDefaultHandler(ra.lessonTypeHandler.Update),
+	})
 
 	ra.NewRoute("/lesson-type-assignments", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.GetAll),
@@ -90,6 +100,14 @@ func (ra *restapi) Run(port int) error {
 
 	ra.NewRoute("/group-members", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.groupMemberHandler.GetAll),
+	})
+
+	ra.NewRoute("/group-cohorts", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.groupCohortHandler.GetAll),
+	})
+
+	ra.NewRoute("/group-cohort-assignments", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.GetAll),
 	})
 
 	ra.NewRoute("/teacher-loads", map[string]platform.HandlerFunc{

@@ -23,14 +23,12 @@ func NewDatabaseHandler(
 	ts services.TeacherService,
 	ds services.DisciplineService,
 	ls services.LessonTypeService,
-	gcs services.GroupCohortService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		teacherLoadService: tls,
 		teacherService:     ts,
 		disciplineService:  ds,
 		lessonTypeService:  ls,
-		groupCohortService: gcs,
 	}
 }
 
@@ -39,7 +37,6 @@ type databaseHandler struct {
 	teacherService     services.TeacherService
 	disciplineService  services.DisciplineService
 	lessonTypeService  services.LessonTypeService
-	groupCohortService services.GroupCohortService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -55,10 +52,6 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if err := h.teacherLoadService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear teacher loads: %w", err))
-		return
-	}
-	if err := h.groupCohortService.Clear(ctx); err != nil {
-		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group cohorts: %w", err))
 		return
 	}
 	if err := h.lessonTypeService.Clear(ctx); err != nil {

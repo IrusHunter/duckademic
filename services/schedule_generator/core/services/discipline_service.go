@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
+	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	"github.com/google/uuid"
 )
 
@@ -15,7 +15,7 @@ type DisciplineService interface {
 // NewDisciplineService creates a new DisciplineService basic instance.
 //
 // It requires an array of database disciplines (d).
-func NewDisciplineService(d []types.Discipline) (DisciplineService, error) {
+func NewDisciplineService(d []externalEntities.Discipline) (DisciplineService, error) {
 	ds := disciplineService{disciplines: make([]*entities.Discipline, len(d))}
 
 	for i := range d {

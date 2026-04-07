@@ -22,7 +22,7 @@ func NewStudentGroupRepository(db *sqlx.DB) StudentGroupRepository {
 		"StudentGroupRepository",
 		entities.StudentGroup{}.TableName(),
 		"student group",
-		[]string{"id", "slug", "name"},
+		[]string{"id", "slug", "name", "group_cohort_id"},
 		[]string{},
 		[]string{"created_at", "updated_at"},
 	)
@@ -51,5 +51,5 @@ func (r *studentGroupRepository) FindFirstByName(ctx context.Context, name strin
 func (r *studentGroupRepository) ExternalUpdate(
 	ctx context.Context, id uuid.UUID, group entities.StudentGroup,
 ) (entities.StudentGroup, error) {
-	return r.UpdateFields(ctx, id, []string{"slug", "name"}, group)
+	return r.UpdateFields(ctx, id, []string{"slug", "name", "group_cohort_id"}, group)
 }

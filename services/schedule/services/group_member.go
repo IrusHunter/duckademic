@@ -9,7 +9,6 @@ import (
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/events"
-	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -75,22 +74,6 @@ func (s *groupMemberService) eventHandler(ctx context.Context, b []byte) {
 	case events.EntityDeleted:
 		s.Delete(ctx, memberEvent.ID)
 	}
-}
-
-func (s *groupMemberService) Seed(ctx context.Context) error {
-	members := []entities.GroupMember{}
-	if err := jsonutil.ReadFileTo(filepath.Join("data", "group_members.json"), &members); err != nil {
-		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-			fmt.Errorf("failed to load group members seed data: %w", err), logger.ServiceDataFetchFailed,
-		)
-	}
-
-	s.logger.Log(contextutil.GetTraceID(ctx), "Seed",
-		fmt.Sprintf("%d group members updated successfully", len(members)),
-		logger.ServiceOperationSuccess,
-	)
-
-	return nil
 }
 
 func (s *groupMemberService) ExternalUpdate(

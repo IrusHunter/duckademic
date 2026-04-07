@@ -14,10 +14,10 @@ import (
 func Migrate(database *sqlx.DB) error {
 	migrationsF := []func(*sqlx.DB) error{
 		teacherMigrations,
-		groupCohortMigrations,
 		disciplineMigrations,
 		lessonTypeMigrations,
 		teacherLoadMigrations,
+		groupCohortMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -71,30 +71,12 @@ func teacherMigrations(database *sqlx.DB) error {
 	return nil
 }
 func groupCohortMigrations(database *sqlx.DB) error {
-	schema := `
-	CREATE TABLE IF NOT EXISTS group_cohorts (
-		id UUID PRIMARY KEY,
-		slug TEXT NOT NULL,
-		name TEXT NOT NULL,
-		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-	);
+	dropTable := `
+	DROP TABLE IF EXISTS group_cohorts;
 	`
 
-	if _, err := database.Exec(schema); err != nil {
-		return fmt.Errorf("failed to create group_cohorts table: %w", err)
-	}
-
-	indexSlug := `
-	CREATE UNIQUE INDEX IF NOT EXISTS idx_group_cohorts_slug
-	ON group_cohorts (slug);
-	`
-	if _, err := database.Exec(indexSlug); err != nil {
-		return fmt.Errorf("failed to create group_cohorts slug index: %w", err)
-	}
-
-	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "group_cohorts"); err != nil {
-		return fmt.Errorf("failed to create on update trigger for group_cohorts: %w", err)
+	if _, err := database.Exec(dropTable); err != nil {
+		return fmt.Errorf("failed to drop group_cohorts table: %w", err)
 	}
 
 	return nil
@@ -185,6 +167,16 @@ func teacherLoadMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "teacher_loads"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for teacher_loads: %w", err)
+	}
+
+	// WARNING: it should be removed if group_cohort_id will be needed
+	dropColumn := `
+	ALTER TABLE teacher_loads
+	DROP COLUMN IF EXISTS group_cohort_id;
+	`
+
+	if _, err := database.Exec(dropColumn); err != nil {
+		return fmt.Errorf("failed to drop group_cohort_id column: %w", err)
 	}
 
 	return nil

@@ -53,12 +53,11 @@ func (s *teacherLoadService) eventHandler(ctx context.Context, b []byte) {
 	)
 
 	trueLoad := entities.TeacherLoad{
-		ID:            loadEvent.ID,
-		TeacherID:     loadEvent.TeacherID,
-		DisciplineID:  loadEvent.DisciplineID,
-		LessonTypeID:  loadEvent.LessonTypeID,
-		GroupCohortID: loadEvent.GroupCohortID,
-		GroupCount:    loadEvent.GroupCount,
+		ID:           loadEvent.ID,
+		TeacherID:    loadEvent.TeacherID,
+		DisciplineID: loadEvent.DisciplineID,
+		LessonTypeID: loadEvent.LessonTypeID,
+		GroupCount:   loadEvent.GroupCount,
 	}
 
 	switch loadEvent.Event {

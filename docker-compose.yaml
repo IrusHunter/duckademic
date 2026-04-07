@@ -13,6 +13,7 @@ services:
       - student-group-service
       - curriculum-service
       - teacher-load-service
+      - schedule_generator
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -71,4 +72,13 @@ services:
       - ./services/teacher_load/.env.docker
     environment:
     - DOCKER_ENV=true
+  
+    schedule-generator-service:
+      build: ./services/schedule_generator
+      expose:
+        - "10007"
+      env_file:
+        - ./services/schedule_generator/.env.docker
+      environment:
+      - DOCKER_ENV=true
   

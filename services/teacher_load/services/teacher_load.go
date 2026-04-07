@@ -24,7 +24,6 @@ func NewTeacherLoadService(
 	tr repositories.TeacherRepository,
 	dr repositories.DisciplineRepository,
 	ltr repositories.LessonTypeRepository,
-	gcr repositories.GroupCohortRepository,
 	eb events.EventBus,
 ) TeacherLoadService {
 
@@ -35,12 +34,11 @@ func NewTeacherLoadService(
 	)
 
 	res := &teacherLoadService{
-		repository:            tlr,
-		teacherRepository:     tr,
-		disciplineRepository:  dr,
-		lessonTypeRepository:  ltr,
-		groupCohortRepository: gcr,
-		eventBus:              eb,
+		repository:           tlr,
+		teacherRepository:    tr,
+		disciplineRepository: dr,
+		lessonTypeRepository: ltr,
+		eventBus:             eb,
 	}
 
 	res.BaseService = platform.NewBaseServiceWithEventBus(tc, tlr,
@@ -58,13 +56,12 @@ func NewTeacherLoadService(
 
 type teacherLoadService struct {
 	platform.BaseService[entities.TeacherLoad]
-	repository            repositories.TeacherLoadRepository
-	teacherRepository     repositories.TeacherRepository
-	disciplineRepository  repositories.DisciplineRepository
-	lessonTypeRepository  repositories.LessonTypeRepository
-	groupCohortRepository repositories.GroupCohortRepository
-	logger                logger.Logger
-	eventBus              events.EventBus
+	repository           repositories.TeacherLoadRepository
+	teacherRepository    repositories.TeacherRepository
+	disciplineRepository repositories.DisciplineRepository
+	lessonTypeRepository repositories.LessonTypeRepository
+	logger               logger.Logger
+	eventBus             events.EventBus
 }
 
 func (s *teacherLoadService) validateEntity(ctx context.Context, tl *entities.TeacherLoad) error {
@@ -82,11 +79,10 @@ func (s *teacherLoadService) onAddPrepare(ctx context.Context, tl *entities.Teac
 
 func (s *teacherLoadService) Seed(ctx context.Context) error {
 	teacherLoads := []struct {
-		TeacherName     string `json:"teacher_name"`
-		DisciplineName  string `json:"discipline_name"`
-		LessonTypeName  string `json:"lesson_type_name"`
-		GroupCohortName string `json:"group_cohort_name"`
-		GroupCount      int    `json:"group_count"`
+		TeacherName    string `json:"teacher_name"`
+		DisciplineName string `json:"discipline_name"`
+		LessonTypeName string `json:"lesson_type_name"`
+		GroupCount     int    `json:"group_count"`
 	}{}
 
 	if err := jsonutil.ReadFileTo(filepath.Join("data", "teacher_loads.json"), &teacherLoads); err != nil {
@@ -125,21 +121,11 @@ func (s *teacherLoadService) Seed(ctx context.Context) error {
 			continue
 		}
 
-		groupCohort := s.groupCohortRepository.FindFirstByName(ctx, item.GroupCohortName)
-		if groupCohort == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("group cohort %q not found", item.GroupCohortName),
-				logger.ServiceValidationFailed,
-			)
-			continue
-		}
-
 		trueTL := entities.TeacherLoad{
-			TeacherID:     teacher.ID,
-			DisciplineID:  discipline.ID,
-			LessonTypeID:  lessonType.ID,
-			GroupCohortID: groupCohort.ID,
-			GroupCount:    item.GroupCount,
+			TeacherID:    teacher.ID,
+			DisciplineID: discipline.ID,
+			LessonTypeID: lessonType.ID,
+			GroupCount:   item.GroupCount,
 		}
 
 		_, err := s.Add(ctx, trueTL)
@@ -194,13 +180,12 @@ func (s *teacherLoadService) sendChanges(
 	event events.EventType,
 ) {
 	eventTL := events.TeacherLoadRE{
-		Event:         event,
-		ID:            tl.ID,
-		TeacherID:     tl.TeacherID,
-		DisciplineID:  tl.DisciplineID,
-		LessonTypeID:  tl.LessonTypeID,
-		GroupCohortID: tl.GroupCohortID,
-		GroupCount:    tl.GroupCount,
+		Event:        event,
+		ID:           tl.ID,
+		TeacherID:    tl.TeacherID,
+		DisciplineID: tl.DisciplineID,
+		LessonTypeID: tl.LessonTypeID,
+		GroupCount:   tl.GroupCount,
 	}
 
 	s.BaseService.SendChanges(ctx, eventTL, event, events.TeacherLoadRT)

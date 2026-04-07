@@ -20,7 +20,7 @@ func NewTeacherLoadRepository(db *sqlx.DB) TeacherLoadRepository {
 		"TeacherLoadRepository",
 		entities.TeacherLoad{}.TableName(),
 		"teacher_load",
-		[]string{"id", "teacher_id", "discipline_id", "lesson_type_id", "group_cohort_id", "group_count"},
+		[]string{"id", "teacher_id", "discipline_id", "lesson_type_id", "group_count"},
 		[]string{},
 		[]string{"created_at", "updated_at"},
 	)
@@ -43,5 +43,5 @@ type teacherLoadRepository struct {
 func (r *teacherLoadRepository) ExternalUpdate(
 	ctx context.Context, id uuid.UUID, load entities.TeacherLoad,
 ) (entities.TeacherLoad, error) {
-	return r.UpdateFields(ctx, id, []string{"teacher_id", "discipline_id", "lesson_type_id", "group_cohort_id", "group_count"}, load)
+	return r.UpdateFields(ctx, id, []string{"teacher_id", "discipline_id", "lesson_type_id", "group_count"}, load)
 }
