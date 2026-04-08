@@ -388,3 +388,42 @@ func (bg *BusyGrid) CountLessonOverlapping(lessons []*Lesson) (count int) {
 
 	return count
 }
+
+// GetFullWeekCount returns the count of full weeks in the grid.
+// It counts the first and last weeks as full, even if they have empty days.
+func (bg *BusyGrid) GetFullWeekCount() int {
+	return len(bg.Grid) / 7
+}
+
+// GetAverageSlotCountOnWeekday returns the average number of slots as an integer.
+// If some days have no slots while others do, the result may be lower than expected.
+func (bg *BusyGrid) GetAverageSlotCountOnWeekday(weekday int) (result int) {
+	if bg.CheckDay(weekday) != nil {
+		return 0
+	}
+
+	week := 0
+	for {
+		day := weekday + week*7
+		if bg.CheckDay(day) != nil {
+			break
+		}
+
+		result += len(bg.Grid[day])
+
+		week++
+	}
+
+	return result / week
+}
+
+// GetOptimalWeekdayCount returns the number of weekdays with a priority of at least 0.9.
+func (bg *BusyGrid) GetOptimalWeekdayCount() (result int) {
+	dayPriorities := bg.GetWeekDaysPriority()
+	for _, dp := range dayPriorities {
+		if dp > 0.9 {
+			result += 1
+		}
+	}
+	return result
+}

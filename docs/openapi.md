@@ -47,6 +47,7 @@
   - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
   - [/set-student-groups](#schedule-generator-set-student-groups)
   - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
+  - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
   - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
@@ -559,6 +560,16 @@
   "message": "n teacher loads assigned"
 }
 ```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-generate-days-for-lesson-types"></a>
+
+## /generate-days-for-lesson-types
+
+### ANY – generate day binding in student group for lesson types
+
+200 OK [=> DaysForLessonTypes](schemas.md#schedule-generator-days-for-lesson-types)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

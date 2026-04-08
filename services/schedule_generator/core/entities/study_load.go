@@ -60,16 +60,27 @@ func (sl *StudyLoad) IsEnoughHours() bool {
 	return sl.CountHoursDeficit() <= 0
 }
 
+// RGetRequiredSlots returns number of the lesson slots needed to this study load.
+func (sl *StudyLoad) GetRequiredSlots() int {
+	return sl.Discipline.GetRequiredHours(sl.Type) / sl.Type.Value
+}
+
 // ==========================================================================================================
 // =============================================== LoadService ==============================================
 // ==========================================================================================================
 
 // LoadService tracks and evaluates the study workload.
 type LoadService interface {
-	GetAssignedLessons() []*Lesson             // Returns registered lessons as an array.
-	GetLessonTypes() []*LessonType             // Returns all lesson types from registered loads.
-	AddLoad(*StudyLoad)                        // Registers a new study load.
-	GetPreviousLessonOnDay(LessonSlot) *Lesson // Returns the nearest previous lesson on the slot's day.
+	// Returns registered lessons as an array.
+	GetAssignedLessons() []*Lesson
+	// Returns all lesson types from registered loads.
+	GetLessonTypes() []*LessonType
+	// Registers a new study load.
+	AddLoad(*StudyLoad)
+	// Returns the nearest previous lesson on the slot's day.
+	GetPreviousLessonOnDay(LessonSlot) *Lesson
+	// Returns count of all required lesson slots for study loads with given lesson type.
+	GetSlotCountForLType(*LessonType) int
 }
 
 // NewLoadService creates a new LoadService basic instance.
@@ -103,6 +114,14 @@ func (lc *loadService) GetLessonTypes() (result []*LessonType) {
 		}
 	}
 
+	return
+}
+func (lc *loadService) GetSlotCountForLType(lessonType *LessonType) (result int) {
+	for _, load := range lc.loads {
+		if load.Type == lessonType {
+			result += load.GetRequiredSlots()
+		}
+	}
 	return
 }
 func (lc *loadService) GetPreviousLessonOnDay(slot LessonSlot) *Lesson {

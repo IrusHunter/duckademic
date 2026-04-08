@@ -23,6 +23,7 @@ type ScheduleGeneratorHandler interface {
 	SetLessonTypeAssignments(context.Context, http.ResponseWriter, *http.Request)
 	SetStudentGroups(context.Context, http.ResponseWriter, *http.Request)
 	SetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
+	SetDaysForLessonTypes(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -347,4 +348,22 @@ func (h *scheduleGeneratorHandler) SetStudyLoads(ctx context.Context, w http.Res
 	jsonutil.ResponseWithJSON(w, 200, map[string]any{
 		"message": fmt.Sprintf("%d teacher loads assigned", len(loads)),
 	})
+}
+func (h *scheduleGeneratorHandler) SetDaysForLessonTypes(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetDaysForLessonTypes",
+			fmt.Errorf("failed to set days for lesson types: generator wasn't init"), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	res, err := h.generator.SetDaysForLessonTypes()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetDaysForLessonTypes",
+			fmt.Errorf("failed to set days for lesson types: %w", err), logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, res)
 }

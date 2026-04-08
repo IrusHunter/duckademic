@@ -8,8 +8,16 @@ import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
+	generatorResponses "github.com/IrusHunter/duckademic/services/schedule_generator/entities/generator_responses"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
 	"github.com/google/uuid"
+)
+
+type GeneratorStep string
+
+const (
+	Setup       GeneratorStep = "SETUP"
+	DayBlocking GeneratorStep = "DAY_BLOCKING"
 )
 
 type generatorData struct {
@@ -52,11 +60,13 @@ type ScheduleGenerator struct {
 	weekData         generatorData
 	fullData         generatorData
 	classroomService services.ClassroomService
+	currentStep      GeneratorStep
 }
 
 func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*ScheduleGenerator, error) {
 	scheduleGenerator := ScheduleGenerator{
 		ScheduleGeneratorConfig: cfg,
+		currentStep:             Setup,
 	}
 
 	index := 0
@@ -75,17 +85,19 @@ func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*Schedu
 	}
 	scheduleGenerator.fullData.busyGrid = fullBusyGrid
 
-	// for i := range 7 {
-	// 	scheduleGenerator.weekData.busyGrid = append(scheduleGenerator.weekData.busyGrid,
-	// 		make([]float32, len(cfg.SlotPreference[i])))
-	// 	copy(scheduleGenerator.weekData.busyGrid[i], cfg.SlotPreference[i])
-	// }
+	for i := range 7 {
+		scheduleGenerator.weekData.busyGrid = append(scheduleGenerator.weekData.busyGrid,
+			make([]float32, len(cfg.SlotPreference[i])))
+		copy(scheduleGenerator.weekData.busyGrid[i], cfg.SlotPreference[i])
+	}
 
-	ls, err := services.NewLessonService(2) // TODO: remove and get it value from lesson type
+	ls, err := services.NewLessonService()
 	if err != nil {
 		return nil, err
 	}
+	weekLS, _ := services.NewLessonService()
 	scheduleGenerator.fullData.lessonService = ls
+	scheduleGenerator.weekData.lessonService = weekLS
 
 	scheduleGenerator.errorService = components.NewErrorService()
 
@@ -97,11 +109,12 @@ func (g *ScheduleGenerator) SetTeachers(teachers []externalEntities.Teacher) err
 		return fmt.Errorf("teachers already set")
 	}
 
-	ts, err := services.NewTeacherService(teachers, g.busyGrid)
+	ts, err := services.NewTeacherService(teachers, g.fullData.busyGrid)
 	if err != nil {
 		return err
 	}
 	g.fullData.teacherService = ts
+	g.weekData.teacherService, _ = services.NewTeacherService(teachers, g.weekData.busyGrid)
 
 	return nil
 }
@@ -110,13 +123,18 @@ func (g *ScheduleGenerator) SetStudentGroups(
 	groupCohorts []externalEntities.GroupCohort,
 	groupCohortAssignments []externalEntities.GroupCohortAssignment,
 ) error {
-	if g.studentGroupService != nil {
+	if g.fullData.studentGroupService != nil {
 		return fmt.Errorf("student groups already set")
+	}
+	if g.fullData.disciplineService == nil {
+		return fmt.Errorf("disciplines did't set")
+	}
+	if g.fullData.lessonTypeService == nil {
+		return fmt.Errorf("lesson types did't set")
 	}
 
 	groupCohortsMap := make(map[uuid.UUID]externalEntities.GroupCohort, len(groupCohorts))
 	studentGroups := []externalEntities.StudentGroup{}
-	studyLoads := []*entities.StudyLoad{}
 
 	for _, groupCohort := range groupCohorts {
 		groupCohortsMap[groupCohort.ID] = groupCohort
@@ -125,47 +143,62 @@ func (g *ScheduleGenerator) SetStudentGroups(
 		}
 	}
 
-	sgs, err := services.NewStudentGroupService(studentGroups, g.MaxDailyStudentLoad, g.busyGrid)
+	sgs, err := services.NewStudentGroupService(studentGroups, g.MaxDailyStudentLoad, g.fullData.busyGrid)
 	if err != nil {
 		return err
 	}
+	weekSGS, _ := services.NewStudentGroupService(studentGroups, g.MaxDailyStudentLoad, g.weekData.busyGrid)
 
-	for _, groupCohortAssignment := range groupCohortAssignments {
-		lessonType := g.fullData.lessonTypeService.Find(groupCohortAssignment.LessonTypeID)
-		if lessonType == nil {
-			return fmt.Errorf("lesson type with id %q not found", groupCohortAssignment.LessonTypeID)
-		}
+	helper := func(ds services.DisciplineService, lts services.LessonTypeService, sgs services.StudentGroupService,
+	) ([]*entities.StudyLoad, error) {
+		studyLoads := []*entities.StudyLoad{}
 
-		discipline := g.fullData.disciplineService.Find(groupCohortAssignment.DisciplineID)
-		if discipline == nil {
-			return fmt.Errorf("discipline with id %q not found", groupCohortAssignment.DisciplineID)
-		}
-
-		groupCohort, ok := groupCohortsMap[groupCohortAssignment.GroupCohortID]
-		if !ok {
-			return fmt.Errorf("group cohort with id %q not found", groupCohortAssignment.GroupCohortID)
-		}
-
-		for _, studentGroup := range groupCohort.Groups {
-			studentGroup := sgs.Find(studentGroup.ID)
-			if studentGroup == nil {
-				panic("already set but not found")
+		for _, groupCohortAssignment := range groupCohortAssignments {
+			lessonType := lts.Find(groupCohortAssignment.LessonTypeID)
+			if lessonType == nil {
+				return nil, fmt.Errorf("lesson type with id %q not found", groupCohortAssignment.LessonTypeID)
 			}
 
-			for week := range lessonType.Weeks {
-				studentGroup.BindWeek(lessonType, week)
+			discipline := ds.Find(groupCohortAssignment.DisciplineID)
+			if discipline == nil {
+				return nil, fmt.Errorf("discipline with id %q not found", groupCohortAssignment.DisciplineID)
 			}
 
-			studyLoad := entities.NewStudyLoad(
-				*entities.NewUnassignedLesson(lessonType, nil, studentGroup, discipline),
-			)
-			studyLoads = append(studyLoads, studyLoad)
-			studentGroup.AddLoad(studyLoad)
+			groupCohort, ok := groupCohortsMap[groupCohortAssignment.GroupCohortID]
+			if !ok {
+				return nil, fmt.Errorf("group cohort with id %q not found", groupCohortAssignment.GroupCohortID)
+			}
+
+			for _, studentGroup := range groupCohort.Groups {
+				studentGroup := sgs.Find(studentGroup.ID)
+				if studentGroup == nil {
+					panic("student group already set but not found")
+				}
+
+				for week := range lessonType.Weeks {
+					studentGroup.BindWeek(lessonType, week)
+				}
+
+				studyLoad := entities.NewStudyLoad(
+					*entities.NewUnassignedLesson(lessonType, nil, studentGroup, discipline),
+				)
+				studyLoads = append(studyLoads, studyLoad)
+				studentGroup.AddLoad(studyLoad)
+			}
 		}
+		return studyLoads, nil
 	}
 
+	studyLoads, err := helper(g.fullData.disciplineService, g.fullData.lessonTypeService, sgs)
+	if err != nil {
+		return err
+	}
+	weekSL, _ := helper(g.weekData.disciplineService, g.weekData.lessonTypeService, weekSGS)
+
 	g.fullData.studentGroupService = sgs
+	g.weekData.studentGroupService = weekSGS
 	g.fullData.studyLoadService, _ = services.NewStudyLoadService(studyLoads)
+	g.weekData.studyLoadService, _ = services.NewStudyLoadService(weekSL)
 	return nil
 }
 
@@ -180,35 +213,56 @@ func (g *ScheduleGenerator) SetDisciplines(disciplines []externalEntities.Discip
 	}
 
 	g.fullData.disciplineService = ds
+	g.weekData.disciplineService, _ = services.NewDisciplineService(disciplines)
 	return nil
 }
 
 func (g *ScheduleGenerator) SetLessonTypes(lTypes []externalEntities.LessonType) error {
+	if g.fullData.lessonTypeService != nil {
+		return fmt.Errorf("lesson types already set")
+	}
+
 	lts, err := services.NewLessonTypeService(lTypes)
 	if err != nil {
 		return err
 	}
-	g.fullData.lessonTypeService = lts
 
+	g.fullData.lessonTypeService = lts
+	g.weekData.lessonTypeService, _ = services.NewLessonTypeService(lTypes)
 	return nil
 }
 
 func (g *ScheduleGenerator) SetLessonTypeAssignments(ltAssignments []externalEntities.LessonTypeAssignment) error {
-	for _, assignment := range ltAssignments {
-		lessonType := g.fullData.lessonTypeService.Find(assignment.LessonTypeID)
-		if lessonType == nil {
-			return fmt.Errorf("lesson type with id %q not found", assignment.LessonTypeID)
-		}
-		discipline := g.fullData.disciplineService.Find(assignment.DisciplineID)
-		if discipline == nil {
-			return fmt.Errorf("discipline with id %q not found", assignment.DisciplineID)
-		}
-
-		err := discipline.AddLoad(lessonType, assignment.RequiredHours)
-		if err != nil {
-			return fmt.Errorf("failed to add load with id %q: %w", assignment.ID, err)
-		}
+	if g.fullData.lessonTypeService == nil {
+		return fmt.Errorf("lesson types didn't set")
 	}
+	if g.fullData.disciplineService == nil {
+		return fmt.Errorf("disciplines didn't set")
+	}
+
+	helper := func(ds services.DisciplineService, lts services.LessonTypeService) error {
+		for _, assignment := range ltAssignments {
+			lessonType := lts.Find(assignment.LessonTypeID)
+			if lessonType == nil {
+				return fmt.Errorf("lesson type with id %q not found", assignment.LessonTypeID)
+			}
+			discipline := ds.Find(assignment.DisciplineID)
+			if discipline == nil {
+				return fmt.Errorf("discipline with id %q not found", assignment.DisciplineID)
+			}
+
+			err := discipline.AddLoad(lessonType, assignment.RequiredHours)
+			if err != nil {
+				return fmt.Errorf("failed to add load with id %q: %w", assignment.ID, err)
+			}
+		}
+		return nil
+	}
+
+	if err := helper(g.fullData.disciplineService, g.fullData.lessonTypeService); err != nil {
+		return err
+	}
+	helper(g.weekData.disciplineService, g.weekData.lessonTypeService)
 
 	return nil
 }
@@ -236,40 +290,49 @@ func (g *ScheduleGenerator) SetStudyLoads(teacherLoads []externalEntities.Teache
 		teacherLoadsMap[key] = append(teacherLoadsMap[key], teacherLoad)
 	}
 
-	studyLoads := g.fullData.studyLoadService.GetAll()
-	for _, studyLoad := range studyLoads {
-		key := key{
-			LessonTypeID: studyLoad.Type.ID,
-			DisciplineID: studyLoad.Discipline.ID,
-		}
-
-		tLoads, ok := teacherLoadsMap[key]
-		if !ok {
-			return fmt.Errorf("teacher load for %s %s not found", studyLoad.Discipline.Name, studyLoad.Type.Name)
-		}
-		for {
-			if len(tLoads) == 0 {
-				return fmt.Errorf("not enough groups in teacher loads for %s %s", studyLoad.Discipline.Name, studyLoad.Type.Name)
+	helper := func(gd *generatorData) error {
+		studyLoads := gd.studyLoadService.GetAll()
+		for _, studyLoad := range studyLoads {
+			key := key{
+				LessonTypeID: studyLoad.Type.ID,
+				DisciplineID: studyLoad.Discipline.ID,
 			}
-			tLoad := tLoads[0]
-			if tLoad.GroupCount == 0 {
-				tLoads = tLoads[1:]
-				continue
+
+			tLoads, ok := teacherLoadsMap[key]
+			if !ok {
+				return fmt.Errorf("teacher load for %s %s not found", studyLoad.Discipline.Name, studyLoad.Type.Name)
 			}
-			break
-		}
-		tLoads[0].GroupCount -= 1
+			for {
+				if len(tLoads) == 0 {
+					return fmt.Errorf("not enough groups in teacher loads for %s %s", studyLoad.Discipline.Name, studyLoad.Type.Name)
+				}
+				tLoad := tLoads[0]
+				if tLoad.GroupCount == 0 {
+					tLoads = tLoads[1:]
+					continue
+				}
+				break
+			}
+			tLoads[0].GroupCount -= 1
 
-		teacher := g.fullData.teacherService.Find(tLoads[0].TeacherID)
-		if teacher == nil {
-			return fmt.Errorf("teacher with id %q not found", tLoads[0].TeacherID)
-		}
-		studyLoad.Teacher = teacher
-		teacher.AddLoad(studyLoad)
+			teacher := gd.teacherService.Find(tLoads[0].TeacherID)
+			if teacher == nil {
+				return fmt.Errorf("teacher with id %q not found", tLoads[0].TeacherID)
+			}
+			studyLoad.Teacher = teacher
+			teacher.AddLoad(studyLoad)
 
-		teacherLoadsMap[key] = tLoads
+			teacherLoadsMap[key] = tLoads
+		}
+		return nil
 	}
 
+	if err := helper(&g.fullData); err != nil {
+		return err
+	}
+	helper(&g.weekData)
+
+	g.currentStep = DayBlocking
 	return nil
 }
 
@@ -283,6 +346,61 @@ func (g *ScheduleGenerator) SetClassrooms(classrooms []types.Classroom) error {
 	return nil
 }
 
+func (g *ScheduleGenerator) SetDaysForLessonTypes() (generatorResponses.DaysForLessonTypes, error) {
+	if g.currentStep != DayBlocking {
+		return generatorResponses.DaysForLessonTypes{},
+			fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, DayBlocking)
+	}
+
+	errorService := components.NewErrorService()
+
+	components.NewDayBlocker(g.weekData.studentGroupService.GetAll(), errorService,
+		g.fullData.studentGroupService.GetAll()[0].GetFullWeekCount(), g.LessonFillRate).SetDayTypes()
+
+	res := g.formDaysForLessonTypes()
+	if !errorService.IsClear() {
+		res.Errors = []error{errorService}
+	} else {
+		res.Errors = []error{}
+	}
+	return res, nil
+}
+
+func (g *ScheduleGenerator) formDaysForLessonTypes() generatorResponses.DaysForLessonTypes {
+	studentGroups := g.weekData.studentGroupService.GetAll()
+	result := generatorResponses.DaysForLessonTypes{
+		StudentGroups: make([]generatorResponses.StudentGroupWithLTypeDays, 0, len(studentGroups)),
+	}
+
+	for _, studentGroup := range studentGroups {
+		resultSG := generatorResponses.StudentGroupWithLTypeDays{
+			CommonEntity: generatorResponses.CommonEntity{
+				ID:   studentGroup.ID,
+				Name: studentGroup.Name,
+			},
+			WeekdayLessonTypes: make([]generatorResponses.LessonTypeWeekdayBinding, 0),
+		}
+
+		for j := range 7 {
+			lessonType := studentGroup.GetTypeOfDay(j)
+			if lessonType != nil {
+				resultSG.WeekdayLessonTypes = append(resultSG.WeekdayLessonTypes,
+					generatorResponses.LessonTypeWeekdayBinding{
+						CommonEntity: generatorResponses.CommonEntity{
+							ID:   lessonType.ID,
+							Name: lessonType.Name,
+						},
+						Weekday: j,
+					})
+			}
+		}
+
+		result.StudentGroups = append(result.StudentGroups, resultSG)
+	}
+
+	return result
+}
+
 // main function
 func (g *ScheduleGenerator) GenerateSchedule() error {
 	if g.studyLoadService == nil {
@@ -292,7 +410,7 @@ func (g *ScheduleGenerator) GenerateSchedule() error {
 		return fmt.Errorf("study loads not set")
 	}
 
-	components.NewDayBlocker(g.weekData.studentGroupService.GetAll(), g.errorService).SetDayTypes()
+	// components.NewDayBlocker(g.weekData.studentGroupService.GetAll(), g.errorService).SetDayTypes()
 
 	components.NewBoneGenerator(g.errorService, g.weekData.studyLoadService.GetAll(), g.weekData.lessonService).GenerateBoneLessons()
 	g.buildLessonCarcass()

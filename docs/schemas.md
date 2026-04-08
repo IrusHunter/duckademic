@@ -369,6 +369,44 @@
 }
 ```
 
+<a id="schedule-generator-days-for-lesson-types"></a>
+
+### Days for Lesson Types
+
+```json
+{
+  {
+  "student_groups": [
+    {
+      "id": "uuid (unique identifier of the student group)",
+      "name": "string (name of the student group)",
+      "weekday_lesson_types": [
+        {
+          "id": "uuid (unique identifier of the lesson type)",
+          "name": "string (name of the lesson type)",
+          "weekday": "integer (weekday number, e.g., 1 = Monday)"
+        }
+      ]
+    },
+    {
+      "id": "uuid (unique identifier of the student group)",
+      "name": "string (name of the student group)",
+      "weekday_lesson_types": [
+        {
+          "id": "uuid (unique identifier of the lesson type)",
+          "name": "string (name of the lesson type)",
+          "weekday": "integer (weekday number, e.g., 2 = Tuesday)"
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "string (error message, if any)"
+  ]
+}
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>

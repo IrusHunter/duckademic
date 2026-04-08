@@ -26,30 +26,21 @@ type LessonService interface {
 
 // NewLessonService creates a new LessonService basic instance.
 //
-// It requires a number of academic hours for lessons (lesson value - lv).
-//
 // Returns an error if the lesson value is below or equal to zero.
-func NewLessonService(lv int) (LessonService, error) {
-	if lv <= 0 {
-		return nil, fmt.Errorf("lessonValue below/equal to 0 (%d)", lv)
-	}
-
-	ls := lessonService{lessonValue: lv}
-
-	return &ls, nil
+func NewLessonService() (LessonService, error) {
+	return &lessonService{}, nil
 }
 
 // lessonService is the basic implementation of the LessonService interface.
 type lessonService struct {
-	lessons     []*entities.Lesson
-	lessonValue int
+	lessons []*entities.Lesson
 }
 
 func (ls *lessonService) GetAll() []*entities.Lesson {
 	return ls.lessons
 }
 func (ls *lessonService) AssignLesson(sl *entities.StudyLoad, slot entities.LessonSlot) error {
-	lesson := entities.NewLesson(sl.UnassignedLesson, slot, ls.lessonValue)
+	lesson := entities.NewLesson(sl.UnassignedLesson, slot, sl.Type.Value)
 
 	if err := sl.Teacher.CheckLesson(lesson); err != nil {
 		return fmt.Errorf("lesson unavailable for teacher: %w", err)

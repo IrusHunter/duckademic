@@ -15,9 +15,13 @@ type DayBlocker interface {
 
 // NewDayBlocker creates a DayBlocker instance.
 // It requires an ErrorService and a list of student groups.
-func NewDayBlocker(studentGroups []*entities.StudentGroup, errorService ErrorService) DayBlocker {
-	db := dayBlocker{errorService: errorService}
-	db.setGroupExtensions(studentGroups)
+func NewDayBlocker(sg []*entities.StudentGroup, es ErrorService, w int, lfr float64) DayBlocker {
+	db := dayBlocker{
+		errorService:   es,
+		weekCount:      w,
+		lessonFillRate: lfr,
+	}
+	db.setGroupExtensions(sg)
 
 	return &db
 }
@@ -51,6 +55,8 @@ func newGroupExtension(group *entities.StudentGroup) *groupExtension {
 type dayBlocker struct {
 	groupExtensions []groupExtension // StudentGroup collection
 	errorService    ErrorService     // Collection for errors
+	weekCount       int
+	lessonFillRate  float64
 }
 
 func (db *dayBlocker) SetDayTypes() {
@@ -60,8 +66,9 @@ func (db *dayBlocker) SetDayTypes() {
 		availableDays := []int{0, 1, 2, 3, 4, 5, 6}
 
 		for _, lt := range group.group.GetLessonTypes() {
-			//select 2 days for every lesson type
-			for tmp_i := 0; tmp_i < 2; tmp_i++ { // break after error assigned
+			requiredSlots := float64(group.group.GetSlotCountForLType(lt))
+
+			for requiredSlots >= 0 { // break after error assigned
 				// select day that free and blocked the fewest times
 				min := 1000000000
 				mIndex := -1
@@ -88,12 +95,12 @@ func (db *dayBlocker) SetDayTypes() {
 				if err != nil {
 					dayIndex := slices.Index(availableDays, mIndex)
 					availableDays = append(availableDays[:dayIndex], availableDays[dayIndex+1:]...)
-					tmp_i--
 					continue
 				}
 
 				// all good, add to blocked day
 				daysBlocked[mIndex]++
+				requiredSlots -= float64(db.weekCount*group.group.GetAverageSlotCountOnWeekday(mIndex)) * db.lessonFillRate
 			}
 		}
 	}
