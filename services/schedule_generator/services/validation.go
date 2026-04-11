@@ -12,6 +12,7 @@ type ValidationService interface {
 	ValidateLessonTypeRequests([]entities.LessonTypeRequest) error
 	ValidateLessonTypeAssignments([]entities.LessonTypeAssignment) error
 	ValidateGroupCohorts([]entities.GroupCohort) error
+	ValidateClassrooms([]entities.Classroom) error
 }
 
 func NewValidationService() ValidationService {
@@ -137,6 +138,30 @@ func (s *validationService) ValidateGroupCohorts(cohorts []entities.GroupCohort)
 			}
 			seenGroupIDs[g.ID.String()] = struct{}{}
 		}
+	}
+
+	return nil
+}
+func (s *validationService) ValidateClassrooms(classrooms []entities.Classroom) error {
+	if len(classrooms) == 0 {
+		return fmt.Errorf("classrooms list cannot be empty")
+	}
+
+	seenIDs := make(map[string]struct{})
+
+	for i, c := range classrooms {
+		if err := c.ValidateNumber(); err != nil {
+			return fmt.Errorf("failed number validation for classroom at index %d: %w", i, err)
+		}
+
+		if err := c.ValidateCapacity(); err != nil {
+			return fmt.Errorf("failed capacity validation for classroom at index %d: %w", i, err)
+		}
+
+		if _, exists := seenIDs[c.ID.String()]; exists {
+			return fmt.Errorf("duplicate classroom ID found: %s", c.ID)
+		}
+		seenIDs[c.ID.String()] = struct{}{}
 	}
 
 	return nil

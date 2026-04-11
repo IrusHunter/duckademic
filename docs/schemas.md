@@ -384,6 +384,18 @@
 }
 ```
 
+<a id="schedule-generator-classroom"></a>
+
+### Classroom
+
+```json
+{
+  "id": "uuid (unique identifier of the classroom)",
+  "number": "string (classroom number or label)",
+  "capacity": "integer (maximum number of visitors in the classroom)"
+}
+```
+
 <a id="schedule-generator-days-for-lesson-types"></a>
 
 ### Days for Lesson Types

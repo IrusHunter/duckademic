@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
+	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 )
 
 // ClassroomService aggregates and manages classrooms that the generator works with.
@@ -18,12 +18,12 @@ type ClassroomService interface {
 // and percentage of used capacity (fp).
 //
 // Returns an error if any classroom is an invalid model.
-func NewClassroomService(c []types.Classroom, bg [][]float32, fp float32) (ClassroomService, error) {
+func NewClassroomService(c []externalEntities.Classroom, bg [][]float32, fp float32) (ClassroomService, error) {
 	classrooms := make([]*entities.Classroom, len(c))
 
 	for i := range c {
 		classrooms[i] = entities.NewClassroom(
-			c[i].ID, c[i].RoomNumber, c[i].Capacity, entities.NewBusyGrid(bg), fp,
+			c[i].ID, c[i].Number, c[i].Capacity, entities.NewBusyGrid(bg), fp,
 		)
 	}
 

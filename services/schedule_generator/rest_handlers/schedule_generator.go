@@ -26,6 +26,8 @@ type ScheduleGeneratorHandler interface {
 	SubmitAndGoToTheNextStep(context.Context, http.ResponseWriter, *http.Request)
 	SetDaysForLessonTypes(context.Context, http.ResponseWriter, *http.Request)
 	GenerateBoneLessons(context.Context, http.ResponseWriter, *http.Request)
+	AssignClassroomsToBoneLessons(context.Context, http.ResponseWriter, *http.Request)
+	SetClassrooms(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -351,6 +353,56 @@ func (h *scheduleGeneratorHandler) SetStudyLoads(ctx context.Context, w http.Res
 		"message": fmt.Sprintf("%d teacher loads assigned", len(loads)),
 	})
 }
+func (h *scheduleGeneratorHandler) SetClassrooms(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetClassrooms",
+			fmt.Errorf("failed to set classrooms: generator wasn't init"),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	var classrooms []entities.Classroom
+	err := json.NewDecoder(r.Body).Decode(&classrooms)
+	defer r.Body.Close()
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetClassrooms",
+			fmt.Errorf("failed to extract classrooms from body: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.validationService.ValidateClassrooms(classrooms); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetClassrooms",
+			fmt.Errorf("validation failed: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	if err := h.generator.SetClassrooms(classrooms); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"SetClassrooms",
+			fmt.Errorf("failed to set classrooms: %w", err),
+			logger.HandlerRequestFailed,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(
+		w,
+		200,
+		map[string]any{"message": fmt.Sprintf("%d classrooms assigned", len(classrooms))},
+	)
+}
 func (h *scheduleGeneratorHandler) SubmitAndGoToTheNextStep(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	h.execute(
 		ctx,
@@ -384,6 +436,18 @@ func (h *scheduleGeneratorHandler) GenerateBoneLessons(ctx context.Context, w ht
 		"SetDaysForLessonTypes",
 	)
 }
+func (h *scheduleGeneratorHandler) AssignClassroomsToBoneLessons(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.execute(
+		ctx,
+		w,
+		"assign_classrooms_to_bone_lessons",
+		func() (any, error) {
+			return h.generator.AssignClassroomsToBoneLessons()
+		},
+		"AssignClassroomsToBoneLessons",
+	)
+}
+
 func (h *scheduleGeneratorHandler) execute(
 	ctx context.Context,
 	w http.ResponseWriter,

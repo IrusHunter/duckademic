@@ -10,18 +10,17 @@ import (
 
 // LessonService aggregates and manages lessons that the generator works with.
 type LessonService interface {
-	GetAll() []*entities.Lesson // Returns a slice with all lessons as pointers.
+	// Returns a slice with all lessons as pointers.
+	GetAll() []*entities.Lesson
 	// Assigns a lesson to the selected slot.
 	AssignLesson(*entities.StudyLoad, entities.LessonSlot) error
-	MoveLessonTo(*entities.Lesson, entities.LessonSlot) error // MoveLessonTo moves lesson to another slot (to).
-	GetWeekLessons(int) []*entities.Lesson                    // TODO: collect bone lessons in another structure.
-	// Sorts a slice of lessons according to the provided comparison function.
-	Sort([]*entities.Lesson, func(a, b *entities.Lesson) int) []*entities.Lesson
-	// Returns a comparison function that orders lessons by their lesson slot.
-	ByLessonSlot(order int, next func(a, b *entities.Lesson) int) func(a, b *entities.Lesson) int
-	// Serves as the final comparison in a sort chain, always returning 0.
-	Equal(a, b *entities.Lesson) int
-	CountLessonsWithoutClassroom([]*entities.Lesson) int // Returns the number of lessons that do not have an assigned classroom.
+	// MoveLessonTo moves lesson to another slot (to).
+	MoveLessonTo(*entities.Lesson, entities.LessonSlot) error
+	// TODO: collect bone lessons in another structure.
+	GetWeekLessons(int) []*entities.Lesson
+	// Returns the number of lessons that do not have an assigned classroom.
+	CountLessonsWithoutClassroom([]*entities.Lesson) int
+	Select() *LessonSelector
 }
 
 // NewLessonService creates a new LessonService basic instance.
@@ -97,28 +96,6 @@ func (ls *lessonService) MoveLessonTo(lesson *entities.Lesson, to entities.Lesso
 	lesson.MoveLessonTo(to)
 	return nil
 }
-func (ls *lessonService) Sort(lessons []*entities.Lesson, sortFunc func(a, b *entities.Lesson) int) []*entities.Lesson {
-	result := make([]*entities.Lesson, len(lessons))
-	copy(result, lessons)
-
-	slices.SortFunc(result, sortFunc)
-
-	return result
-}
-func (ls *lessonService) ByLessonSlot(order int, next func(a, b *entities.Lesson) int) func(a, b *entities.Lesson) int {
-	return func(a, b *entities.Lesson) int {
-		if a.After(b) {
-			return 1 * order
-		} else if b.After(a) {
-			return -1 * order
-		}
-
-		return next(a, b)
-	}
-}
-func (ls *lessonService) Equal(a, b *entities.Lesson) int {
-	return 0
-}
 func (ls *lessonService) CountLessonsWithoutClassroom(l []*entities.Lesson) (result int) {
 	for _, lesson := range l {
 		if lesson.Classroom == nil {
@@ -126,6 +103,50 @@ func (ls *lessonService) CountLessonsWithoutClassroom(l []*entities.Lesson) (res
 		}
 	}
 	return
+}
+func (ls *lessonService) Select() *LessonSelector {
+	return &LessonSelector{
+		lessons: ls.lessons,
+	}
+}
+
+type LessonSelector struct {
+	lessons []*entities.Lesson
+}
+
+func (ls *LessonSelector) Sort() *LessonSorter {
+	return &LessonSorter{
+		lessons:    ls.lessons,
+		comparator: func(a, b *entities.Lesson) int { return 0 },
+	}
+}
+
+type LessonSorter struct {
+	lessons    []*entities.Lesson
+	comparator func(a, b *entities.Lesson) int
+}
+
+func (s *LessonSorter) ByLessonSlot(order int) *LessonSorter {
+	prev := s.comparator
+
+	s.comparator = func(a, b *entities.Lesson) int {
+		if a.After(b) {
+			return 1 * order
+		} else if b.After(a) {
+			return -1 * order
+		}
+		return prev(a, b)
+	}
+
+	return s
+}
+func (s *LessonSorter) ToSlice() []*entities.Lesson {
+	result := make([]*entities.Lesson, len(s.lessons))
+	copy(result, s.lessons)
+
+	slices.SortFunc(result, s.comparator)
+
+	return result
 }
 
 // func (ls *lessonService) Select(filterFunc func(a *entities.Lesson) bool) []*entities.Lesson {

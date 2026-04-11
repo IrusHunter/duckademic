@@ -48,10 +48,12 @@
   - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
   - [/set-student-groups](#schedule-generator-set-student-groups)
   - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
+  - [/set-classrooms](#schedule-generator-set-classrooms)
   - [/submit-and-go](#schedule-generator-submit-and-go)
   - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
   - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
   - [/default-generator-config](#schedule-generator-default-generator-config)
+  - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
 
 - Student Service (/student)
   - [/semesters](#student-semesters)
@@ -578,6 +580,24 @@
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
+<a id="schedule-generator-set-classrooms"></a>
+
+## /set-classrooms
+
+### ANY - assigns the classrooms to the schedule generator
+
+[<= Classroom[]](schemas.md#schedule-generator-classroom)
+
+200 OK
+
+```json
+{
+  "message": "n classrooms assigned"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
 <a id="schedule-generator-submit-and-go"></a>
 
 ## /submit-and-go
@@ -603,6 +623,16 @@
 ## /generate-bone-lesson
 
 ### ANY – generate lessons for all study loads, but within the week
+
+200 OK [=> BoneLessons](schemas.md#schedule-generator-bone-lessons)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-assign-classrooms-to-bone-lessons"></a>
+
+## /assign-classrooms-to-bone-lessons
+
+### ANY – assign all available classrooms to bone lessons
 
 200 OK [=> BoneLessons](schemas.md#schedule-generator-bone-lessons)
 

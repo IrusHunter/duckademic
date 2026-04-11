@@ -9,16 +9,16 @@ import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	generatorResponses "github.com/IrusHunter/duckademic/services/schedule_generator/entities/generator_responses"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/types"
 	"github.com/google/uuid"
 )
 
 type GeneratorStep string
 
 const (
-	Setup              GeneratorStep = "SETUP"
-	DayBlocking        GeneratorStep = "DAY_BLOCKING"
-	BoneLessonBuilding GeneratorStep = "BONE_LESSON_BUILDING"
+	Setup                           GeneratorStep = "SETUP"
+	DayBlocking                     GeneratorStep = "DAY_BLOCKING"
+	BoneLessonBuilding              GeneratorStep = "BONE_LESSON_BUILDING"
+	ToBoneLessonsClassroomAssigning GeneratorStep = "TO_BONE_LESSONS_CLASSROOM_ASSIGNING"
 )
 
 type generatorData struct {
@@ -29,6 +29,7 @@ type generatorData struct {
 	disciplineService   services.DisciplineService
 	lessonTypeService   services.LessonTypeService
 	studyLoadService    services.StudyLoadService
+	classroomService    services.ClassroomService
 }
 
 // 0 - teacher, 1 - student group, 2 - discipline, 3 - lesson type service.
@@ -60,7 +61,6 @@ type ScheduleGenerator struct {
 	errorService       components.ErrorService
 	weekData           generatorData
 	fullData           generatorData
-	classroomService   services.ClassroomService
 	currentStep        GeneratorStep
 	canGoToTheNextStep bool
 }
@@ -340,13 +340,19 @@ func (g *ScheduleGenerator) SetStudyLoads(teacherLoads []externalEntities.Teache
 	return nil
 }
 
-func (g *ScheduleGenerator) SetClassrooms(classrooms []types.Classroom) error {
-	cs, err := services.NewClassroomService(classrooms, g.busyGrid, float32(g.ClassroomOccupancy))
+func (g *ScheduleGenerator) SetClassrooms(classrooms []externalEntities.Classroom) error {
+	if g.fullData.classroomService != nil {
+		return fmt.Errorf("classrooms already set")
+	}
+
+	cs, err := services.NewClassroomService(classrooms, g.fullData.busyGrid, float32(g.ClassroomOccupancy))
 	if err != nil {
 		return fmt.Errorf("classroom service creation fails: %w", err)
 	}
 
-	g.classroomService = cs
+	g.fullData.classroomService = cs
+	g.weekData.classroomService, _ = services.NewClassroomService(
+		classrooms, g.weekData.busyGrid, float32(g.ClassroomOccupancy))
 	return nil
 }
 
@@ -360,6 +366,8 @@ func (g *ScheduleGenerator) SubmitAndGoToTheNextStep() (GeneratorStep, error) {
 		g.currentStep = DayBlocking
 	case DayBlocking:
 		g.currentStep = BoneLessonBuilding
+	case BoneLessonBuilding:
+		g.currentStep = ToBoneLessonsClassroomAssigning
 	}
 
 	g.canGoToTheNextStep = false
@@ -485,6 +493,33 @@ func (g *ScheduleGenerator) formBoneLessons() generatorResponses.BoneLessons {
 	return result
 }
 
+func (g *ScheduleGenerator) AssignClassroomsToBoneLessons() (generatorResponses.BoneLessons, error) {
+	if g.currentStep != ToBoneLessonsClassroomAssigning {
+		return generatorResponses.BoneLessons{},
+			fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, ToBoneLessonsClassroomAssigning)
+	}
+
+	errorService := components.NewErrorService()
+
+	classroomAssigner := components.NewClassroomAssigner(g.weekData.classroomService.GetAll(),
+		g.weekData.lessonService.Select().Sort().ByLessonSlot(1).ToSlice(), g.errorService,
+	)
+	if err := classroomAssigner.CheckAvailability(); err != nil {
+		return generatorResponses.BoneLessons{}, fmt.Errorf("can't assign classrooms: %w", err)
+	}
+	classroomAssigner.AssignClassrooms()
+
+	g.canGoToTheNextStep = true
+
+	res := g.formBoneLessons()
+	if !errorService.IsClear() {
+		res.Errors = []error{errorService}
+	} else {
+		res.Errors = []error{}
+	}
+	return res, nil
+}
+
 // main function
 func (g *ScheduleGenerator) GenerateSchedule() error {
 	if g.studyLoadService == nil {
@@ -516,19 +551,19 @@ func (g *ScheduleGenerator) GenerateSchedule() error {
 	// 	result = improver.ImproveToNext()
 	// }
 
-	classroomAssigner := components.NewClassroomAssigner(g.classroomService.GetAll(),
-		g.lessonService.Sort(g.lessonService.GetAll(),
-			g.lessonService.ByLessonSlot(1,
-				g.lessonService.Equal,
-			),
-		), g.errorService,
-	)
-	if err := classroomAssigner.CheckAvailability(); err != nil {
-		g.errorService.AddError(components.NewUnexpectedError(
-			"can't assign classrooms", "Generator", "GenerateSchedule", err,
-		))
-	}
-	classroomAssigner.AssignClassrooms()
+	// classroomAssigner := components.NewClassroomAssigner(g.classroomService.GetAll(),
+	// 	g.lessonService.Sort(g.lessonService.GetAll(),
+	// 		g.lessonService.ByLessonSlot(1,
+	// 			g.lessonService.Equal,
+	// 		),
+	// 	), g.errorService,
+	// )
+	// if err := classroomAssigner.CheckAvailability(); err != nil {
+	// 	g.errorService.AddError(components.NewUnexpectedError(
+	// 		"can't assign classrooms", "Generator", "GenerateSchedule", err,
+	// 	))
+	// }
+	// classroomAssigner.AssignClassrooms()
 
 	if !g.errorService.IsClear() {
 		return g.errorService
