@@ -14,6 +14,7 @@ services:
       - curriculum-service
       - teacher-load-service
       - schedule-generator-service
+      - asset-service
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -79,6 +80,15 @@ services:
       - "10007"
     env_file:
       - ./services/schedule_generator/.env.docker
+    environment:
+    - DOCKER_ENV=true
+  
+  asset-service:
+    build: ./services/asset
+    expose:
+      - "10008"
+    env_file:
+      - ./services/asset/.env.docker
     environment:
     - DOCKER_ENV=true
   

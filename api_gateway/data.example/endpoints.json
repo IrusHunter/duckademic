@@ -26,5 +26,9 @@
   {
     "path": "schedule-generator",
     "upstream_name": "schedule-generator-service"
+  },
+  {
+    "path": "asset",
+    "upstream_name": "asset-service"
   }
 ]

@@ -92,6 +92,10 @@
   - [/teacher-loads](#teacher-load-teacher-loads)
   - [/teacher-load/{id}](#teacher-load-teacher-load-id)
 
+- Asset Service (/asset)
+  - [/classrooms](#employee-classrooms)
+  - [/classroom/{id}](#employee-classroom)
+
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Employee Service
@@ -1296,5 +1300,57 @@
 ```
 
 200 OK [=> TeacherLoad](schemas.md#teacher-load-teacher-load)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+# Asset Service
+
+<a id="asset-classrooms"></a>
+
+## /classrooms
+
+### GET - gets all classrooms from the database
+
+200 OK [=> Classroom[]](schemas.md#asset-classroom)
+
+### POST - adds a new classroom
+
+```json
+{
+  "number": "string (classroom number or label)",
+  "capacity": "integer (maximum number of occupants in the classroom)"
+}
+```
+
+200 OK [=> Classroom](schemas.md#asset-classroom)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="asset-classroom-id"></a>
+
+## /classroom/{id}
+
+### GET - finds classroom with an ID as an URL parameter
+
+200 OK [=> Classroom](schemas.md#asset-classroom)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a classroom by its ID provided in the URL path
+
+200 OK [=> Classroom](schemas.md#asset-classroom)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a classroom by its ID with the data provided in the request body
+
+```json
+{
+  "number": "string (classroom number or label)",
+  "capacity": "integer (maximum number of occupants in the classroom)"
+}
+```
+
+200 OK [=> Classroom](schemas.md#asset-classroom)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

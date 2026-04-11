@@ -235,3 +235,23 @@ func (gca GroupCohortAssignmentRE) String() string {
 
 	return fmt.Sprintf("GroupCohortAssignmentRE{%s}", strings.Join(parts, ", "))
 }
+
+type ClassroomRE struct {
+	Event    EventType
+	ID       uuid.UUID
+	Slug     string
+	Number   string
+	Capacity int
+}
+
+func (c ClassroomRE) String() string {
+	parts := make([]string, 0, 6)
+
+	parts = append(parts, fmt.Sprintf("event: %s", c.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", c.ID))
+	parts = append(parts, fmt.Sprintf("slug: %s", c.Slug))
+	parts = append(parts, fmt.Sprintf("number: %s", c.Number))
+	parts = append(parts, fmt.Sprintf("capacity: %d", c.Capacity))
+
+	return fmt.Sprintf("ClassroomRE{%s}", strings.Join(parts, ", "))
+}

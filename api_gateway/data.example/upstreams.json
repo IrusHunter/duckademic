@@ -33,5 +33,10 @@
     "name": "schedule-generator-service",
     "url": "http://schedule-generator-service:10007",
     "enabled": true
+  },
+  {
+    "name": "asset-service",
+    "url": "http://asset-service:10008",
+    "enabled": true
   }
 ]
