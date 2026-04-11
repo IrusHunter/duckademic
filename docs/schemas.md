@@ -249,6 +249,21 @@
 }
 ```
 
+<a id="schedule-classroom"></a>
+
+### Classroom
+
+```json
+{
+  "id": "uuid (unique identifier of the classroom)",
+  "slug": "string (unique slug used internally)",
+  "number": "string (classroom number or label)",
+  "capacity": "integer (maximum number of visitors in the classroom)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 ## Schedule Generator Service
 
 <a id="schedule-generator-generator-config"></a>
