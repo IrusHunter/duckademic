@@ -375,7 +375,6 @@
 
 ```json
 {
-  {
   "student_groups": [
     {
       "id": "uuid (unique identifier of the student group)",
@@ -400,10 +399,45 @@
       ]
     }
   ],
-  "errors": [
-    "string (error message, if any)"
-  ]
+  "errors": ["string (error message, if any)"]
 }
+```
+
+<a id="schedule-generator-bone-lessons"></a>
+
+### Bone Lessons
+
+```json
+{
+  "bone_lessons": [
+    {
+      "teacher": {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (name of the teacher)"
+      },
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "discipline": {
+        "id": "uuid (unique identifier of the discipline)",
+        "name": "string (name of the discipline)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "day": "integer (weekday number, e.g., 1 = Monday)",
+      "slot": "integer (lesson slot number in the day)",
+
+      // Optional fields
+      "classroom": {
+        "id": "uuid (unique identifier of the classroom)",
+        "name": "string (name of the classroom)"
+      }
+    }
+  ],
+  "errors": ["string (error message, if any)"]
 }
 ```
 

@@ -47,3 +47,15 @@ func (d *Discipline) GetRequiredHours(lt *LessonType) int {
 	// }
 	return d.Load[lt]
 }
+
+// CutLoadTo limits the number of hours for each lesson type.
+//
+// Any lesson type with hours greater than the specified limit
+// will be reduced to the given value. Other values remain unchanged.
+func (d *Discipline) CutLoadTo(hours int) {
+	for key := range d.Load {
+		if d.Load[key] > hours {
+			d.Load[key] = hours
+		}
+	}
+}

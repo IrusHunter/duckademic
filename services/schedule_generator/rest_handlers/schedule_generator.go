@@ -23,7 +23,9 @@ type ScheduleGeneratorHandler interface {
 	SetLessonTypeAssignments(context.Context, http.ResponseWriter, *http.Request)
 	SetStudentGroups(context.Context, http.ResponseWriter, *http.Request)
 	SetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
+	SubmitAndGoToTheNextStep(context.Context, http.ResponseWriter, *http.Request)
 	SetDaysForLessonTypes(context.Context, http.ResponseWriter, *http.Request)
+	GenerateBoneLessons(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -349,19 +351,72 @@ func (h *scheduleGeneratorHandler) SetStudyLoads(ctx context.Context, w http.Res
 		"message": fmt.Sprintf("%d teacher loads assigned", len(loads)),
 	})
 }
+func (h *scheduleGeneratorHandler) SubmitAndGoToTheNextStep(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.execute(
+		ctx,
+		w,
+		"submit_and_go_to_the_next_step",
+		func() (any, error) {
+			return h.generator.SubmitAndGoToTheNextStep()
+		},
+		"SetDaysForLessonTypes",
+	)
+}
 func (h *scheduleGeneratorHandler) SetDaysForLessonTypes(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.execute(
+		ctx,
+		w,
+		"set_days_for_lesson_types",
+		func() (any, error) {
+			return h.generator.SetDaysForLessonTypes()
+		},
+		"SetDaysForLessonTypes",
+	)
+}
+func (h *scheduleGeneratorHandler) GenerateBoneLessons(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.execute(
+		ctx,
+		w,
+		"generate_bone_lessons",
+		func() (any, error) {
+			return h.generator.GenerateBoneLessons()
+		},
+		"SetDaysForLessonTypes",
+	)
+}
+func (h *scheduleGeneratorHandler) execute(
+	ctx context.Context,
+	w http.ResponseWriter,
+	action string,
+	fn func() (any, error),
+	name string,
+) {
 	if h.generator == nil {
-		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetDaysForLessonTypes",
-			fmt.Errorf("failed to set days for lesson types: generator wasn't init"), logger.HandlerRequestFailed,
-		))
+		jsonutil.ResponseWithError(
+			w,
+			400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				name,
+				fmt.Errorf("generator wasn't initialized"),
+				logger.HandlerRequestFailed,
+			),
+		)
 		return
 	}
 
-	res, err := h.generator.SetDaysForLessonTypes()
+	res, err := fn()
 	if err != nil {
-		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SetDaysForLessonTypes",
-			fmt.Errorf("failed to set days for lesson types: %w", err), logger.HandlerRequestFailed,
-		))
+		jsonutil.ResponseWithError(
+			w,
+			400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				name,
+				fmt.Errorf("generator action %s failed: %w", action, err),
+				logger.HandlerRequestFailed,
+			),
+		)
 		return
 	}
 

@@ -10,6 +10,7 @@ import (
 type DisciplineService interface {
 	Find(uuid.UUID) *entities.Discipline // Returns a pointer to the discipline with the given ID.
 	GetAll() []*entities.Discipline      // Returns an array with all disciplines as pointers.
+	CutLoadTo(int)                       // CutLoadTo limits the number of hours for each discipline.
 }
 
 // NewDisciplineService creates a new DisciplineService basic instance.
@@ -41,4 +42,9 @@ func (ds *disciplineService) Find(disciplineID uuid.UUID) *entities.Discipline {
 	}
 
 	return nil
+}
+func (ds *disciplineService) CutLoadTo(hours int) {
+	for _, discipline := range ds.disciplines {
+		discipline.CutLoadTo(hours)
+	}
 }

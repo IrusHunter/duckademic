@@ -51,8 +51,14 @@ func (ra *restapi) Run(port int) error {
 	http.HandleFunc("/set-study-loads", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.scheduleGeneratorHandler.SetStudyLoads)(r.Context(), w, r)
 	})
+	http.HandleFunc("/submit-and-go", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.scheduleGeneratorHandler.SubmitAndGoToTheNextStep)(r.Context(), w, r)
+	})
 	http.HandleFunc("/generate-days-for-lesson-types", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.scheduleGeneratorHandler.SetDaysForLessonTypes)(r.Context(), w, r)
+	})
+	http.HandleFunc("/generate-bone-lessons", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.scheduleGeneratorHandler.GenerateBoneLessons)(r.Context(), w, r)
 	})
 
 	ra.NewRoute("/default-generator-config", map[string]platform.HandlerFunc{

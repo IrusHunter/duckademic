@@ -47,7 +47,9 @@
   - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
   - [/set-student-groups](#schedule-generator-set-student-groups)
   - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
+  - [/submit-and-go](#schedule-generator-submit-and-go)
   - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
+  - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
   - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
@@ -563,6 +565,16 @@
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
+<a id="schedule-generator-submit-and-go"></a>
+
+## /submit-and-go
+
+### ANY – submit changes and go to the next generating step
+
+200 OK
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
 <a id="schedule-generator-generate-days-for-lesson-types"></a>
 
 ## /generate-days-for-lesson-types
@@ -570,6 +582,16 @@
 ### ANY – generate day binding in student group for lesson types
 
 200 OK [=> DaysForLessonTypes](schemas.md#schedule-generator-days-for-lesson-types)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-generate-bone-lessons"></a>
+
+## /generate-bone-lesson
+
+### ANY – generate lessons for all study loads, but within the week
+
+200 OK [=> BoneLessons](schemas.md#schedule-generator-bone-lessons)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
