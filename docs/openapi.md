@@ -54,6 +54,7 @@
   - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
   - [/default-generator-config](#schedule-generator-default-generator-config)
   - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
+  - [/build-schedule-skeleton](#schedule-generator-build-schedule-skeleton)
 
 - Student Service (/student)
   - [/semesters](#student-semesters)
@@ -635,6 +636,16 @@
 ### ANY – assign all available classrooms to bone lessons
 
 200 OK [=> BoneLessons](schemas.md#schedule-generator-bone-lessons)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-build-schedule-skeleton"></a>
+
+## /build-schedule-skeleton
+
+### ANY – distribute all bone lessons across the full schedule
+
+200 OK [=> Lessons](schemas.md#schedule-generator-lessons)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

@@ -468,6 +468,44 @@
 }
 ```
 
+<a id="schedule-generator-lessons"></a>
+
+### Lessons
+
+```json
+{
+  "lessons": [
+    {
+      "teacher": {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (name of the teacher)"
+      },
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "discipline": {
+        "id": "uuid (unique identifier of the discipline)",
+        "name": "string (name of the discipline)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "days": ["integer (day number of similar lessons at same weekday)"],
+      "slot": "integer (lesson slot number in the day)",
+
+      // Optional fields
+      "classroom": {
+        "id": "uuid (unique identifier of the classroom)",
+        "name": "string (name of the classroom)"
+      }
+    }
+  ],
+  "errors": ["string (error message, if any)"]
+}
+```
+
 ## Student Service
 
 <a id="student-semester"></a>

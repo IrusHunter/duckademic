@@ -3,13 +3,15 @@ package services
 import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
+	"github.com/google/uuid"
 )
 
 // ClassroomService aggregates and manages classrooms that the generator works with.
 type ClassroomService interface {
-	GetAll() []*entities.Classroom // Returns a slice with all classrooms as pointers.
-	CountOverflowLessons() int     // Returns the number of lessons that exceed the classrooms capacity.
-	CountLessonOverlapping() int   // Returns the count of overlapping lessons.
+	GetAll() []*entities.Classroom      // Returns a slice with all classrooms as pointers.
+	Find(uuid.UUID) *entities.Classroom // Returns a pointer to the classroom with the given ID.
+	CountOverflowLessons() int          // Returns the number of lessons that exceed the classrooms capacity.
+	CountLessonOverlapping() int        // Returns the count of overlapping lessons.
 }
 
 // NewClassroomService creates a new ClassroomService basic instance.
@@ -37,6 +39,15 @@ type classroomService struct {
 
 func (s *classroomService) GetAll() []*entities.Classroom {
 	return s.classrooms
+}
+func (s *classroomService) Find(classroomID uuid.UUID) *entities.Classroom {
+	for i := range s.classrooms {
+		if s.classrooms[i].ID == classroomID {
+			return s.classrooms[i]
+		}
+	}
+
+	return nil
 }
 func (s *classroomService) CountOverflowLessons() (result int) {
 	for _, classroom := range s.classrooms {

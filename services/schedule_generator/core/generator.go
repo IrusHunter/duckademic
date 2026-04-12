@@ -19,6 +19,7 @@ const (
 	DayBlocking                     GeneratorStep = "DAY_BLOCKING"
 	BoneLessonBuilding              GeneratorStep = "BONE_LESSON_BUILDING"
 	ToBoneLessonsClassroomAssigning GeneratorStep = "TO_BONE_LESSONS_CLASSROOM_ASSIGNING"
+	LessonSkeletonBuilding          GeneratorStep = "LESSON_SKELETON_BUILDING"
 )
 
 type generatorData struct {
@@ -57,7 +58,6 @@ func (g *generatorData) CheckServices(services []bool) error {
 
 type ScheduleGenerator struct {
 	externalEntities.ScheduleGeneratorConfig
-	generatorData
 	errorService       components.ErrorService
 	weekData           generatorData
 	fullData           generatorData
@@ -83,7 +83,7 @@ func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*Schedu
 		index++
 	}
 	for range 6 - cfg.EndDate.Weekday() {
-		fullBusyGrid = append(scheduleGenerator.busyGrid, []float32{})
+		fullBusyGrid = append(fullBusyGrid, []float32{})
 	}
 	scheduleGenerator.fullData.busyGrid = fullBusyGrid
 
@@ -107,7 +107,7 @@ func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*Schedu
 }
 
 func (g *ScheduleGenerator) SetTeachers(teachers []externalEntities.Teacher) error {
-	if g.teacherService != nil {
+	if g.fullData.teacherService != nil {
 		return fmt.Errorf("teachers already set")
 	}
 
@@ -207,7 +207,7 @@ func (g *ScheduleGenerator) SetStudentGroups(
 }
 
 func (g *ScheduleGenerator) SetDisciplines(disciplines []externalEntities.Discipline) error {
-	if g.disciplineService != nil {
+	if g.fullData.disciplineService != nil {
 		return fmt.Errorf("disciplines already set")
 	}
 
@@ -368,6 +368,8 @@ func (g *ScheduleGenerator) SubmitAndGoToTheNextStep() (GeneratorStep, error) {
 		g.currentStep = BoneLessonBuilding
 	case BoneLessonBuilding:
 		g.currentStep = ToBoneLessonsClassroomAssigning
+	case ToBoneLessonsClassroomAssigning:
+		g.currentStep = LessonSkeletonBuilding
 	}
 
 	g.canGoToTheNextStep = false
@@ -520,9 +522,154 @@ func (g *ScheduleGenerator) AssignClassroomsToBoneLessons() (generatorResponses.
 	return res, nil
 }
 
+func (g *ScheduleGenerator) BuildScheduleSkeleton() (generatorResponses.Lessons, error) {
+	if g.currentStep != LessonSkeletonBuilding {
+		return generatorResponses.Lessons{},
+			fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, LessonSkeletonBuilding)
+	}
+
+	errorService := components.NewErrorService()
+
+	lessons := g.weekData.lessonService.GetAll()
+	for _, lesson := range lessons {
+		teacher := g.fullData.teacherService.Find(lesson.Teacher.ID)
+		studentGroup := g.fullData.studentGroupService.Find(lesson.StudentGroup.ID)
+
+		// binding lesson type to day for actual student groups
+		for weekday := range 7 {
+			weekLT := lesson.StudentGroup.GetTypeOfDay(weekday)
+			if weekLT != nil {
+				lt := studentGroup.GetTypeOfDay(weekday)
+				if lt == nil {
+					lt := g.fullData.lessonTypeService.Find(weekLT.ID)
+					studentGroup.BindWeekday(lt, weekday)
+				}
+			}
+		}
+
+		discipline := g.fullData.disciplineService.Find(lesson.Discipline.ID)
+		lessonType := g.fullData.lessonTypeService.Find(lesson.Type.ID)
+		studyLoad := g.fullData.studyLoadService.Find(*entities.NewUnassignedLesson(
+			lessonType, teacher, studentGroup, discipline,
+		))
+		classroom := func(weekC *entities.Classroom) *entities.Classroom {
+			if weekC == nil {
+				return nil
+			}
+			return g.fullData.classroomService.Find(weekC.ID)
+		}(lesson.Classroom)
+
+		// copy week lesson to all weeks
+		currentWeek := 0
+		outOfGrid := false
+		for !outOfGrid {
+			err := g.fullData.lessonService.AssignLesson(studyLoad,
+				entities.NewLessonSlot(lesson.Day+currentWeek*7, lesson.Slot),
+			)
+			if err == nil && classroom != nil {
+				fullL := g.weekData.lessonService.Select().Sort().Last()
+				fullL.SetClassroom(classroom)
+			}
+
+			var dayErr *entities.DayOutError
+			if errors.As(err, &dayErr) {
+				outOfGrid = true
+			}
+			currentWeek++
+		}
+	}
+
+	g.canGoToTheNextStep = true
+
+	res := g.formLessons()
+	if !errorService.IsClear() {
+		res.Errors = []error{errorService}
+	} else {
+		res.Errors = []error{}
+	}
+	return res, nil
+}
+
+func (g *ScheduleGenerator) formLessons() generatorResponses.Lessons {
+	result := generatorResponses.Lessons{}
+
+	lessons := g.fullData.lessonService.GetAll()
+
+	type key struct {
+		TeacherID    uuid.UUID
+		GroupID      uuid.UUID
+		DisciplineID uuid.UUID
+		LessonTypeID uuid.UUID
+		Weekday      int
+		Slot         int
+		ClassroomID  *uuid.UUID
+	}
+
+	grouped := make(map[key]*generatorResponses.Lesson)
+
+	for _, lesson := range lessons {
+		var classroomID *uuid.UUID
+		if lesson.Classroom != nil {
+			classroomID = &lesson.Classroom.ID
+		}
+
+		k := key{
+			TeacherID:    lesson.Teacher.ID,
+			GroupID:      lesson.StudentGroup.ID,
+			DisciplineID: lesson.Discipline.ID,
+			LessonTypeID: lesson.Type.ID,
+			Slot:         lesson.Slot,
+			Weekday:      lesson.Day % 7,
+			ClassroomID:  classroomID,
+		}
+
+		if existing, ok := grouped[k]; ok {
+			existing.Days = append(existing.Days, lesson.Day)
+			continue
+		}
+
+		grouped[k] = &generatorResponses.Lesson{
+			Teacher: generatorResponses.CommonEntity{
+				ID:   lesson.Teacher.ID,
+				Name: lesson.Teacher.UserName,
+			},
+			StudentGroup: generatorResponses.CommonEntity{
+				ID:   lesson.StudentGroup.ID,
+				Name: lesson.StudentGroup.Name,
+			},
+			Discipline: generatorResponses.CommonEntity{
+				ID:   lesson.Discipline.ID,
+				Name: lesson.Discipline.Name,
+			},
+			LessonType: generatorResponses.CommonEntity{
+				ID:   lesson.Type.ID,
+				Name: lesson.Type.Name,
+			},
+			Days: []int{lesson.Day},
+			Slot: lesson.Slot,
+			Classroom: func() *generatorResponses.CommonEntity {
+				if lesson.Classroom == nil {
+					return nil
+				}
+				return &generatorResponses.CommonEntity{
+					ID:   lesson.Classroom.ID,
+					Name: lesson.Classroom.RoomNumber,
+				}
+			}(),
+		}
+	}
+
+	result.Lessons = make([]generatorResponses.Lesson, 0, len(grouped))
+	for _, lesson := range grouped {
+		result.Lessons = append(result.Lessons, *lesson)
+	}
+
+	return result
+}
+
 // main function
 func (g *ScheduleGenerator) GenerateSchedule() error {
-	if g.studyLoadService == nil {
+	if g.fullData.studyLoadService == nil {
 		return fmt.Errorf("study loads not set")
 	}
 	if g.weekData.studyLoadService == nil {
@@ -532,7 +679,7 @@ func (g *ScheduleGenerator) GenerateSchedule() error {
 	// components.NewDayBlocker(g.weekData.studentGroupService.GetAll(), g.errorService).SetDayTypes()
 
 	// components.NewBoneGenerator(g.errorService, g.weekData.studyLoadService.GetAll(), g.weekData.lessonService).GenerateBoneLessons()
-	g.buildLessonCarcass()
+	// g.buildLessonCarcass()
 
 	// components.NewMissingLessonAdder(g.errorService, g.studyLoadService.GetAll(), g.lessonService).AddMissingLessons()
 
@@ -571,111 +718,70 @@ func (g *ScheduleGenerator) GenerateSchedule() error {
 	return nil
 }
 
-func (g *ScheduleGenerator) buildLessonCarcass() {
-	lessons := g.weekData.lessonService.GetAll()
-	for _, lesson := range lessons {
-		teacher := g.teacherService.Find(lesson.Teacher.ID)
-		studentGroup := g.studentGroupService.Find(lesson.StudentGroup.ID)
-		for weekday := range 7 {
-			weekLT := lesson.StudentGroup.GetTypeOfDay(weekday)
-			if weekLT != nil {
-				lt := studentGroup.GetTypeOfDay(weekday)
-				if lt == nil {
-					lt := g.lessonTypeService.Find(weekLT.ID)
-					err := studentGroup.BindWeekday(lt, weekday)
-					if err != nil {
-						g.errorService.AddError(components.NewUnexpectedError("can't bind the lesson type to the day",
-							"ScheduleGenerator", "buildLessonCarcass", err))
-					}
-				}
-			}
-		}
-		discipline := g.disciplineService.Find(lesson.Discipline.ID)
-		lessonType := g.lessonTypeService.Find(lesson.Type.ID)
-		studyLoad := g.studyLoadService.Find(*entities.NewUnassignedLesson(
-			lessonType, teacher, studentGroup, discipline,
-		))
-
-		currentWeek := 0
-		outOfGrid := false
-		for !outOfGrid {
-			err := g.lessonService.AssignLesson(studyLoad,
-				entities.NewLessonSlot(lesson.Day+currentWeek*7, lesson.Slot),
-			)
-
-			var dayErr *entities.DayOutError
-			if errors.As(err, &dayErr) {
-				outOfGrid = true
-			}
-			currentWeek++
-		}
-	}
-}
-
 // Rates schedule fault. Returns ScheduleFault as a result.
 // Returns an empty ScheduleFault if an not enough data.
 func (g *ScheduleGenerator) ScheduleFault() (result components.ScheduleFault) {
 	result = components.NewScheduleFault()
 
-	err := g.CheckServices([]bool{true, true})
+	err := g.fullData.CheckServices([]bool{true, true})
 	if err != nil {
 		return
 	}
 
 	result.AddParameter("teacher_windows", components.NewSimpleScheduleParameter(
-		float64(g.teacherService.CountWindows()), 0.1,
+		float64(g.fullData.teacherService.CountWindows()), 0.1,
 	))
 	result.AddParameter("student_group_windows", components.NewSimpleScheduleParameter(
-		float64(g.studentGroupService.CountWindows()), 1000,
+		float64(g.fullData.studentGroupService.CountWindows()), 1000,
 	))
 	result.AddParameter("study_load_hours_deficit", components.NewSimpleScheduleParameter(
-		float64(g.studyLoadService.CountHoursDeficit()), 10,
+		float64(g.fullData.studyLoadService.CountHoursDeficit()), 10,
 	))
 	result.AddParameter("teacher_lesson_overlapping", components.NewSimpleScheduleParameter(
-		float64(g.teacherService.CountLessonOverlapping()), 1000,
+		float64(g.fullData.teacherService.CountLessonOverlapping()), 1000,
 	))
 	result.AddParameter("student_group_lesson_overlapping", components.NewSimpleScheduleParameter(
-		float64(g.studentGroupService.CountLessonOverlapping()), 1000,
+		float64(g.fullData.studentGroupService.CountLessonOverlapping()), 1000,
 	))
 	result.AddParameter("classroom_lesson_overlapping", components.NewSimpleScheduleParameter(
-		float64(g.classroomService.CountLessonOverlapping()), 1000,
+		float64(g.fullData.classroomService.CountLessonOverlapping()), 1000,
 	))
 	result.AddParameter("student_group_overtime_lessons", components.NewSimpleScheduleParameter(
-		float64(g.studentGroupService.CountOvertimeLessons()), 10,
+		float64(g.fullData.studentGroupService.CountOvertimeLessons()), 10,
 	))
 	result.AddParameter("student_group_invalid_lessons_by_type", components.NewSimpleScheduleParameter(
-		float64(g.studentGroupService.CountInvalidLessonsByType()), 10,
+		float64(g.fullData.studentGroupService.CountInvalidLessonsByType()), 10,
 	))
 	result.AddParameter("lessons_without_classroom", components.NewSimpleScheduleParameter(
-		float64(g.lessonService.CountLessonsWithoutClassroom(g.lessonService.GetAll())), 10,
+		float64(g.fullData.lessonService.CountLessonsWithoutClassroom(g.fullData.lessonService.GetAll())), 10,
 	))
 	result.AddParameter("classroom_with_overflow", components.NewSimpleScheduleParameter(
-		float64(g.classroomService.CountOverflowLessons()), 10,
+		float64(g.fullData.classroomService.CountOverflowLessons()), 10,
 	))
 
 	return
 }
 
 func (g *ScheduleGenerator) WriteSchedule() {
-	tSchedule := make(map[*entities.Teacher]*entities.PersonalSchedule, len(g.teacherService.GetAll()))
-	for i := range g.teacherService.GetAll() {
-		t := g.teacherService.GetAll()[i]
+	tSchedule := make(map[*entities.Teacher]*entities.PersonalSchedule, len(g.fullData.teacherService.GetAll()))
+	for i := range g.fullData.teacherService.GetAll() {
+		t := g.fullData.teacherService.GetAll()[i]
 		tSchedule[t] = &entities.PersonalSchedule{
 			BusyGrid: &t.BusyGrid,
 			Out:      "schedule/" + t.UserName + ".txt",
 		}
 	}
 
-	sgSchedule := make(map[*entities.StudentGroup]*entities.PersonalSchedule, len(g.studentGroupService.GetAll()))
-	for i := range g.studentGroupService.GetAll() {
-		sg := g.studentGroupService.GetAll()[i]
+	sgSchedule := make(map[*entities.StudentGroup]*entities.PersonalSchedule, len(g.fullData.studentGroupService.GetAll()))
+	for i := range g.fullData.studentGroupService.GetAll() {
+		sg := g.fullData.studentGroupService.GetAll()[i]
 		sgSchedule[sg] = &entities.PersonalSchedule{
 			BusyGrid: &sg.BusyGrid,
 			Out:      "schedule/" + sg.Name + ".txt",
 		}
 	}
 
-	for _, l := range g.lessonService.GetAll() {
+	for _, l := range g.fullData.lessonService.GetAll() {
 		tSchedule[l.Teacher].InsertLesson(l)
 		sgSchedule[l.StudentGroup].InsertLesson(l)
 	}

@@ -23,11 +23,12 @@ type ScheduleGeneratorHandler interface {
 	SetLessonTypeAssignments(context.Context, http.ResponseWriter, *http.Request)
 	SetStudentGroups(context.Context, http.ResponseWriter, *http.Request)
 	SetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
+	SetClassrooms(context.Context, http.ResponseWriter, *http.Request)
 	SubmitAndGoToTheNextStep(context.Context, http.ResponseWriter, *http.Request)
 	SetDaysForLessonTypes(context.Context, http.ResponseWriter, *http.Request)
 	GenerateBoneLessons(context.Context, http.ResponseWriter, *http.Request)
 	AssignClassroomsToBoneLessons(context.Context, http.ResponseWriter, *http.Request)
-	SetClassrooms(context.Context, http.ResponseWriter, *http.Request)
+	BuildScheduleSkeleton(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -445,6 +446,17 @@ func (h *scheduleGeneratorHandler) AssignClassroomsToBoneLessons(ctx context.Con
 			return h.generator.AssignClassroomsToBoneLessons()
 		},
 		"AssignClassroomsToBoneLessons",
+	)
+}
+func (h *scheduleGeneratorHandler) BuildScheduleSkeleton(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.execute(
+		ctx,
+		w,
+		"build_lesson_skeleton",
+		func() (any, error) {
+			return h.generator.BuildScheduleSkeleton()
+		},
+		"BuildLessonSkeleton",
 	)
 }
 

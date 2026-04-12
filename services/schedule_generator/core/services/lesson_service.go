@@ -148,6 +148,9 @@ func (s *LessonSorter) ToSlice() []*entities.Lesson {
 
 	return result
 }
+func (s *LessonSorter) Last() *entities.Lesson {
+	return s.lessons[len(s.lessons)-1]
+}
 
 // func (ls *lessonService) Select(filterFunc func(a *entities.Lesson) bool) []*entities.Lesson {
 // 	result := make([]*entities.Lesson, 0)
