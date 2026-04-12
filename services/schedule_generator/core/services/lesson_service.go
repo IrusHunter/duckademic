@@ -151,15 +151,3 @@ func (s *LessonSorter) ToSlice() []*entities.Lesson {
 func (s *LessonSorter) Last() *entities.Lesson {
 	return s.lessons[len(s.lessons)-1]
 }
-
-// func (ls *lessonService) Select(filterFunc func(a *entities.Lesson) bool) []*entities.Lesson {
-// 	result := make([]*entities.Lesson, 0)
-//
-// 	for _, lesson := range ls.lessons {
-// 		if filterFunc(lesson) {
-// 			result = append(result, lesson)
-// 		}
-// 	}
-//
-// 	return result
-// }

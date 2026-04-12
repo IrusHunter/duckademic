@@ -79,6 +79,8 @@ type LoadService interface {
 	AddLoad(*StudyLoad)
 	// Returns the nearest previous lesson on the slot's day.
 	GetPreviousLessonOnDay(LessonSlot) *Lesson
+	// Returns all lessons on given day.
+	GetAllLessonsOnDay(int) []*Lesson
 	// Returns count of all required lesson slots for study loads with given lesson type.
 	GetSlotCountForLType(*LessonType) int
 }
@@ -141,4 +143,16 @@ func (lc *loadService) GetPreviousLessonOnDay(slot LessonSlot) *Lesson {
 		return previous
 	}
 	return nil
+}
+func (lc *loadService) GetAllLessonsOnDay(day int) []*Lesson {
+	lessons := lc.GetAssignedLessons()
+
+	result := []*Lesson{}
+	for _, lesson := range lessons {
+		if lesson.Day == day {
+			result = append(result, lesson)
+		}
+	}
+
+	return result
 }

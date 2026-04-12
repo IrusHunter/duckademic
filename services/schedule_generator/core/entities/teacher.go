@@ -73,15 +73,24 @@ func (t *Teacher) CountLessonOverlapping() int {
 }
 
 // CalculateClassValueFor returns own value for a classroom.
-// It factors in the classroom of the previous lesson on that day.
+// It factors in the classrooms of the all lessons on that day.
 func (t *Teacher) CalculateClassValueFor(l *Lesson, c *Classroom) float32 {
-	previousLesson := t.GetPreviousLessonOnDay(l.LessonSlot)
-	if previousLesson == nil {
+	lessons := t.GetAllLessonsOnDay(l.Day)
+
+	lessonsWithC := float32(0)
+	lessonsWithSameC := float32(0)
+	for _, lesson := range lessons {
+		if lesson.Classroom != nil {
+			lessonsWithC += 1
+		}
+		if lesson.Classroom == c {
+			lessonsWithSameC += 1
+		}
+	}
+
+	if lessonsWithC == 0 {
 		return 0.5
 	}
 
-	if previousLesson.Classroom == c {
-		return 0.5
-	}
-	return 1
+	return 1 - lessonsWithSameC/lessonsWithC*0.5
 }

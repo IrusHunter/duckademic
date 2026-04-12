@@ -72,6 +72,9 @@ func (ra *restapi) Run(port int) error {
 	http.HandleFunc("/add-floating-lessons", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.scheduleGeneratorHandler.AddFloatingLessons)(r.Context(), w, r)
 	})
+	http.HandleFunc("/assign-classrooms-to-floating-lessons", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.scheduleGeneratorHandler.AssignClassroomsToFloatingLessons)(r.Context(), w, r)
+	})
 
 	ra.NewRoute("/default-generator-config", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.scheduleGeneratorHandler.GetDefaultConfig),

@@ -15,12 +15,13 @@ import (
 type GeneratorStep string
 
 const (
-	Setup                           GeneratorStep = "SETUP"
-	DayBlocking                     GeneratorStep = "DAY_BLOCKING"
-	BoneLessonBuilding              GeneratorStep = "BONE_LESSON_BUILDING"
-	ToBoneLessonsClassroomAssigning GeneratorStep = "TO_BONE_LESSONS_CLASSROOM_ASSIGNING"
-	LessonSkeletonBuilding          GeneratorStep = "LESSON_SKELETON_BUILDING"
-	FloatingLessonAdding            GeneratorStep = "FLOATING_LESSON_ADDING"
+	Setup                               GeneratorStep = "SETUP"
+	DayBlocking                         GeneratorStep = "DAY_BLOCKING"
+	BoneLessonBuilding                  GeneratorStep = "BONE_LESSON_BUILDING"
+	ToBoneLessonsClassroomAssigning     GeneratorStep = "TO_BONE_LESSONS_CLASSROOM_ASSIGNING"
+	LessonSkeletonBuilding              GeneratorStep = "LESSON_SKELETON_BUILDING"
+	FloatingLessonAdding                GeneratorStep = "FLOATING_LESSON_ADDING"
+	ToFloatingLessonsClassroomAssigning GeneratorStep = "TO_FLOATING_LESSONS_CLASSROOM_ASSIGNING"
 )
 
 type generatorData struct {
@@ -374,6 +375,8 @@ func (g *ScheduleGenerator) SubmitAndGoToTheNextStep() (GeneratorStep, error) {
 		g.currentStep = LessonSkeletonBuilding
 	case LessonSkeletonBuilding:
 		g.currentStep = FloatingLessonAdding
+	case FloatingLessonAdding:
+		g.currentStep = ToFloatingLessonsClassroomAssigning
 	}
 
 	g.canGoToTheNextStep = false
@@ -508,7 +511,7 @@ func (g *ScheduleGenerator) AssignClassroomsToBoneLessons() (generatorResponses.
 	errorService := components.NewErrorService()
 
 	classroomAssigner := components.NewClassroomAssigner(g.weekData.classroomService.GetAll(),
-		g.weekData.lessonService.Select().Sort().ByLessonSlot(1).ToSlice(), g.errorService,
+		g.weekData.lessonService.GetAll(), g.errorService,
 	)
 	if err := classroomAssigner.CheckAvailability(); err != nil {
 		return generatorResponses.BoneLessons{}, fmt.Errorf("can't assign classrooms: %w", err)
@@ -680,6 +683,33 @@ func (g *ScheduleGenerator) AddFloatingLessons() (generatorResponses.Lessons, er
 
 	components.NewMissingLessonAdder(g.errorService, g.fullData.studyLoadService.GetAll(),
 		g.floatingLessonService).AddMissingLessons()
+
+	g.canGoToTheNextStep = true
+
+	res := g.formLessons(g.floatingLessonService.GetAll())
+	if !errorService.IsClear() {
+		res.Errors = []error{errorService}
+	} else {
+		res.Errors = []error{}
+	}
+	return res, nil
+}
+
+func (g *ScheduleGenerator) AssignClassroomsToFloatingLessons() (generatorResponses.Lessons, error) {
+	if g.currentStep != ToFloatingLessonsClassroomAssigning {
+		return generatorResponses.Lessons{},
+			fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, ToFloatingLessonsClassroomAssigning)
+	}
+
+	errorService := components.NewErrorService()
+
+	classroomAssigner := components.NewClassroomAssigner(g.fullData.classroomService.GetAll(),
+		g.floatingLessonService.GetAll(), g.errorService,
+	)
+	if err := classroomAssigner.CheckAvailability(); err != nil {
+		return generatorResponses.Lessons{}, fmt.Errorf("can't assign classrooms: %w", err)
+	}
+	classroomAssigner.AssignClassrooms()
 
 	g.canGoToTheNextStep = true
 

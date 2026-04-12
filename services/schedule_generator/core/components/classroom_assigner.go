@@ -17,19 +17,17 @@ type ClassroomAssigner interface {
 // NewClassroomAssigner creates a new ClassroomAssigner instance that uses the Munkres
 // assignment algorithm (Hungarian algorithm) to assign classrooms to lessons.
 //
-// It requires a slice of classrooms (c), a slice of lessons sorted by increasing LessonSlot value (l),
+// It requires a slice of classrooms (c), a slice of lessons (l),
 // and an error service (es).
 func NewClassroomAssigner(c []*entities.Classroom, l []*entities.Lesson, es ErrorService) ClassroomAssigner {
-	currentSlot := entities.NewLessonSlot(0, 0)
 	lessons := make(map[entities.LessonSlot][]*entities.Lesson, 0)
-	slotsOrder := []entities.LessonSlot{}
 	for _, lesson := range l {
-		if lesson.LessonSlot != currentSlot {
-			currentSlot = lesson.LessonSlot
-			slotsOrder = append(slotsOrder, currentSlot)
-			lessons[currentSlot] = make([]*entities.Lesson, 0)
-		}
-		lessons[currentSlot] = append(lessons[currentSlot], lesson)
+		lessons[lesson.LessonSlot] = append(lessons[lesson.LessonSlot], lesson)
+	}
+
+	slotsOrder := make([]entities.LessonSlot, 0, len(lessons))
+	for slot := range lessons {
+		slotsOrder = append(slotsOrder, slot)
 	}
 
 	return &classroomAssigner{
