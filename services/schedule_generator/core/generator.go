@@ -20,6 +20,7 @@ const (
 	BoneLessonBuilding              GeneratorStep = "BONE_LESSON_BUILDING"
 	ToBoneLessonsClassroomAssigning GeneratorStep = "TO_BONE_LESSONS_CLASSROOM_ASSIGNING"
 	LessonSkeletonBuilding          GeneratorStep = "LESSON_SKELETON_BUILDING"
+	FloatingLessonAdding            GeneratorStep = "FLOATING_LESSON_ADDING"
 )
 
 type generatorData struct {
@@ -58,11 +59,12 @@ func (g *generatorData) CheckServices(services []bool) error {
 
 type ScheduleGenerator struct {
 	externalEntities.ScheduleGeneratorConfig
-	errorService       components.ErrorService
-	weekData           generatorData
-	fullData           generatorData
-	currentStep        GeneratorStep
-	canGoToTheNextStep bool
+	errorService          components.ErrorService
+	weekData              generatorData
+	fullData              generatorData
+	floatingLessonService services.LessonService
+	currentStep           GeneratorStep
+	canGoToTheNextStep    bool
 }
 
 func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*ScheduleGenerator, error) {
@@ -370,6 +372,8 @@ func (g *ScheduleGenerator) SubmitAndGoToTheNextStep() (GeneratorStep, error) {
 		g.currentStep = ToBoneLessonsClassroomAssigning
 	case ToBoneLessonsClassroomAssigning:
 		g.currentStep = LessonSkeletonBuilding
+	case LessonSkeletonBuilding:
+		g.currentStep = FloatingLessonAdding
 	}
 
 	g.canGoToTheNextStep = false
@@ -581,7 +585,7 @@ func (g *ScheduleGenerator) BuildScheduleSkeleton() (generatorResponses.Lessons,
 
 	g.canGoToTheNextStep = true
 
-	res := g.formLessons()
+	res := g.formLessons(g.fullData.lessonService.GetAll())
 	if !errorService.IsClear() {
 		res.Errors = []error{errorService}
 	} else {
@@ -590,10 +594,8 @@ func (g *ScheduleGenerator) BuildScheduleSkeleton() (generatorResponses.Lessons,
 	return res, nil
 }
 
-func (g *ScheduleGenerator) formLessons() generatorResponses.Lessons {
+func (g *ScheduleGenerator) formLessons(lessons []*entities.Lesson) generatorResponses.Lessons {
 	result := generatorResponses.Lessons{}
-
-	lessons := g.fullData.lessonService.GetAll()
 
 	type key struct {
 		TeacherID    uuid.UUID
@@ -667,6 +669,29 @@ func (g *ScheduleGenerator) formLessons() generatorResponses.Lessons {
 	return result
 }
 
+func (g *ScheduleGenerator) AddFloatingLessons() (generatorResponses.Lessons, error) {
+	if g.currentStep != FloatingLessonAdding {
+		return generatorResponses.Lessons{},
+			fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, FloatingLessonAdding)
+	}
+
+	errorService := components.NewErrorService()
+	g.floatingLessonService, _ = services.NewLessonService()
+
+	components.NewMissingLessonAdder(g.errorService, g.fullData.studyLoadService.GetAll(),
+		g.floatingLessonService).AddMissingLessons()
+
+	g.canGoToTheNextStep = true
+
+	res := g.formLessons(g.floatingLessonService.GetAll())
+	if !errorService.IsClear() {
+		res.Errors = []error{errorService}
+	} else {
+		res.Errors = []error{}
+	}
+	return res, nil
+}
+
 // main function
 func (g *ScheduleGenerator) GenerateSchedule() error {
 	if g.fullData.studyLoadService == nil {
@@ -675,13 +700,6 @@ func (g *ScheduleGenerator) GenerateSchedule() error {
 	if g.weekData.studyLoadService == nil {
 		return fmt.Errorf("study loads not set")
 	}
-
-	// components.NewDayBlocker(g.weekData.studentGroupService.GetAll(), g.errorService).SetDayTypes()
-
-	// components.NewBoneGenerator(g.errorService, g.weekData.studyLoadService.GetAll(), g.weekData.lessonService).GenerateBoneLessons()
-	// g.buildLessonCarcass()
-
-	// components.NewMissingLessonAdder(g.errorService, g.studyLoadService.GetAll(), g.lessonService).AddMissingLessons()
 
 	// improver := components.NewImprover(g.lessonService)
 	// improver.SubmitChanges() // CRUNCH - sets start slots for first lesson
@@ -697,20 +715,6 @@ func (g *ScheduleGenerator) GenerateSchedule() error {
 	// 	}
 	// 	result = improver.ImproveToNext()
 	// }
-
-	// classroomAssigner := components.NewClassroomAssigner(g.classroomService.GetAll(),
-	// 	g.lessonService.Sort(g.lessonService.GetAll(),
-	// 		g.lessonService.ByLessonSlot(1,
-	// 			g.lessonService.Equal,
-	// 		),
-	// 	), g.errorService,
-	// )
-	// if err := classroomAssigner.CheckAvailability(); err != nil {
-	// 	g.errorService.AddError(components.NewUnexpectedError(
-	// 		"can't assign classrooms", "Generator", "GenerateSchedule", err,
-	// 	))
-	// }
-	// classroomAssigner.AssignClassrooms()
 
 	if !g.errorService.IsClear() {
 		return g.errorService

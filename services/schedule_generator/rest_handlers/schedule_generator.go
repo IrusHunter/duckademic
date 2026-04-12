@@ -29,6 +29,7 @@ type ScheduleGeneratorHandler interface {
 	GenerateBoneLessons(context.Context, http.ResponseWriter, *http.Request)
 	AssignClassroomsToBoneLessons(context.Context, http.ResponseWriter, *http.Request)
 	BuildScheduleSkeleton(context.Context, http.ResponseWriter, *http.Request)
+	AddFloatingLessons(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -457,6 +458,17 @@ func (h *scheduleGeneratorHandler) BuildScheduleSkeleton(ctx context.Context, w 
 			return h.generator.BuildScheduleSkeleton()
 		},
 		"BuildLessonSkeleton",
+	)
+}
+func (h *scheduleGeneratorHandler) AddFloatingLessons(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.execute(
+		ctx,
+		w,
+		"add_floating_lessons",
+		func() (any, error) {
+			return h.generator.AddFloatingLessons()
+		},
+		"AddFloatingLessons",
 	)
 }
 

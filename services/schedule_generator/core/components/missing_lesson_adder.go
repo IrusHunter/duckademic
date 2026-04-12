@@ -49,7 +49,11 @@ func (ma *missingLessonsAdder) AddMissingLessons() {
 					Day:  currentDay,
 					Slot: i,
 				}
-				ma.lessonService.AssignLesson(load, slot)
+				err := ma.lessonService.AssignLesson(load, slot)
+				if err == nil {
+					currentDay -= currentDay%7 - 6
+					break
+				}
 			}
 			delta := studentGroup.GetNextDayOfType(lessonType, currentDay+1)
 			if delta == -1 {

@@ -55,6 +55,7 @@
   - [/default-generator-config](#schedule-generator-default-generator-config)
   - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
   - [/build-schedule-skeleton](#schedule-generator-build-schedule-skeleton)
+  - [/add-floating-lessons](#schedule-generator-add-floating-lessons)
 
 - Student Service (/student)
   - [/semesters](#student-semesters)
@@ -644,6 +645,16 @@
 ## /build-schedule-skeleton
 
 ### ANY – distribute all bone lessons across the full schedule
+
+200 OK [=> Lessons](schemas.md#schedule-generator-lessons)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-add-floating-lessons"></a>
+
+## /add-floating-lessons
+
+### ANY – adds missing lessons from all study loads as floating lessons
 
 200 OK [=> Lessons](schemas.md#schedule-generator-lessons)
 
