@@ -52,11 +52,13 @@
   - [/submit-and-go](#schedule-generator-submit-and-go)
   - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
   - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
-  - [/default-generator-config](#schedule-generator-default-generator-config)
   - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
   - [/build-schedule-skeleton](#schedule-generator-build-schedule-skeleton)
   - [/add-floating-lessons](#schedule-generator-add-floating-lessons)
   - [/assign-classrooms-to-floating-lessons](#schedule-generator-assign-classrooms-to-floating-lessons)
+  - [/get-study-loads](#schedule-generator-get-study-loads)
+  - [/get-lessons](#schedule-generator-get-lessons)
+  - [/default-generator-config](#schedule-generator-default-generator-config)
 
 - Student Service (/student)
   - [/semesters](#student-semesters)
@@ -647,7 +649,7 @@
 
 ### ANY – distribute all bone lessons across the full schedule
 
-200 OK [=> Lessons](schemas.md#schedule-generator-lessons)
+200 OK [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -657,7 +659,7 @@
 
 ### ANY – adds missing lessons from all study loads as floating lessons
 
-200 OK [=> Lessons](schemas.md#schedule-generator-lessons)
+200 OK [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -667,7 +669,27 @@
 
 ### ANY – assign all available classrooms to floating lessons
 
-200 OK [=> Lessons](schemas.md#schedule-generator-lessons)
+200 OK [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-get-study-loads"></a>
+
+## /get-study-loads
+
+### ANY – gets all study loads from generator
+
+200 OK [=> []StudyLoad](schemas.md#schedule-generator-study-load)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-get-lessons"></a>
+
+## /get-lessons
+
+### ANY – gets all scheduled lessons from generator
+
+200 OK [=> []Lesson](schemas.md#schedule-generator-lesson)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

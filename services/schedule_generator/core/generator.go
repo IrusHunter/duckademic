@@ -22,6 +22,7 @@ const (
 	LessonSkeletonBuilding              GeneratorStep = "LESSON_SKELETON_BUILDING"
 	FloatingLessonAdding                GeneratorStep = "FLOATING_LESSON_ADDING"
 	ToFloatingLessonsClassroomAssigning GeneratorStep = "TO_FLOATING_LESSONS_CLASSROOM_ASSIGNING"
+	Extraction                          GeneratorStep = "EXTRACTION"
 )
 
 type generatorData struct {
@@ -377,6 +378,10 @@ func (g *ScheduleGenerator) SubmitAndGoToTheNextStep() (GeneratorStep, error) {
 		g.currentStep = FloatingLessonAdding
 	case FloatingLessonAdding:
 		g.currentStep = ToFloatingLessonsClassroomAssigning
+	case ToFloatingLessonsClassroomAssigning:
+		g.currentStep = Extraction
+	default:
+		return g.currentStep, fmt.Errorf("tou are at the last step")
 	}
 
 	g.canGoToTheNextStep = false
@@ -529,9 +534,9 @@ func (g *ScheduleGenerator) AssignClassroomsToBoneLessons() (generatorResponses.
 	return res, nil
 }
 
-func (g *ScheduleGenerator) BuildScheduleSkeleton() (generatorResponses.Lessons, error) {
+func (g *ScheduleGenerator) BuildScheduleSkeleton() (generatorResponses.GeneratedLessons, error) {
 	if g.currentStep != LessonSkeletonBuilding {
-		return generatorResponses.Lessons{},
+		return generatorResponses.GeneratedLessons{},
 			fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, LessonSkeletonBuilding)
 	}
 
@@ -574,7 +579,7 @@ func (g *ScheduleGenerator) BuildScheduleSkeleton() (generatorResponses.Lessons,
 				entities.NewLessonSlot(lesson.Day+currentWeek*7, lesson.Slot),
 			)
 			if err == nil && classroom != nil {
-				fullL := g.weekData.lessonService.Select().Sort().Last()
+				fullL := g.fullData.lessonService.Select().Sort().Last()
 				fullL.SetClassroom(classroom)
 			}
 
@@ -597,8 +602,8 @@ func (g *ScheduleGenerator) BuildScheduleSkeleton() (generatorResponses.Lessons,
 	return res, nil
 }
 
-func (g *ScheduleGenerator) formLessons(lessons []*entities.Lesson) generatorResponses.Lessons {
-	result := generatorResponses.Lessons{}
+func (g *ScheduleGenerator) formLessons(lessons []*entities.Lesson) generatorResponses.GeneratedLessons {
+	result := generatorResponses.GeneratedLessons{}
 
 	type key struct {
 		TeacherID    uuid.UUID
@@ -610,7 +615,7 @@ func (g *ScheduleGenerator) formLessons(lessons []*entities.Lesson) generatorRes
 		ClassroomID  *uuid.UUID
 	}
 
-	grouped := make(map[key]*generatorResponses.Lesson)
+	grouped := make(map[key]*generatorResponses.GeneratedLesson)
 
 	for _, lesson := range lessons {
 		var classroomID *uuid.UUID
@@ -633,7 +638,7 @@ func (g *ScheduleGenerator) formLessons(lessons []*entities.Lesson) generatorRes
 			continue
 		}
 
-		grouped[k] = &generatorResponses.Lesson{
+		grouped[k] = &generatorResponses.GeneratedLesson{
 			Teacher: generatorResponses.CommonEntity{
 				ID:   lesson.Teacher.ID,
 				Name: lesson.Teacher.UserName,
@@ -664,7 +669,7 @@ func (g *ScheduleGenerator) formLessons(lessons []*entities.Lesson) generatorRes
 		}
 	}
 
-	result.Lessons = make([]generatorResponses.Lesson, 0, len(grouped))
+	result.Lessons = make([]generatorResponses.GeneratedLesson, 0, len(grouped))
 	for _, lesson := range grouped {
 		result.Lessons = append(result.Lessons, *lesson)
 	}
@@ -672,9 +677,9 @@ func (g *ScheduleGenerator) formLessons(lessons []*entities.Lesson) generatorRes
 	return result
 }
 
-func (g *ScheduleGenerator) AddFloatingLessons() (generatorResponses.Lessons, error) {
+func (g *ScheduleGenerator) AddFloatingLessons() (generatorResponses.GeneratedLessons, error) {
 	if g.currentStep != FloatingLessonAdding {
-		return generatorResponses.Lessons{},
+		return generatorResponses.GeneratedLessons{},
 			fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, FloatingLessonAdding)
 	}
 
@@ -695,9 +700,9 @@ func (g *ScheduleGenerator) AddFloatingLessons() (generatorResponses.Lessons, er
 	return res, nil
 }
 
-func (g *ScheduleGenerator) AssignClassroomsToFloatingLessons() (generatorResponses.Lessons, error) {
+func (g *ScheduleGenerator) AssignClassroomsToFloatingLessons() (generatorResponses.GeneratedLessons, error) {
 	if g.currentStep != ToFloatingLessonsClassroomAssigning {
-		return generatorResponses.Lessons{},
+		return generatorResponses.GeneratedLessons{},
 			fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, ToFloatingLessonsClassroomAssigning)
 	}
 
@@ -707,7 +712,7 @@ func (g *ScheduleGenerator) AssignClassroomsToFloatingLessons() (generatorRespon
 		g.floatingLessonService.GetAll(), g.errorService,
 	)
 	if err := classroomAssigner.CheckAvailability(); err != nil {
-		return generatorResponses.Lessons{}, fmt.Errorf("can't assign classrooms: %w", err)
+		return generatorResponses.GeneratedLessons{}, fmt.Errorf("can't assign classrooms: %w", err)
 	}
 	classroomAssigner.AssignClassrooms()
 
@@ -720,6 +725,57 @@ func (g *ScheduleGenerator) AssignClassroomsToFloatingLessons() (generatorRespon
 		res.Errors = []error{}
 	}
 	return res, nil
+}
+
+func (g *ScheduleGenerator) ExtractStudyLoads() ([]generatorResponses.StudyLoad, error) {
+	if g.currentStep != Extraction {
+		return nil, fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, Extraction)
+	}
+
+	studyLoads := g.fullData.studyLoadService.GetAll()
+	result := make([]generatorResponses.StudyLoad, 0, len(studyLoads))
+
+	for _, studyLoad := range studyLoads {
+		result = append(result, generatorResponses.StudyLoad{
+			ID:             studyLoad.ID,
+			TeacherID:      studyLoad.Teacher.ID,
+			StudentGroupID: studyLoad.StudentGroup.ID,
+			DisciplineID:   studyLoad.Discipline.ID,
+			LessonTypeID:   studyLoad.Type.ID,
+		})
+	}
+
+	return result, nil
+}
+
+func (g *ScheduleGenerator) ExtractLessons() ([]generatorResponses.Lesson, error) {
+	if g.currentStep != Extraction {
+		return nil, fmt.Errorf("invalid method: current step is %s instead of %s", g.currentStep, Extraction)
+	}
+
+	boneLessons := g.fullData.lessonService.GetAll()
+	floatingLessons := g.floatingLessonService.GetAll()
+	allLessons := append(boneLessons, floatingLessons...)
+	result := make([]generatorResponses.Lesson, 0, len(allLessons))
+
+	for _, lesson := range allLessons {
+		result = append(result, generatorResponses.Lesson{
+			ID:             lesson.ID,
+			StudyLoadID:    lesson.StudyLoad.ID,
+			TeacherID:      lesson.Teacher.ID,
+			StudentGroupID: lesson.StudentGroup.ID,
+			Slot:           lesson.Slot,
+			Day:            lesson.Day,
+			ClassroomID: func(c *entities.Classroom) *uuid.UUID {
+				if c == nil {
+					return nil
+				}
+				return &c.ID
+			}(lesson.Classroom),
+		})
+	}
+
+	return result, nil
 }
 
 // main function

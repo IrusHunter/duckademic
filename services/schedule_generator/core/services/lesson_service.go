@@ -39,7 +39,7 @@ func (ls *lessonService) GetAll() []*entities.Lesson {
 	return ls.lessons
 }
 func (ls *lessonService) AssignLesson(sl *entities.StudyLoad, slot entities.LessonSlot) error {
-	lesson := entities.NewLesson(sl.UnassignedLesson, slot, sl.Type.Value)
+	lesson := entities.NewLesson(sl, slot, sl.Type.Value)
 
 	if err := sl.Teacher.CheckLesson(lesson); err != nil {
 		return fmt.Errorf("lesson unavailable for teacher: %w", err)

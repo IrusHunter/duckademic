@@ -1,11 +1,11 @@
 package generatorResponses
 
-type Lessons struct {
-	Lessons []Lesson `json:"lessons"`
-	Errors  []error  `json:"errors"`
+type GeneratedLessons struct {
+	Lessons []GeneratedLesson `json:"lessons"`
+	Errors  []error           `json:"errors"`
 }
 
-type Lesson struct {
+type GeneratedLesson struct {
 	Teacher      CommonEntity  `json:"teacher"`
 	StudentGroup CommonEntity  `json:"student_group"`
 	Discipline   CommonEntity  `json:"discipline"`

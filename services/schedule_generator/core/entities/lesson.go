@@ -2,25 +2,29 @@ package entities
 
 import (
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 // Lesson represents an assigned lesson based on an UnsignedLesson.
 type Lesson struct {
-	UnassignedLesson            // Base lesson data without time assignment.
-	LessonSlot                  // Assigned time slot
-	Value            int        // Number of academic hours
-	Classroom        *Classroom // Classroom where this lesson is scheduled
+	ID         uuid.UUID
+	*StudyLoad            // Base lesson data without time assignment.
+	LessonSlot            // Assigned time slot
+	Value      int        // Number of academic hours
+	Classroom  *Classroom // Classroom where this lesson is scheduled
 }
 
 // NewLesson creates a new Lesson instance.
 //
 // It requires an unassigned lesson definition (ul),
 // an assigned lesson slot (ls), and lesson value in academic hours (v).
-func NewLesson(ul UnassignedLesson, ls LessonSlot, v int) *Lesson {
+func NewLesson(sl *StudyLoad, ls LessonSlot, v int) *Lesson {
 	return &Lesson{
-		UnassignedLesson: ul,
-		LessonSlot:       ls,
-		Value:            v,
+		StudyLoad:  sl,
+		LessonSlot: ls,
+		Value:      v,
+		ID:         uuid.New(),
 	}
 }
 

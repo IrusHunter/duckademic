@@ -31,6 +31,8 @@ type ScheduleGeneratorHandler interface {
 	BuildScheduleSkeleton(context.Context, http.ResponseWriter, *http.Request)
 	AddFloatingLessons(context.Context, http.ResponseWriter, *http.Request)
 	AssignClassroomsToFloatingLessons(context.Context, http.ResponseWriter, *http.Request)
+	GetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
+	GetLessons(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewScheduleGeneratorHandler(
@@ -481,6 +483,28 @@ func (h *scheduleGeneratorHandler) AssignClassroomsToFloatingLessons(ctx context
 			return h.generator.AssignClassroomsToFloatingLessons()
 		},
 		"AssignClassroomsToFloatingLessons",
+	)
+}
+func (h *scheduleGeneratorHandler) GetStudyLoads(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.execute(
+		ctx,
+		w,
+		"get_study_loads",
+		func() (any, error) {
+			return h.generator.ExtractStudyLoads()
+		},
+		"GetStudyLoads",
+	)
+}
+func (h *scheduleGeneratorHandler) GetLessons(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.execute(
+		ctx,
+		w,
+		"get_lessons",
+		func() (any, error) {
+			return h.generator.ExtractLessons()
+		},
+		"GetLessons",
 	)
 }
 

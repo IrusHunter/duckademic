@@ -3,12 +3,15 @@ package entities
 import (
 	"fmt"
 	"slices"
+
+	"github.com/google/uuid"
 )
 
 // StudyLoad represents a university study load in the scheduling context.
 //
 // The model enforces workload constraints.
 type StudyLoad struct {
+	ID               uuid.UUID
 	UnassignedLesson           // Base lesson definition.
 	CurrentHours     int       // Currently scheduled hours.
 	Lessons          []*Lesson // Scheduled lessons contributing to the load.
@@ -18,7 +21,7 @@ type StudyLoad struct {
 //
 // It requires an unassigned lesson entity (ul).
 func NewStudyLoad(ul UnassignedLesson) *StudyLoad {
-	return &StudyLoad{UnassignedLesson: ul}
+	return &StudyLoad{UnassignedLesson: ul, ID: uuid.New()}
 }
 
 // CheckLesson checks if the lesson can be added.

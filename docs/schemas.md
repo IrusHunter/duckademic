@@ -468,9 +468,9 @@
 }
 ```
 
-<a id="schedule-generator-lessons"></a>
+<a id="schedule-generator-generated-lessons"></a>
 
-### Lessons
+### Generated Lessons
 
 ```json
 {
@@ -503,6 +503,38 @@
     }
   ],
   "errors": ["string (error message, if any)"]
+}
+```
+
+<a id="schedule-generator-study-load"></a>
+
+### Study Load
+
+```json
+{
+  "id": "uuid (unique identifier of the study load)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "student_group_id": "uuid (unique identifier of the student group)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)"
+}
+```
+
+<a id="schedule-generator-lessons"></a>
+
+### Lessons
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson)",
+  "study_load_id": "uuid (unique identifier of the study load)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "student_group_id": "uuid (unique identifier of the student group)",
+  "slot": "integer (lesson slot number in the day)",
+  "day": "integer (number of days after start)",
+
+  // Optional field
+  "classroom_id": "uuid (unique identifier of the classroom)"
 }
 ```
 
