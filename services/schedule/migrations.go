@@ -25,6 +25,9 @@ func Migrate(database *sqlx.DB) error {
 		studentGroupMigrations,
 		groupCohortAssignmentMigrations,
 		classroomMigrations,
+		studyLoadMigrations,
+		lessonSlotMigrations,
+		lessonOccurrenceMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -440,6 +443,94 @@ func classroomMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "classrooms"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for classrooms: %w", err)
+	}
+
+	return nil
+}
+func studyLoadMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS study_loads (
+		id UUID PRIMARY KEY,
+		teacher_id UUID NOT NULL,
+		student_group_id UUID NOT NULL,
+		discipline_id UUID NOT NULL,
+		lesson_type_id UUID NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create study_loads relation: %w", err)
+	}
+
+	constraint := `
+	ALTER TABLE study_loads
+	ADD CONSTRAINT uq_study_load UNIQUE (
+		teacher_id,
+		student_group_id,
+		discipline_id,
+		lesson_type_id
+	);
+	`
+
+	if _, err := database.Exec(constraint); err != nil {
+		return fmt.Errorf("failed to add unique constraint to study_loads: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "study_loads"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for study_loads: %w", err)
+	}
+
+	return nil
+}
+func lessonSlotMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS lesson_slots (
+		id UUID PRIMARY KEY,
+		slot INTEGER NOT NULL,
+		weekday INTEGER NOT NULL,
+		start_time BIGINT NOT NULL,
+		duration BIGINT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create lesson_slots relation: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "lesson_slots"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for lesson_slots: %w", err)
+	}
+
+	return nil
+}
+func lessonOccurrenceMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS lesson_occurrences (
+		id UUID PRIMARY KEY,
+		study_load_id UUID NOT NULL,
+		teacher_id UUID NOT NULL,
+		student_group_id UUID NOT NULL,
+		lesson_slot_id UUID NOT NULL,
+		date TIMESTAMP WITH TIME ZONE NOT NULL,
+		classroom_id UUID NULL,
+		status TEXT NOT NULL,
+		moved_to_id UUID NULL,
+		moved_from_id UUID NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create lesson_occurrences relation: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "lesson_occurrences"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for lesson_occurrences: %w", err)
 	}
 
 	return nil

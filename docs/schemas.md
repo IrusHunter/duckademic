@@ -264,6 +264,61 @@
 }
 ```
 
+<a id="schedule-study-load"></a>
+
+### Study Load
+
+```json
+{
+  "id": "uuid (unique identifier of the study load)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "student_group_id": "uuid (unique identifier of the student group)",
+  "discipline_id": "uuid (unique identifier of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-study-lesson-slot"></a>
+
+### Lesson Slot
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson slot)",
+  "slot": "integer (index of the slot within a day, starting from 0)",
+  "weekday": "integer (day of the week, 0 = Sunday, 6 = Saturday)",
+  "start_time": "duration (lesson start time as duration since midnight, in nanoseconds)",
+  "duration": "duration (length of the lesson, in nanoseconds)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="schedule-generator-lesson-occurrense"></a>
+
+### Lesson Occurrence
+
+```json
+{
+  "id": "uuid (unique identifier of the lesson occurrence)",
+  "study_load_id": "uuid (reference to study load)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "student_group_id": "uuid (unique identifier of the student group)",
+  "lesson_slot_id": "uuid (unique identifier of the lesson slot)",
+  "date": "timestamp (date and time of the lesson occurrence)",
+  "status": "string (lesson status: scheduled, canceled, completed)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)",
+
+  // Optional fields
+  "classroom_id": "uuid | null (optional classroom assignment)",
+  "moved_to_id": "uuid | null (reference to rescheduled occurrence, if moved)",
+  "moved_from_id": "uuid | null (reference to original occurrence if moved)"
+}
+```
+
 ## Schedule Generator Service
 
 <a id="schedule-generator-generator-config"></a>
@@ -520,9 +575,9 @@
 }
 ```
 
-<a id="schedule-generator-lessons"></a>
+<a id="schedule-generator-lesson"></a>
 
-### Lessons
+### Lesson
 
 ```json
 {

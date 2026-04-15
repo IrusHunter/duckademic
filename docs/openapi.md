@@ -39,6 +39,9 @@
   - [/group-cohorts](#schedule-group-cohorts)
   - [/group-cohort-assignments](#schedule-group-cohort-assignments)
   - [/classrooms](#schedule-classrooms)
+  - [/study-loads](#schedule-study-loads)
+  - [/lesson-slots](#schedule-lesson-slots)
+  - [/lesson-occurrences](#schedule-lesson-occurrences)
 
 - Schedule Generator Service (/schedule-generator)
   - [/init](#schedule-generator-init)
@@ -461,6 +464,30 @@
 ### GET - gets all classrooms from the database
 
 200 OK [=> Classroom[]](schemas.md#schedule-classroom)
+
+<a id="schedule-study-loads"></a>
+
+## /study-loads
+
+### GET - gets all study loads from the database
+
+200 OK [=> StudyLoad[]](schemas.md#schedule-study-load)
+
+<a id="schedule-lesson-slots"></a>
+
+## /lesson-slots
+
+### GET - gets all lesson slots from the database
+
+200 OK [=> LessonSlot[]](schemas.md#schedule-lesson-slot)
+
+<a id="schedule-lesson-occurrences"></a>
+
+## /lesson-occurrences
+
+### GET - gets all lesson occurrences from the database
+
+200 OK [=> LessonOccurrence[]](schemas.md#schedule-lesson-occurrence)
 
 # Schedule Generator Service
 

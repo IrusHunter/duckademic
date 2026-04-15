@@ -32,6 +32,9 @@ func NewDatabaseHandler(
 	gcs services.GroupCohortService,
 	gcas services.GroupCohortAssignmentService,
 	cs services.ClassroomService,
+	sls services.StudyLoadService,
+	lsl services.LessonSlotService,
+	los services.LessonOccurrenceService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		academicRankService:          ars,
@@ -46,6 +49,9 @@ func NewDatabaseHandler(
 		groupCohortService:           gcs,
 		groupCohortAssignmentService: gcas,
 		classroomService:             cs,
+		studyLoadService:             sls,
+		lessonSlotService:            lsl,
+		lessonOccurrenceService:      los,
 	}
 }
 
@@ -62,9 +68,17 @@ type databaseHandler struct {
 	groupCohortService           services.GroupCohortService
 	groupCohortAssignmentService services.GroupCohortAssignmentService
 	classroomService             services.ClassroomService
+	studyLoadService             services.StudyLoadService
+	lessonSlotService            services.LessonSlotService
+	lessonOccurrenceService      services.LessonOccurrenceService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.lessonSlotService.Seed(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed lesson slots: %w", err))
+		return
+	}
+
 	go func() {
 		time.Sleep(events.ExternalSeedCooldown)
 		ctx := contextutil.SetTraceID(context.Background())
@@ -122,6 +136,18 @@ func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *h
 	}
 	if err := h.groupCohortAssignmentService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear group cohort assignments: %w", err))
+		return
+	}
+	if err := h.studyLoadService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear study loads: %w", err))
+		return
+	}
+	if err := h.lessonSlotService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear lesson slots: %w", err))
+		return
+	}
+	if err := h.lessonOccurrenceService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear lesson occurrences: %w", err))
 		return
 	}
 
