@@ -5,13 +5,14 @@ import (
 	"slices"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 )
 
 // ClassroomAssigner handles assigning classrooms to lessons within the schedule generator..
 type ClassroomAssigner interface {
-	GeneratorComponent        // Basic interface for generator component.
-	AssignClassrooms()        // Performs the classroom assignment process.
-	CheckAvailability() error // Validates that classrooms can be assigned to all lessons.
+	GeneratorComponent[responses.LessonWithoutClassroom, *ClassroomAssignError] // Basic interface for generator component.
+	AssignClassrooms()                                                          // Performs the classroom assignment process.
+	CheckAvailability() error                                                   // Validates that classrooms can be assigned to all lessons.
 }
 
 // NewClassroomAssigner creates a new ClassroomAssigner instance that uses the Munkres
@@ -19,7 +20,11 @@ type ClassroomAssigner interface {
 //
 // It requires a slice of classrooms (c), a slice of lessons (l),
 // and an error service (es).
-func NewClassroomAssigner(c []*entities.Classroom, l []*entities.Lesson, es ErrorService) ClassroomAssigner {
+func NewClassroomAssigner(
+	c []*entities.Classroom,
+	l []*entities.Lesson,
+	es ErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError],
+) ClassroomAssigner {
 	lessons := make(map[entities.LessonSlot][]*entities.Lesson, 0)
 	for _, lesson := range l {
 		lessons[lesson.LessonSlot] = append(lessons[lesson.LessonSlot], lesson)
@@ -45,7 +50,7 @@ func NewClassroomAssigner(c []*entities.Classroom, l []*entities.Lesson, es Erro
 type classroomAssigner struct {
 	classrooms           []*entities.Classroom
 	lessons              map[entities.LessonSlot][]*entities.Lesson
-	errorService         ErrorService
+	errorService         ErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError]
 	busynessOfClassrooms []int
 	matrix               [][]float32 // Matrix indices: [lesson][classroom].
 	fault                float32     // Used for zero comparison.
@@ -59,10 +64,10 @@ func (ca *classroomAssigner) AssignClassrooms() {
 		lessons := ca.lessons[slot]
 		delta := n - len(lessons)
 		if delta < 0 {
-			ca.errorService.AddError(NewUnexpectedError("number of classrooms is less than number of simultaneous lessons",
+			NewUnexpectedError("number of classrooms is less than number of simultaneous lessons",
 				"ClassroomAssigner", "AssignClassrooms",
 				fmt.Errorf("classes: %d, lessons: %d, slot: %s", n, len(lessons), slot.String()),
-			))
+			)
 			return
 		}
 
@@ -209,9 +214,7 @@ func (ca *classroomAssigner) AssignClassrooms() {
 		ca.resetBusynessOfClassrooms()
 		for i := range n {
 			if !ca.dfc(i, []int{}) {
-				ca.errorService.AddError(NewUnexpectedError("could not assign a classroom to the lesson.",
-					"ClassroomAssigner", "AssignClassrooms", fmt.Errorf("lesson: %q", lessons[i].String()),
-				))
+				ca.errorService.AddError(&ClassroomAssignError{Lesson: lessons[i]})
 			}
 		}
 		// step 5.2 assign classrooms to lessons
@@ -224,9 +227,10 @@ func (ca *classroomAssigner) AssignClassrooms() {
 			}
 			err := lessons[lesson].SetClassroom(ca.classrooms[classroom])
 			if err != nil {
-				ca.errorService.AddError(newUnavailableClassroomForLessonError(
-					lessons[lesson], ca.classrooms[classroom], err,
-				))
+				NewUnexpectedError("could not assign a classroom to the lesson.",
+					"ClassroomAssigner", "AssignClassrooms", newUnavailableClassroomForLessonError(
+						lessons[lesson], ca.classrooms[classroom], err,
+					))
 			}
 		}
 	}
@@ -234,7 +238,7 @@ func (ca *classroomAssigner) AssignClassrooms() {
 func (ca *classroomAssigner) Run() {
 	ca.AssignClassrooms()
 }
-func (ca *classroomAssigner) GetErrorService() ErrorService {
+func (ca *classroomAssigner) GetErrorService() ErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError] {
 	return ca.errorService
 }
 func (ca *classroomAssigner) CheckAvailability() error {
@@ -326,9 +330,38 @@ func (e *UnavailableClassroomForLessonError) Error() string {
 		e.Classroom.RoomNumber, e.Lesson.String(), e.BasicError.Error(),
 	)
 }
-func (e *UnavailableClassroomForLessonError) GetTypeOfError() GeneratorComponentErrorTypes {
-	return ClassroomAssignerErrorType
-}
 func (e *UnavailableClassroomForLessonError) Unwrap() error {
 	return e.BasicError
+}
+
+type ClassroomAssignError struct {
+	*entities.Lesson
+}
+
+func (e *ClassroomAssignError) Error() string {
+	return fmt.Sprintf("failed to assign classroom to %s", e.Lesson.String())
+}
+func (e *ClassroomAssignError) GeneratorResponseError() responses.LessonWithoutClassroom {
+	return responses.LessonWithoutClassroom{
+		CommonLesson: responses.CommonLesson{
+			Teacher: responses.CommonEntity{
+				ID:   e.Teacher.ID,
+				Name: e.Teacher.UserName,
+			},
+			StudentGroup: responses.CommonEntity{
+				ID:   e.StudentGroup.ID,
+				Name: e.StudentGroup.Name,
+			},
+			Discipline: responses.CommonEntity{
+				ID:   e.Discipline.ID,
+				Name: e.Discipline.Name,
+			},
+			LessonType: responses.CommonEntity{
+				ID:   e.Type.ID,
+				Name: e.Type.Name,
+			},
+		},
+		Day:  e.Day,
+		Slot: e.Slot,
+	}
 }

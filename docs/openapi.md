@@ -63,6 +63,7 @@
   - [/get-study-loads](#schedule-generator-get-study-loads)
   - [/get-lessons](#schedule-generator-get-lessons)
   - [/default-generator-config](#schedule-generator-default-generator-config)
+  - [/get-fault](#schedule-generator-get-fault)
 
 - Student Service (/student)
   - [/semesters](#student-semesters)
@@ -677,7 +678,7 @@
 
 ### ANY – assign all available classrooms to bone lessons
 
-200 OK [=> BoneLessons](schemas.md#schedule-generator-bone-lessons)
+200 OK [=> BoneLessonsWithC](schemas.md#schedule-generator-bone-lessons-with-c)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -707,7 +708,7 @@
 
 ### ANY – assign all available classrooms to floating lessons
 
-200 OK [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
+200 OK [=> GeneratedLessonsWithC](schemas.md#schedule-generator-generated-lessons-with-c)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -730,6 +731,14 @@
 200 OK [=> []Lesson](schemas.md#schedule-generator-lesson)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-get-fault"></a>
+
+## /get-fault
+
+### ANY – gets calculated fault oh the generated schedule
+
+200 OK [=> Fault](schemas.md#schedule-generator-fault)
 
 <a id="schedule-generator-default-generator-config"></a>
 

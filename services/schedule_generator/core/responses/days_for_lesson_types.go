@@ -1,8 +1,8 @@
-package generatorResponses
+package responses
 
 type DaysForLessonTypes struct {
 	StudentGroups []StudentGroupWithLTypeDays `json:"student_groups"`
-	Errors        []error                     `json:"errors"`
+	Errors        []LessonTypeDayDebt         `json:"errors"`
 }
 
 type StudentGroupWithLTypeDays struct {
@@ -13,4 +13,10 @@ type StudentGroupWithLTypeDays struct {
 type LessonTypeWeekdayBinding struct {
 	CommonEntity
 	Weekday int `json:"weekday"`
+}
+
+type LessonTypeDayDebt struct {
+	StudentGroup CommonEntity `json:"student_group"`
+	LessonType   CommonEntity `json:"lesson_type"`
+	SlotsDept    float64      `json:"slots_dept"`
 }

@@ -4,25 +4,30 @@ import (
 	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 )
 
 // BoneGenerator creates the initial weekly lesson structure (“bone week”)
 // by allocating lesson slots for groups and teachers in the first week.
 type BoneGenerator interface {
-	GeneratorComponent    // Basic interface for generator component
-	GenerateBoneLessons() // Add a BoneWeekError to ErrorService if at not enough space at bone week
+	GeneratorComponent[responses.UnassignedLesson, *BoneWeekError] // Basic interface for generator component
+	GenerateBoneLessons()                                          // Add a BoneWeekError to ErrorService if at not enough space at bone week
 }
 
 // NewBoneGenerator creates a BoneGenerator instance.
 //
 // It requires the ErrorService, the list of study loads, and the LessonService.
-func NewBoneGenerator(es ErrorService, l []*entities.StudyLoad, ls services.LessonService) BoneGenerator {
+func NewBoneGenerator(
+	es ErrorService[responses.UnassignedLesson, *BoneWeekError],
+	l []*entities.StudyLoad,
+	ls services.LessonService,
+) BoneGenerator {
 	return &boneGenerator{errorService: es, loads: l, lessonService: ls}
 }
 
 type boneGenerator struct {
-	errorService  ErrorService
+	errorService  ErrorService[responses.UnassignedLesson, *BoneWeekError]
 	loads         []*entities.StudyLoad
 	lessonService services.LessonService
 }
@@ -45,7 +50,7 @@ func (bg *boneGenerator) GenerateBoneLessons() {
 			day := studentGroup.GetNextDayOfType(lessonType, offset)
 			if day > 7 || day < 0 {
 				// якщо день був не на кістковому тижні, виникає виняток, який треба обробити якось
-				bg.errorService.AddError(&BoneWeekError{UnassignedLesson: load.UnassignedLesson})
+				bg.errorService.AddError(&BoneWeekError{StudyLoad: load})
 				break
 			}
 
@@ -56,12 +61,12 @@ func (bg *boneGenerator) GenerateBoneLessons() {
 				slot := entities.LessonSlot{Day: day, Slot: lessonSlot}
 				err := bg.lessonService.AssignLesson(load, slot)
 				if err != nil {
-					bg.errorService.AddError(NewUnexpectedError("slot is busy but algorithm determined it as free",
+					NewUnexpectedError("slot is busy but algorithm determined it as free",
 						"boneGenerator", "GenerateBoneLessons", &FalseFreeSlotError{
 							UnassignedLesson: load.UnassignedLesson,
 							slot:             slot,
 							err:              err,
-						}))
+						})
 				}
 				success = true
 			}
@@ -75,7 +80,7 @@ func (bg *boneGenerator) GenerateBoneLessons() {
 func (bg *boneGenerator) Run() {
 	bg.GenerateBoneLessons()
 }
-func (bg *boneGenerator) GetErrorService() ErrorService {
+func (bg *boneGenerator) GetErrorService() ErrorService[responses.UnassignedLesson, *BoneWeekError] {
 	return bg.errorService
 }
 
@@ -86,15 +91,35 @@ func (bg *boneGenerator) GetErrorService() ErrorService {
 // BoneWeekError indicates that the BoneGenerator failed to allocate
 // enough space for lessons within the bone week.
 type BoneWeekError struct {
-	entities.UnassignedLesson
+	*entities.StudyLoad
 }
 
 func (e *BoneWeekError) Error() string {
 	return fmt.Sprintf("Not enough space in bone week of %s or %s for %s %s.",
 		e.StudentGroup.Name, e.Teacher.UserName, e.Type.Name, e.Discipline.Name)
 }
-func (e *BoneWeekError) GetTypeOfError() GeneratorComponentErrorTypes {
-	return BoneWeekErrorType
+func (e *BoneWeekError) GeneratorResponseError() responses.UnassignedLesson {
+	return responses.UnassignedLesson{
+		CommonLesson: responses.CommonLesson{
+			Teacher: responses.CommonEntity{
+				ID:   e.Teacher.ID,
+				Name: e.Teacher.UserName,
+			},
+			StudentGroup: responses.CommonEntity{
+				ID:   e.StudentGroup.ID,
+				Name: e.StudentGroup.Name,
+			},
+			Discipline: responses.CommonEntity{
+				ID:   e.Discipline.ID,
+				Name: e.Discipline.Name,
+			},
+			LessonType: responses.CommonEntity{
+				ID:   e.Type.ID,
+				Name: e.Type.Name,
+			},
+		},
+		Count: 1,
+	}
 }
 
 // FalseFreeSlotError indicates that slot is busy but algorithm determined it as free.
