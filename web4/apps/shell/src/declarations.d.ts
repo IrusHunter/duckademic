@@ -1,0 +1,7 @@
+declare module 'authApp/AuthApp'
+declare module 'classroomApp/ClassroomApp'
+declare module 'dashboardApp/DashboardApp'
+declare module 'gradesApp/GradesApp'
+declare module 'homeApp/HomeApp'
+declare module 'messengerApp/MessengerApp'
+declare module 'scheduleApp/ScheduleApp'
