@@ -10,16 +10,20 @@ export default defineConfig({
       remotes: {
         authApp: 'http://localhost:5001/assets/remoteEntry.js',
         classroomApp: 'http://localhost:5002/assets/remoteEntry.js',
-        dashboardApp: 'http://localhost:5003/assets/remoteEntry.js',
-        gradesApp: 'http://localhost:5004/assets/remoteEntry.js',
-        homeApp: 'http://localhost:5005/assets/remoteEntry.js',
-        messengerApp: 'http://localhost:5006/assets/remoteEntry.js',
-        scheduleApp: 'http://localhost:5007/assets/remoteEntry.js'
+        homeApp: 'http://localhost:5006/assets/remoteEntry.js',
       },
-      shared: ['react', 'react-dom']
+      shared: {
+        react: {
+          singleton: true,
+          requiredVersion: '^19.0.0'
+        } as any,
+        'react-dom': {
+          singleton: true,
+          requiredVersion: '^19.0.0'
+        } as any
+      }
     })
   ],
-  server: {
-    port: 5000
-  }
+  build: { target: 'esnext' },
+  server: { port: 5000 }
 })

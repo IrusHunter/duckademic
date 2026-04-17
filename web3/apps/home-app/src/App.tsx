@@ -1,11 +1,5 @@
 import './App.css'
 
-function App() {
-  return (
-    <div>
-      <p>Home page</p>
-    </div>
-  )
+export default function App() {
+  return <div>Home page</div>
 }
-
-export default App
