@@ -42,6 +42,7 @@
   - [/study-loads](#schedule-study-loads)
   - [/lesson-slots](#schedule-lesson-slots)
   - [/lesson-occurrences](#schedule-lesson-occurrences)
+  - [/extract-data-from-generator](#schedule-extract-data-from-generator)
 
 - Schedule Generator Service (/schedule-generator)
   - [/init](#schedule-generator-init)
@@ -488,6 +489,16 @@
 ### GET - gets all lesson occurrences from the database
 
 200 OK [=> LessonOccurrence[]](schemas.md#schedule-lesson-occurrence)
+
+<a id="schedule-extract-data-from-generator"></a>
+
+## /extract-data-from-generator
+
+### GET - extracts study loads and lessons from schedule generator
+
+200 OK
+
+500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Schedule Generator Service
 

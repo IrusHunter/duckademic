@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
 	resthandlers "github.com/IrusHunter/duckademic/services/schedule/rest_handlers"
@@ -40,6 +41,11 @@ func main() {
 	}
 	eventBus := events.NewEventBus(rdc)
 
+	scheduleGeneratorDomain := envutil.GetStringFromENV("SCHEDULE_GENERATOR_SERVICE")
+	if scheduleGeneratorDomain == "" {
+		log.Fatalf("SCHEDULE_GENERATOR_SERVICE not specified at .env file")
+	}
+
 	academicRankRepository := repositories.NewAcademicRankRepository(database)
 	teacherRepository := repositories.NewTeacherRepository(database)
 	disciplineRepository := repositories.NewDisciplineRepository(database)
@@ -71,7 +77,7 @@ func main() {
 	classroomService := services.NewClassroomService(classroomRepository, eventBus)
 	studyLoadService := services.NewStudyLoadService(studyLoadRepository)
 	lessonSlotService := services.NewLessonSlotService(lessonSlotRepository)
-	lessonOccurrenceService := services.NewLessonOccurrenceService(lessonOccurrenceRepository)
+	lessonOccurrenceService := services.NewLessonOccurrenceService(lessonOccurrenceRepository, lessonSlotRepository)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
@@ -88,10 +94,10 @@ func main() {
 	studyLoadHandler := resthandlers.NewStudyLoadHandler(studyLoadService)
 	lessonSlotHandler := resthandlers.NewLessonSlotHandler(lessonSlotService)
 	lessonOccurrenceHandler := resthandlers.NewLessonOccurrenceHandler(lessonOccurrenceService)
-	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, teacherService, disciplineService, lessonTypeService,
-		lessonTypeAssignmentService, studentService, studentGroupService, groupMemberService, teacherLoadService,
-		groupCohortService, groupCohortAssignmentService, classroomService, studyLoadService, lessonSlotService,
-		lessonOccurrenceService)
+	databaseHandler := resthandlers.NewDatabaseHandler(http.DefaultClient, scheduleGeneratorDomain, academicRankService,
+		teacherService, disciplineService, lessonTypeService, lessonTypeAssignmentService, studentService, studentGroupService,
+		groupMemberService, teacherLoadService, groupCohortService, groupCohortAssignmentService, classroomService,
+		studyLoadService, lessonSlotService, lessonOccurrenceService)
 
 	restapi := NewRESTAPI(academicRankHandler, teacherHandler, disciplineHandler, lessonTypeHandler,
 		lessonTypeAssignmentHandler, studentHandler, studentGroupHandler, groupMemberHandler, teacherLoadHandler,

@@ -130,13 +130,6 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet: ra.NewDefaultHandler(ra.classroomHandler.GetAll),
 	})
 
-	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
-		ra.NewDefaultHandler(ra.databaseHandler.Seed)(r.Context(), w, r)
-	})
-	http.HandleFunc("/clear", func(w http.ResponseWriter, r *http.Request) {
-		ra.NewDefaultHandler(ra.databaseHandler.Clear)(r.Context(), w, r)
-	})
-
 	ra.NewRoute("/study-loads", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.studyLoadHandler.GetAll),
 	})
@@ -147,6 +140,17 @@ func (ra *restapi) Run(port int) error {
 
 	ra.NewRoute("/lesson-occurrences", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandler(ra.lessonOccurrenceHandler.GetAll),
+	})
+
+	http.HandleFunc("/extract-data-from-generator", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.databaseHandler.ExtractDataFromGenerator)(r.Context(), w, r)
+	})
+
+	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.databaseHandler.Seed)(r.Context(), w, r)
+	})
+	http.HandleFunc("/clear", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.databaseHandler.Clear)(r.Context(), w, r)
 	})
 
 	log.Printf("Server start at port %d \n", port)
