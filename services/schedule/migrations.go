@@ -19,11 +19,11 @@ func Migrate(database *sqlx.DB) error {
 		lessonTypeMigrations,
 		lessonTypeAssignmentMigrations,
 		studentMigrations,
-		groupMembersMigrations,
 		teacherLoadMigrations,
 		groupCohortMigrations,
 		studentGroupMigrations,
 		groupCohortAssignmentMigrations,
+		groupMembersMigrations,
 		classroomMigrations,
 		studyLoadMigrations,
 		lessonSlotMigrations,
@@ -464,9 +464,9 @@ func studyLoadMigrations(database *sqlx.DB) error {
 		return fmt.Errorf("failed to create study_loads relation: %w", err)
 	}
 
-	constraint := `
-	ALTER TABLE study_loads
-	ADD CONSTRAINT uq_study_load UNIQUE (
+	index := `
+	CREATE UNIQUE INDEX IF NOT EXISTS uq_study_load
+	ON study_loads (
 		teacher_id,
 		student_group_id,
 		discipline_id,
@@ -474,8 +474,8 @@ func studyLoadMigrations(database *sqlx.DB) error {
 	);
 	`
 
-	if _, err := database.Exec(constraint); err != nil {
-		return fmt.Errorf("failed to add unique constraint to study_loads: %w", err)
+	if _, err := database.Exec(index); err != nil {
+		return fmt.Errorf("failed to add unique index to study_loads: %w", err)
 	}
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "study_loads"); err != nil {

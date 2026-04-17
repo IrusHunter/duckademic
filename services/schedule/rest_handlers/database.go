@@ -2,14 +2,17 @@ package resthandlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/services/schedule/services"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
+	"github.com/IrusHunter/duckademic/shared/logger"
 )
 
 // DatabaseHandler represents a handler responsible for database-related HTTP operations.
@@ -17,9 +20,12 @@ type DatabaseHandler interface {
 	// Performs database seeding operations, initializing required data.
 	Seed(context.Context, http.ResponseWriter, *http.Request)
 	Clear(context.Context, http.ResponseWriter, *http.Request)
+	ExtractDataFromGenerator(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewDatabaseHandler(
+	httpC *http.Client,
+	sgd string,
 	ars services.AcademicRankService,
 	ts services.TeacherService,
 	ds services.DisciplineService,
@@ -37,6 +43,9 @@ func NewDatabaseHandler(
 	los services.LessonOccurrenceService,
 ) DatabaseHandler {
 	return &databaseHandler{
+		httpClient:                   httpC,
+		scheduleGeneratorDomain:      sgd,
+		logger:                       logger.NewLogger("DatabaseHandler.txt", "DatabaseHandler"),
 		academicRankService:          ars,
 		teacherService:               ts,
 		disciplineService:            ds,
@@ -56,6 +65,9 @@ func NewDatabaseHandler(
 }
 
 type databaseHandler struct {
+	httpClient                   *http.Client
+	scheduleGeneratorDomain      string
+	logger                       logger.Logger
 	academicRankService          services.AcademicRankService
 	teacherService               services.TeacherService
 	disciplineService            services.DisciplineService
@@ -152,4 +164,59 @@ func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *h
 	}
 
 	jsonutil.ResponseWithJSON(w, 204, nil)
+}
+func (h *databaseHandler) ExtractDataFromGenerator(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	url := "http://" + h.scheduleGeneratorDomain + "/get-study-loads"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError,
+			fmt.Errorf("failed to create request %q: %w", url, err),
+		)
+	}
+
+	resp, err := h.httpClient.Do(req)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("request failed: %w", err))
+		return
+	}
+
+	studyLoads := []entities.StudyLoad{}
+	if err := json.NewDecoder(resp.Body).Decode(&studyLoads); err != nil {
+		jsonutil.ResponseWithError(w, 500, err)
+		return
+	}
+	resp.Body.Close()
+
+	if err := h.studyLoadService.AddMultiple(ctx, studyLoads); err != nil {
+		jsonutil.ResponseWithError(w, 500, err)
+		return
+	}
+
+	url = "http://" + h.scheduleGeneratorDomain + "/get-lessons"
+	req, err = http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError,
+			fmt.Errorf("failed to create request %q: %w", url, err),
+		)
+	}
+
+	resp, err = h.httpClient.Do(req)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("request failed: %w", err))
+		return
+	}
+
+	externalL := []entities.ExternalLesson{}
+	if err := json.NewDecoder(resp.Body).Decode(&externalL); err != nil {
+		jsonutil.ResponseWithError(w, 500, err)
+		return
+	}
+	resp.Body.Close()
+
+	if err := h.lessonOccurrenceService.AddFromExternal(ctx, externalL); err != nil {
+		jsonutil.ResponseWithError(w, 500, err)
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, nil)
 }
