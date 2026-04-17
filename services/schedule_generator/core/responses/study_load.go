@@ -1,4 +1,4 @@
-package generatorResponses
+package responses
 
 import "github.com/google/uuid"
 

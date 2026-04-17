@@ -4,25 +4,29 @@ import (
 	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 )
 
 // MissingLessonsAdder adds missing lessons to the first available day
 // in both the teacher's and the student group's schedules.
 type MissingLessonsAdder interface {
-	GeneratorComponent  // Basic interface for generator component
-	AddMissingLessons() // Add a MissingLessonsAdderError to ErrorService
+	GeneratorComponent[responses.UnassignedLesson, *MissingLessonsAdderError] // Basic interface for generator component
+	AddMissingLessons()                                                       // Add a MissingLessonsAdderError to ErrorService
 }
 
 // NewMissingLessonAdder creates a MissingLessonsAdder instance.
 // It requires an ErrorService, a list of study loads and a LessonService.
-func NewMissingLessonAdder(es ErrorService, l []*entities.StudyLoad, ls services.LessonService) MissingLessonsAdder {
+func NewMissingLessonAdder(
+	es ErrorService[responses.UnassignedLesson, *MissingLessonsAdderError],
+	l []*entities.StudyLoad,
+	ls services.LessonService,
+) MissingLessonsAdder {
 	return &missingLessonsAdder{errorService: es, loads: l, lessonService: ls}
 }
 
 type missingLessonsAdder struct {
-	errorService ErrorService
-	// teachers      []*entities.Teacher
+	errorService  ErrorService[responses.UnassignedLesson, *MissingLessonsAdderError]
 	loads         []*entities.StudyLoad
 	lessonService services.LessonService
 }
@@ -65,7 +69,8 @@ func (ma *missingLessonsAdder) AddMissingLessons() {
 
 		if !load.IsEnoughHours() {
 			ma.errorService.AddError(&MissingLessonsAdderError{
-				UnassignedLesson: load.UnassignedLesson,
+				StudyLoad: load,
+				Count:     load.GetRequiredSlots(),
 			})
 		}
 	}
@@ -77,21 +82,41 @@ func (ma *missingLessonsAdder) Run() {
 	ma.AddMissingLessons()
 }
 
-func (ma *missingLessonsAdder) GetErrorService() ErrorService {
+func (ma *missingLessonsAdder) GetErrorService() ErrorService[responses.UnassignedLesson, *MissingLessonsAdderError] {
 	return ma.errorService
 }
 
 // MissingLessonsAdderError indicates that the MissingLessonsAdder failed to
 // find free slot in the grids for missing lesson.
 type MissingLessonsAdderError struct {
-	entities.UnassignedLesson
+	*entities.StudyLoad
+	Count int
 }
 
 func (e *MissingLessonsAdderError) Error() string {
 	return fmt.Sprintf("Not enough space of %s or %s for %s %s.",
 		e.StudentGroup.Name, e.Teacher.UserName, e.Type.Name, e.Discipline.Name)
 }
-
-func (e *MissingLessonsAdderError) GetTypeOfError() GeneratorComponentErrorTypes {
-	return MissingLessonsAdderErrorType
+func (e *MissingLessonsAdderError) GeneratorResponseError() responses.UnassignedLesson {
+	return responses.UnassignedLesson{
+		CommonLesson: responses.CommonLesson{
+			Teacher: responses.CommonEntity{
+				ID:   e.Teacher.ID,
+				Name: e.Teacher.UserName,
+			},
+			StudentGroup: responses.CommonEntity{
+				ID:   e.StudentGroup.ID,
+				Name: e.StudentGroup.Name,
+			},
+			Discipline: responses.CommonEntity{
+				ID:   e.Discipline.ID,
+				Name: e.Discipline.Name,
+			},
+			LessonType: responses.CommonEntity{
+				ID:   e.Type.ID,
+				Name: e.Type.Name,
+			},
+		},
+		Count: e.Count,
+	}
 }

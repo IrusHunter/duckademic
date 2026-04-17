@@ -468,20 +468,21 @@
           "weekday": "integer (weekday number, e.g., 1 = Monday)"
         }
       ]
-    },
-    {
-      "id": "uuid (unique identifier of the student group)",
-      "name": "string (name of the student group)",
-      "weekday_lesson_types": [
-        {
-          "id": "uuid (unique identifier of the lesson type)",
-          "name": "string (name of the lesson type)",
-          "weekday": "integer (weekday number, e.g., 2 = Tuesday)"
-        }
-      ]
     }
   ],
-  "errors": ["string (error message, if any)"]
+  "errors": [
+    {
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "slots_dept": "number (float value representing slots debt)"
+    }
+  ]
 }
 ```
 
@@ -510,16 +511,87 @@
         "name": "string (name of the lesson type)"
       },
       "day": "integer (weekday number, e.g., 1 = Monday)",
-      "slot": "integer (lesson slot number in the day)",
-
-      // Optional fields
-      "classroom": {
-        "id": "uuid (unique identifier of the classroom)",
-        "name": "string (name of the classroom)"
-      }
+      "slot": "integer (lesson slot number in the day)"
     }
   ],
-  "errors": ["string (error message, if any)"]
+  "errors": [
+    {
+      "teacher": {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (name of the teacher)"
+      },
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "discipline": {
+        "id": "uuid (unique identifier of the discipline)",
+        "name": "string (name of the discipline)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "count": "integer (number of unassigned lessons)"
+    }
+  ]
+}
+```
+
+<a id="schedule-generator-bone-lessons-with-c"></a>
+
+### Bone Lessons With C
+
+```json
+{
+  "lessons_with_classroom": [
+    {
+      "teacher": {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (name of the teacher)"
+      },
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "discipline": {
+        "id": "uuid (unique identifier of the discipline)",
+        "name": "string (name of the discipline)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "classroom": {
+        "id": "uuid (unique identifier of the classroom)",
+        "name": "string (name/number of the classroom)"
+      },
+      "day": "integer (weekday number, e.g., 1 = Monday)",
+      "slot": "integer (lesson slot number in the day)"
+    }
+  ],
+  "lessons_without_classroom": [
+    {
+      "teacher": {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (name of the teacher)"
+      },
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "discipline": {
+        "id": "uuid (unique identifier of the discipline)",
+        "name": "string (name of the discipline)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "day": "integer (weekday number, e.g., 1 = Monday)",
+      "slot": "integer (lesson slot number in the day)"
+    }
+  ]
 }
 ```
 
@@ -557,7 +629,84 @@
       }
     }
   ],
-  "errors": ["string (error message, if any)"]
+  "errors": [
+    {
+      "teacher": {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (name of the teacher)"
+      },
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "discipline": {
+        "id": "uuid (unique identifier of the discipline)",
+        "name": "string (name of the discipline)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "count": "integer (number of unassigned lessons)"
+    }
+  ]
+}
+```
+
+<a id="schedule-generator-generated-lessons-with-c"></a>
+
+### Generated Lessons With C
+
+```json
+{
+  "lessons_with_classroom": [
+    {
+      "teacher": {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (name of the teacher)"
+      },
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "discipline": {
+        "id": "uuid (unique identifier of the discipline)",
+        "name": "string (name of the discipline)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "classroom": {
+        "id": "uuid (unique identifier of the classroom)",
+        "name": "string (name/number of the classroom)"
+      },
+      "days": ["integer (day number of similar lessons at same weekday)"],
+      "slot": "integer (lesson slot number in the day)"
+    }
+  ],
+  "lessons_without_classroom": [
+    {
+      "teacher": {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (name of the teacher)"
+      },
+      "student_group": {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (name of the student group)"
+      },
+      "discipline": {
+        "id": "uuid (unique identifier of the discipline)",
+        "name": "string (name of the discipline)"
+      },
+      "lesson_type": {
+        "id": "uuid (unique identifier of the lesson type)",
+        "name": "string (name of the lesson type)"
+      },
+      "day": "integer (weekday number, e.g., 1 = Monday)",
+      "slot": "integer (lesson slot number in the day)"
+    }
+  ]
 }
 ```
 
@@ -590,6 +739,16 @@
 
   // Optional field
   "classroom_id": "uuid (unique identifier of the classroom)"
+}
+```
+
+<a id="schedule-generator-fault"></a>
+
+### Fault
+
+```json
+{
+  "total_value": "double (sum of the generator's fault values)"
 }
 ```
 

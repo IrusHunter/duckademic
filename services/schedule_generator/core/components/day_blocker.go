@@ -5,17 +5,24 @@ import (
 	"slices"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 )
 
 // DayBlocker selects days for student groups
 type DayBlocker interface {
-	GeneratorComponent // Basic interface for generator component
-	SetDayTypes()      // Add a SetDayTypeError to ErrorService if at not enough days per group
+	// Basic interface for generator component
+	GeneratorComponent[responses.LessonTypeDayDebt, *SetDayTypeError]
+	// Add a SetDayTypeError to ErrorService if at not enough days per group
+	SetDayTypes()
 }
 
 // NewDayBlocker creates a DayBlocker instance.
 // It requires an ErrorService and a list of student groups.
-func NewDayBlocker(sg []*entities.StudentGroup, es ErrorService, w int, lfr float64) DayBlocker {
+func NewDayBlocker(
+	sg []*entities.StudentGroup,
+	es ErrorService[responses.LessonTypeDayDebt, *SetDayTypeError],
+	w int, lfr float64,
+) DayBlocker {
 	db := dayBlocker{
 		errorService:   es,
 		weekCount:      w,
@@ -53,8 +60,8 @@ func newGroupExtension(group *entities.StudentGroup) *groupExtension {
 }
 
 type dayBlocker struct {
-	groupExtensions []groupExtension // StudentGroup collection
-	errorService    ErrorService     // Collection for errors
+	groupExtensions []groupExtension
+	errorService    ErrorService[responses.LessonTypeDayDebt, *SetDayTypeError]
 	weekCount       int
 	lessonFillRate  float64
 }
@@ -86,8 +93,9 @@ func (db *dayBlocker) SetDayTypes() {
 						StudentGroup:  group.group,
 						DayPriorities: group.dayPriorities,
 						AvailableDays: availableDays,
+						SlotsDept:     requiredSlots,
 					})
-					break // continue with next group
+					break // continue with next lesson type for group
 				}
 
 				// if an error occurs, ignore this day, delete it from available days, continue the search
@@ -106,11 +114,9 @@ func (db *dayBlocker) SetDayTypes() {
 	}
 }
 
-func (db *dayBlocker) GetErrorService() ErrorService {
+func (db *dayBlocker) GetErrorService() ErrorService[responses.LessonTypeDayDebt, *SetDayTypeError] {
 	return db.errorService
 }
-
-// Redirect to SetDayTypes function
 func (db *dayBlocker) Run() {
 	db.SetDayTypes()
 }
@@ -141,12 +147,22 @@ type SetDayTypeError struct {
 	StudentGroup  *entities.StudentGroup
 	DayPriorities []float32
 	AvailableDays []int
+	SlotsDept     float64
 }
 
 func (e *SetDayTypeError) Error() string {
 	return fmt.Sprintf("can't add a day of type %s to group %s", e.LessonType.Name, e.StudentGroup.Name)
 }
-
-func (e *SetDayTypeError) GetTypeOfError() GeneratorComponentErrorTypes {
-	return SetDayTypeErrorType
+func (e *SetDayTypeError) GeneratorResponseError() responses.LessonTypeDayDebt {
+	return responses.LessonTypeDayDebt{
+		StudentGroup: responses.CommonEntity{
+			ID:   e.StudentGroup.ID,
+			Name: e.StudentGroup.Name,
+		},
+		LessonType: responses.CommonEntity{
+			ID:   e.LessonType.ID,
+			Name: e.LessonType.Name,
+		},
+		SlotsDept: e.SlotsDept,
+	}
 }
