@@ -59,3 +59,50 @@ data/
 
 sus_file.go
 schedule-output/
+
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Vite / frontend cache
+.vite/
+.cache/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.docker
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Docker (optional)
+docker-compose.override.yml
+
+# Coverage reports (tests)
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional local config files
+*.local
