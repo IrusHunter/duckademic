@@ -8,11 +8,10 @@ import (
 
 // LessonType represents type of lessons.
 type LessonType struct {
-	ID          uuid.UUID // Unique identifier of the LessonType.
-	Name        string    // Human-readable identifier of the LessonType.
-	Weeks       []int     // List of week numbers when only this type can be assigned.
-	Value       int       // Number of academic hours assigned to this LessonType
-	DayRequired int       // <-- NOT RESPONSIBILITY OF THIS OBJECT
+	ID    uuid.UUID // Unique identifier of the LessonType.
+	Name  string    // Human-readable identifier of the LessonType.
+	Weeks []int     // List of week numbers when only this type can be assigned.
+	Value int       // Number of academic hours assigned to this LessonType
 }
 
 // ==========================================================================================================
