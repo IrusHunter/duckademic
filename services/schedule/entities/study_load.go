@@ -42,3 +42,14 @@ func (s StudyLoad) String() string {
 func (StudyLoad) TableName() string {
 	return "study_loads"
 }
+
+type CompactStudyLoad struct {
+	TeacherID        uuid.UUID
+	TeacherName      string
+	StudentGroupID   uuid.UUID
+	StudentGroupName string
+	DisciplineID     uuid.UUID
+	DisciplineName   string
+	LessonTypeID     uuid.UUID
+	LessonTypeName   string
+}

@@ -1086,3 +1086,18 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+## Auth Service
+
+<a id="auth-permission"></a>
+
+### Permission
+
+```json
+{
+  "id": "uuid (unique identifier of the classroom)",
+  "name": "string (unique name of the permission)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

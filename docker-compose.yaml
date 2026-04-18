@@ -15,6 +15,7 @@ services:
       - teacher-load-service
       - schedule-generator-service
       - asset-service
+      - auth-service
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -92,3 +93,12 @@ services:
     environment:
     - DOCKER_ENV=true
   
+  
+  auth-service:
+    build: ./services/auth
+    expose:
+      - "10009"
+    env_file:
+      - ./services/auth/.env.docker
+    environment:
+    - DOCKER_ENV=true

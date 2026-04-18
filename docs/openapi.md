@@ -15,99 +15,119 @@
 ### ANY - routes and proxies incoming requests to the appropriate backend service based on the request path.
 
 - Employee Service (/employee)
-  - [/academic-ranks](#employee-academic-ranks)
-  - [/academic-rank/{id}](#employee-academic-rank-id)
-  - [/academic-degrees](#employee-academic-degrees)
-  - [/academic-degree/{id}](#employee-academic-degree-id)
-  - [/employees](#employee-employees)
-  - [/employee/{id}](#employee-employee-id)
-  - [/teachers](#employee-teachers)
-  - [/teacher/{id}](#employee-teacher-id)
+  - Source of Truth
+    - [/academic-ranks](#employee-academic-ranks)
+    - [/academic-rank/{id}](#employee-academic-rank-id)
+    - [/academic-degrees](#employee-academic-degrees)
+    - [/academic-degree/{id}](#employee-academic-degree-id)
+    - [/employees](#employee-employees)
+    - [/employee/{id}](#employee-employee-id)
+    - [/teachers](#employee-teachers)
+    - [/teacher/{id}](#employee-teacher-id)
 
 - Schedule Service (/schedule)
-  - [/academic-ranks](#schedule-academic-ranks)
-  - [/academic-rank/{id}](#schedule-academic-rank-id)
-  - [/lesson-types](#schedule-lesson-types)
-  - [/lesson-type/{id}](#schedule-lesson-type-id)
-  - [/teachers](#schedule-teachers)
-  - [/disciplines](#schedule-disciplines)
-  - [/lesson-type-assignments](#schedule-lesson-type-assignments)
-  - [/students](#schedule-students)
-  - [/student-groups](#schedule-student-groups)
-  - [/group_members](#schedule-group-members)
-  - [/teacher-loads](#schedule-teacher-loads)
-  - [/group-cohorts](#schedule-group-cohorts)
-  - [/group-cohort-assignments](#schedule-group-cohort-assignments)
-  - [/classrooms](#schedule-classrooms)
-  - [/study-loads](#schedule-study-loads)
-  - [/lesson-slots](#schedule-lesson-slots)
-  - [/lesson-occurrences](#schedule-lesson-occurrences)
-  - [/extract-data-from-generator](#schedule-extract-data-from-generator)
+  - Enriched View
+    - [/academic-ranks](#schedule-academic-ranks)
+    - [/academic-rank/{id}](#schedule-academic-rank-id)
+    - [/lesson-types](#schedule-lesson-types)
+    - [/lesson-type/{id}](#schedule-lesson-type-id)
+  - Mirror
+    - [/teachers](#schedule-teachers)
+    - [/disciplines](#schedule-disciplines)
+    - [/lesson-type-assignments](#schedule-lesson-type-assignments)
+    - [/students](#schedule-students)
+    - [/student-groups](#schedule-student-groups)
+    - [/group_members](#schedule-group-members)
+    - [/teacher-loads](#schedule-teacher-loads)
+    - [/group-cohorts](#schedule-group-cohorts)
+    - [/group-cohort-assignments](#schedule-group-cohort-assignments)
+    - [/classrooms](#schedule-classrooms)
+    - [/study-loads](#schedule-study-loads)
+    - [/lesson-slots](#schedule-lesson-slots)
+    - [/lesson-occurrences](#schedule-lesson-occurrences)
+  - Schedule Generator Integration
+    - [/extract-data-from-generator](#schedule-extract-data-from-generator)
 
 - Schedule Generator Service (/schedule-generator)
-  - [/init](#schedule-generator-init)
-  - [/set-teachers](#schedule-generator-set-teachers)
-  - [/set-disciplines](#schedule-generator-set-disciplines)
-  - [/set-lesson-types](#schedule-generator-set-lesson-types)
-  - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
-  - [/set-student-groups](#schedule-generator-set-student-groups)
-  - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
-  - [/set-classrooms](#schedule-generator-set-classrooms)
-  - [/submit-and-go](#schedule-generator-submit-and-go)
-  - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
-  - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
-  - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
-  - [/build-schedule-skeleton](#schedule-generator-build-schedule-skeleton)
-  - [/add-floating-lessons](#schedule-generator-add-floating-lessons)
-  - [/assign-classrooms-to-floating-lessons](#schedule-generator-assign-classrooms-to-floating-lessons)
-  - [/get-study-loads](#schedule-generator-get-study-loads)
-  - [/get-lessons](#schedule-generator-get-lessons)
-  - [/default-generator-config](#schedule-generator-default-generator-config)
-  - [/get-fault](#schedule-generator-get-fault)
+  - Source of Truth
+    - [/default-generator-config](#schedule-generator-default-generator-config)
+  - Generation Pipeline
+    - [/init](#schedule-generator-init)
+    - [/submit-and-go](#schedule-generator-submit-and-go)
+    - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
+    - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
+    - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
+    - [/build-schedule-skeleton](#schedule-generator-build-schedule-skeleton)
+    - [/add-floating-lessons](#schedule-generator-add-floating-lessons)
+    - [/assign-classrooms-to-floating-lessons](#schedule-generator-assign-classrooms-to-floating-lessons)
+    - [/get-study-loads](#schedule-generator-get-study-loads)
+    - [/get-lessons](#schedule-generator-get-lessons)
+    - [/get-fault](#schedule-generator-get-fault)
+  - Internal
+    - [/set-teachers](#schedule-generator-set-teachers)
+    - [/set-disciplines](#schedule-generator-set-disciplines)
+    - [/set-lesson-types](#schedule-generator-set-lesson-types)
+    - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
+    - [/set-student-groups](#schedule-generator-set-student-groups)
+    - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
+    - [/set-classrooms](#schedule-generator-set-classrooms)
 
 - Student Service (/student)
-  - [/semesters](#student-semesters)
-  - [/students](#student-students)
-  - [/student/{id}](#student-student-id)
+  - Source of Truth
+    - [/student/{id}](#student-student-id)
+  - Mirror
+    - [/semesters](#student-semesters)
+    - [/students](#student-students)
 
 - Student Group Service (/student-group)
-  - [/semesters](#student-group-semesters)
-  - [/students](#student-group-students)
-  - [/group-cohorts](#student-group-group-cohorts)
-  - [/group-cohort/{id}](#student-group-group-cohort-id)
-  - [/student-groups](#student-group-student-groups)
-  - [/student-group/{id}](#student-group-student-group-id)
-  - [/group-members](#student-group-group-members)
-  - [/group-member/{id}](#student-group-group-member-id)
-  - [/lesson-types](#student-group-lesson-types)
-  - [/disciplines](#student-group-disciplines)
-  - [/group-cohort-assignments](#student-group-group-cohort-assignments)
-  - [/group-cohort-assignment/{id}](#student-group-group-cohort-assignment)
+  - Source of Truth
+    - [/group-cohorts](#student-group-group-cohorts)
+    - [/group-cohort/{id}](#student-group-group-cohort-id)
+    - [/student-groups](#student-group-student-groups)
+    - [/student-group/{id}](#student-group-student-group-id)
+    - [/group-members](#student-group-group-members)
+    - [/group-member/{id}](#student-group-group-member-id)
+    - [/group-cohort-assignments](#student-group-group-cohort-assignments)
+    - [/group-cohort-assignment/{id}](#student-group-group-cohort-assignment)
+  - Mirror
+    - [/semesters](#student-group-semesters)
+    - [/students](#student-group-students)
+    - [/lesson-types](#student-group-lesson-types)
+    - [/disciplines](#student-group-disciplines)
 
 - Curriculum Service (/curriculum)
-  - [/curriculums](#curriculum-curriculum)
-  - [/curriculum/{id}](#curriculum-curriculum-id)
-  - [/semesters](#curriculum-semesters)
-  - [/semester/{id}](#curriculum-semester-id)
-  - [/lesson-types](#curriculum-lesson-types)
-  - [/lesson-type/{id}](#curriculum-lesson-type-id)
-  - [/disciplines](#curriculum-disciplines)
-  - [/discipline/{id}](#curriculum-discipline-id)
-  - [/lesson-type-assignments](#curriculum-lesson-type-assignments)
-  - [/lesson-type-assignment/{id}](#curriculum-lesson-type-assignment-id)
-  - [/semester-disciplines](#curriculum-semester-disciplines)
-  - [/semester-discipline/{id}](#curriculum-semester-discipline-id)
+  - Source of Truth
+    - [/curriculums](#curriculum-curriculum)
+    - [/curriculum/{id}](#curriculum-curriculum-id)
+    - [/semesters](#curriculum-semesters)
+    - [/semester/{id}](#curriculum-semester-id)
+    - [/lesson-types](#curriculum-lesson-types)
+    - [/lesson-type/{id}](#curriculum-lesson-type-id)
+    - [/disciplines](#curriculum-disciplines)
+    - [/discipline/{id}](#curriculum-discipline-id)
+    - [/lesson-type-assignments](#curriculum-lesson-type-assignments)
+    - [/lesson-type-assignment/{id}](#curriculum-lesson-type-assignment-id)
+    - [/semester-disciplines](#curriculum-semester-disciplines)
+    - [/semester-discipline/{id}](#curriculum-semester-discipline-id)
 
 - Teacher Load Service (/teacher-load)
-  - [/teachers](#teacher-load-teachers)
-  - [/lesson-types](#teacher-load-lesson-types)
-  - [/disciplines](#teacher-load-disciplines)
-  - [/teacher-loads](#teacher-load-teacher-loads)
-  - [/teacher-load/{id}](#teacher-load-teacher-load-id)
+  - Source of Truth
+    - [/teacher-loads](#teacher-load-teacher-loads)
+    - [/teacher-load/{id}](#teacher-load-teacher-load-id)
+  - Mirror
+    - [/teachers](#teacher-load-teachers)
+    - [/lesson-types](#teacher-load-lesson-types)
+    - [/disciplines](#teacher-load-disciplines)
 
 - Asset Service (/asset)
-  - [/classrooms](#employee-classrooms)
-  - [/classroom/{id}](#employee-classroom)
+  - Source of Truth
+    - [/classrooms](#employee-classrooms)
+    - [/classroom/{id}](#employee-classroom)
+
+- Auth Service (/auth)
+  - Source of Truth
+    - [/permissions](#curriculum-permissions)
+    - [/permission/{id}](#curriculum-permission-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -1493,5 +1513,55 @@
 ```
 
 200 OK [=> Classroom](schemas.md#asset-classroom)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+# Auth Service
+
+<a id="auth-permissions"></a>
+
+## /permissions
+
+### GET - gets all permissions from the database
+
+200 OK [=> Permission[]](schemas.md#auth-permission)
+
+### POST - adds a new permission
+
+```json
+{
+  "name": "string (unique name of the permission)"
+}
+```
+
+200 OK [=> Permission](schemas.md#auth-permission)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-permission-id"></a>
+
+## /permission/{id}
+
+### GET - finds permission with an ID as a URL parameter
+
+200 OK [=> Permission](schemas.md#auth-permission)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a permission by its ID provided in the URL path
+
+200 OK [=> Permission](schemas.md#auth-permission)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a permission by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (unique name of the permission)"
+}
+```
+
+200 OK [=> Permission](schemas.md#auth-permission)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

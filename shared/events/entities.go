@@ -255,3 +255,11 @@ func (c ClassroomRE) String() string {
 
 	return fmt.Sprintf("ClassroomRE{%s}", strings.Join(parts, ", "))
 }
+
+type AccessPermissionRE struct {
+	Name string
+}
+
+func (a AccessPermissionRE) String() string {
+	return fmt.Sprintf("AccessPermission{%s}", a.Name)
+}

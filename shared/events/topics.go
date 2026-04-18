@@ -16,6 +16,7 @@ const (
 	TeacherLoadRT           RedisTopic = "teacher:loads"           // 2 delay
 	GroupCohortAssignmentRT RedisTopic = "group:cohort:assignment" // 1 delay
 	ClassroomRT             RedisTopic = "classroom"
+	AccessPermissionRT      RedisTopic = "access:permission"
 )
 
 type EventType string
