@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import type { User } from './store/authStore'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -11,7 +11,6 @@ const ClassroomApp = lazy(() => import('classroomApp/ClassroomApp'))
 const HomeApp = lazy(() => import('homeApp/HomeApp'))
 const AdminApp = lazy(() => import('adminApp/AdminApp'))
 
-// Читаємо куку одразу при ініціалізації store — до будь-якого рендеру
 const initAuth = () => {
   const user = getUserFromCookie()
   if (user) {
@@ -19,7 +18,22 @@ const initAuth = () => {
   }
 }
 
-initAuth() // викликаємо одразу при імпорті модуля
+initAuth()
+
+// Редіректить на потрібну сторінку залежно від ролі
+function RoleBasedRedirect() {
+  const { isAuthenticated, user } = useAuthStore()
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin" replace />
+  }
+
+  return <Navigate to="/home" replace />
+}
 
 function Routes_() {
   const navigate = useNavigate()
@@ -27,6 +41,9 @@ function Routes_() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
+        {/* / — розподіляє по ролях */}
+        <Route path="/" element={<RoleBasedRedirect />} />
+
         <Route
           path="/login"
           element={
@@ -36,7 +53,7 @@ function Routes_() {
                 if (user.role === 'admin') {
                   navigate('/admin')
                 } else {
-                  navigate('/')
+                  navigate('/home')
                 }
               }}
             />
@@ -45,6 +62,7 @@ function Routes_() {
 
         <Route path="/unauthorized" element={<div>Доступ заборонено</div>} />
 
+        {/* Тільки адмін */}
         <Route
           path="/admin/*"
           element={
@@ -54,8 +72,9 @@ function Routes_() {
           }
         />
 
+        {/* Тільки student і teacher */}
         <Route
-          path="/"
+          path="/home"
           element={
             <ProtectedRoute>
               <HomeApp />
@@ -79,8 +98,8 @@ function Routes_() {
 function App() {
   return (
     <BrowserRouter>
-      <Routes_ />
       <Navigation />
+      <Routes_ />
     </BrowserRouter>
   )
 }

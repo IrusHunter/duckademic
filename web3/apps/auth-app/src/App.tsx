@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import './App.css'
 
 type User = {
   id: string
