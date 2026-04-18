@@ -67,8 +67,11 @@ type dayBlocker struct {
 }
 
 func (db *dayBlocker) SetDayTypes() {
+	mainDayBlocked := make([]int, 7)
+
 	for len(db.groupExtensions) != 0 {
 		daysBlocked := make([]int, 7) // contains num of groups that chose this day
+		copy(daysBlocked, mainDayBlocked)
 		mainGroup := db.groupExtensions[0]
 		for i := 0; i < len(db.groupExtensions); {
 			group := db.groupExtensions[i]
@@ -118,6 +121,10 @@ func (db *dayBlocker) SetDayTypes() {
 					daysBlocked[mIndex]++
 					requiredSlots -= float64(db.weekCount*group.group.GetAverageSlotCountOnWeekday(mIndex)) * db.lessonFillRate
 				}
+			}
+
+			if i == 0 {
+				copy(mainDayBlocked, daysBlocked)
 			}
 		}
 	}
