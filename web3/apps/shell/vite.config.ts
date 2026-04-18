@@ -11,6 +11,7 @@ export default defineConfig({
         authApp: 'http://localhost:5001/assets/remoteEntry.js',
         classroomApp: 'http://localhost:5002/assets/remoteEntry.js',
         homeApp: 'http://localhost:5006/assets/remoteEntry.js',
+        adminApp: 'http://localhost:5010/assets/remoteEntry.js',  
       },
       shared: {
         react: {

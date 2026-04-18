@@ -3,7 +3,7 @@ import { create } from 'zustand'
 export type User = {
   id: string
   email: string
-  role: 'admin' | 'user'
+  role: 'admin' | 'student' | 'teacher'
 }
 
 type AuthStore = {

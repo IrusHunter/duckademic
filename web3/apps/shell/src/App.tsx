@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 const AuthApp = lazy(() => import('authApp/AuthApp'))
 const ClassroomApp = lazy(() => import('classroomApp/ClassroomApp'))
 const HomeApp = lazy(() => import('homeApp/HomeApp'))
+const AdminApp = lazy(() => import('adminApp/AdminApp'))
 
 function Routes_() {
   const navigate = useNavigate()
@@ -14,7 +15,6 @@ function Routes_() {
   const clearUser = useAuthStore((s) => s.clearUser)
 
   useEffect(() => {
-    // Перевіряємо сесію при старті
     fetch('/api/auth/session')
       .then((res) => res.ok ? res.json() : null)
       .then((user) => {
@@ -27,20 +27,40 @@ function Routes_() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
+        {/* Публічний маршрут */}
         <Route
           path="/login"
           element={
             <AuthApp
               onLoginSuccess={(user: User) => {
                 setUser(user)
-                navigate('/')
+                // Адмін іде в /admin, решта на /
+                if (user.role === 'admin') {
+                  navigate('/admin')
+                } else {
+                  navigate('/')
+                }
               }}
             />
           }
         />
 
-        <Route path="/unauthorized" element={<div>Доступ заборонено</div>} />
+        <Route
+          path="/unauthorized"
+          element={<div>Доступ заборонено</div>}
+        />
 
+        {/* Тільки для адміна */}
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminApp />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Для студента і викладача */}
         <Route
           path="/"
           element={
