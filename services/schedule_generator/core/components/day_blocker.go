@@ -67,48 +67,64 @@ type dayBlocker struct {
 }
 
 func (db *dayBlocker) SetDayTypes() {
-	daysBlocked := make([]int, 7) // contains num of groups that chose this day
+	mainDayBlocked := make([]int, 7)
 
-	for _, group := range db.groupExtensions {
-		availableDays := []int{0, 1, 2, 3, 4, 5, 6}
+	for len(db.groupExtensions) != 0 {
+		daysBlocked := make([]int, 7) // contains num of groups that chose this day
+		copy(daysBlocked, mainDayBlocked)
+		mainGroup := db.groupExtensions[0]
+		for i := 0; i < len(db.groupExtensions); {
+			group := db.groupExtensions[i]
+			if !mainGroup.group.ConnectedTo(db.groupExtensions[i].group) && mainGroup.group != group.group {
+				i++
+				continue
+			}
+			db.groupExtensions = append(db.groupExtensions[:i], db.groupExtensions[i+1:]...)
 
-		for _, lt := range group.group.GetLessonTypes() {
-			requiredSlots := float64(group.group.GetSlotCountForLType(lt))
+			availableDays := []int{0, 1, 2, 3, 4, 5, 6}
 
-			for requiredSlots >= 0 { // break after error assigned
-				// select day that free and blocked the fewest times
-				min := 1000000000
-				mIndex := -1
-				for _, day := range availableDays {
-					if group.IsFreeDay(day) && min > daysBlocked[day] {
-						min = daysBlocked[day]
-						mIndex = day
+			for _, lt := range group.group.GetLessonTypes() {
+				requiredSlots := float64(group.group.GetSlotCountForLType(lt))
+
+				for requiredSlots >= 0 { // break after error assigned
+					// select day that free and blocked the fewest times
+					min := 1000000000
+					mIndex := -1
+					for _, day := range availableDays {
+						if group.IsFreeDay(day) && min > daysBlocked[day] {
+							min = daysBlocked[day]
+							mIndex = day
+						}
 					}
-				}
 
-				// day not found
-				if mIndex == -1 {
-					db.errorService.AddError(&SetDayTypeError{
-						LessonType:    lt,
-						StudentGroup:  group.group,
-						DayPriorities: group.dayPriorities,
-						AvailableDays: availableDays,
-						SlotsDept:     requiredSlots,
-					})
-					break // continue with next lesson type for group
-				}
+					// day not found
+					if mIndex == -1 {
+						db.errorService.AddError(&SetDayTypeError{
+							LessonType:    lt,
+							StudentGroup:  group.group,
+							DayPriorities: group.dayPriorities,
+							AvailableDays: availableDays,
+							SlotsDept:     requiredSlots,
+						})
+						break // continue with next lesson type for group
+					}
 
-				// if an error occurs, ignore this day, delete it from available days, continue the search
-				err := group.group.BindWeekday(lt, mIndex)
-				if err != nil {
-					dayIndex := slices.Index(availableDays, mIndex)
-					availableDays = append(availableDays[:dayIndex], availableDays[dayIndex+1:]...)
-					continue
-				}
+					// if an error occurs, ignore this day, delete it from available days, continue the search
+					err := group.group.BindWeekday(lt, mIndex)
+					if err != nil {
+						dayIndex := slices.Index(availableDays, mIndex)
+						availableDays = append(availableDays[:dayIndex], availableDays[dayIndex+1:]...)
+						continue
+					}
 
-				// all good, add to blocked day
-				daysBlocked[mIndex]++
-				requiredSlots -= float64(db.weekCount*group.group.GetAverageSlotCountOnWeekday(mIndex)) * db.lessonFillRate
+					// all good, add to blocked day
+					daysBlocked[mIndex]++
+					requiredSlots -= float64(db.weekCount*group.group.GetAverageSlotCountOnWeekday(mIndex)) * db.lessonFillRate
+				}
+			}
+
+			if i == 0 {
+				copy(mainDayBlocked, daysBlocked)
 			}
 		}
 	}

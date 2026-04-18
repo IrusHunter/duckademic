@@ -73,6 +73,7 @@ func NewScheduleGenerator(cfg externalEntities.ScheduleGeneratorConfig) (*Schedu
 		ScheduleGeneratorConfig: cfg,
 		currentStep:             Setup,
 	}
+	scheduleGenerator.floatingLessonService, _ = services.NewLessonService()
 
 	index := 0
 	fullBusyGrid := [][]float32{}
@@ -203,7 +204,6 @@ func (g *ScheduleGenerator) SetStudentGroups(
 	g.weekData.studentGroupService = weekSGS
 	g.fullData.studyLoadService, _ = services.NewStudyLoadService(studyLoads)
 	g.weekData.studyLoadService, _ = services.NewStudyLoadService(weekSL)
-	g.weekData.disciplineService.CutLoadTo(2)
 	return nil
 }
 
@@ -366,6 +366,7 @@ func (g *ScheduleGenerator) SubmitAndGoToTheNextStep() (GeneratorStep, error) {
 	case Setup:
 		g.currentStep = DayBlocking
 	case DayBlocking:
+		g.weekData.disciplineService.CutLoadTo(2)
 		g.currentStep = BoneLessonBuilding
 	case BoneLessonBuilding:
 		g.currentStep = ToBoneLessonsClassroomAssigning

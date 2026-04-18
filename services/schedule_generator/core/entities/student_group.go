@@ -66,6 +66,11 @@ func (sg *StudentGroup) CountConnectedGroupsNumber() int {
 	return len(sg.connectedGroups)
 }
 
+func (sg *StudentGroup) ConnectedTo(studentGroup *StudentGroup) bool {
+	ind := slices.Index(sg.connectedGroups, studentGroup)
+	return ind != -1
+}
+
 // ==========================================================================================================
 // =========================================== BusyGrid OVERRIDES ===========================================
 // ==========================================================================================================
