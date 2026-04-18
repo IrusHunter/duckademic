@@ -11,7 +11,6 @@ type Props = {
   onLoginSuccess?: (user: User) => void
 }
 
-// Заглушки користувачів
 const MOCK_USERS: Record<string, User> = {
   'admin@gmail.com': { id: '1', email: 'admin@gmail.com', role: 'admin' },
   'student@gmail.com': { id: '2', email: 'student@gmail.com', role: 'student' },
@@ -22,6 +21,13 @@ const MOCK_PASSWORDS: Record<string, string> = {
   'admin@gmail.com': 'admin',
   'student@gmail.com': 'student',
   'teacher@gmail.com': 'teacher',
+}
+
+// Зберігаємо user в cookie
+const setUserCookie = (user: User) => {
+  const value = encodeURIComponent(JSON.stringify(user))
+  // Max-Age=86400 — cookie живе 1 день
+  document.cookie = `auth_user=${value}; path=/; Max-Age=86400; SameSite=Strict`
 }
 
 export default function App({ onLoginSuccess }: Props) {
@@ -38,6 +44,7 @@ export default function App({ onLoginSuccess }: Props) {
     const correctPassword = MOCK_PASSWORDS[email]
 
     if (user && password === correctPassword) {
+      setUserCookie(user) // ← зберігаємо в cookie
       onLoginSuccess?.(user)
     } else {
       setError('Невірний email або пароль')
@@ -51,8 +58,6 @@ export default function App({ onLoginSuccess }: Props) {
       <input name="password" type="password" placeholder="Пароль" required />
       <button type="submit">Увійти</button>
       {error && <p>{error}</p>}
-
-      {/* Підказка для тестування */}
       <div style={{ marginTop: '20px', fontSize: '12px', color: '#888' }}>
         <p>Тестові акаунти:</p>
         <p>admin@gmail.com / admin</p>

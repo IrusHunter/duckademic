@@ -1,40 +1,38 @@
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import type { User } from './store/authStore'
 import ProtectedRoute from './components/ProtectedRoute'
+import { getUserFromCookie } from './utils/cookies'
+import Navigation from './components/Navigation'
 
 const AuthApp = lazy(() => import('authApp/AuthApp'))
 const ClassroomApp = lazy(() => import('classroomApp/ClassroomApp'))
 const HomeApp = lazy(() => import('homeApp/HomeApp'))
 const AdminApp = lazy(() => import('adminApp/AdminApp'))
 
+// Читаємо куку одразу при ініціалізації store — до будь-якого рендеру
+const initAuth = () => {
+  const user = getUserFromCookie()
+  if (user) {
+    useAuthStore.getState().setUser(user)
+  }
+}
+
+initAuth() // викликаємо одразу при імпорті модуля
+
 function Routes_() {
   const navigate = useNavigate()
-  const setUser = useAuthStore((s) => s.setUser)
-  const clearUser = useAuthStore((s) => s.clearUser)
-
-  useEffect(() => {
-    fetch('/api/auth/session')
-      .then((res) => res.ok ? res.json() : null)
-      .then((user) => {
-        if (user) setUser(user)
-        else clearUser()
-      })
-      .catch(() => clearUser())
-  }, [])
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
-        {/* Публічний маршрут */}
         <Route
           path="/login"
           element={
             <AuthApp
               onLoginSuccess={(user: User) => {
-                setUser(user)
-                // Адмін іде в /admin, решта на /
+                useAuthStore.getState().setUser(user)
                 if (user.role === 'admin') {
                   navigate('/admin')
                 } else {
@@ -45,12 +43,8 @@ function Routes_() {
           }
         />
 
-        <Route
-          path="/unauthorized"
-          element={<div>Доступ заборонено</div>}
-        />
+        <Route path="/unauthorized" element={<div>Доступ заборонено</div>} />
 
-        {/* Тільки для адміна */}
         <Route
           path="/admin/*"
           element={
@@ -60,7 +54,6 @@ function Routes_() {
           }
         />
 
-        {/* Для студента і викладача */}
         <Route
           path="/"
           element={
@@ -87,6 +80,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes_ />
+      <Navigation />
     </BrowserRouter>
   )
 }
