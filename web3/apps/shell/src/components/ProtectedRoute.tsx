@@ -3,17 +3,17 @@ import { useAuthStore } from '../store/authStore'
 
 type Props = {
   children: React.ReactNode
-  requiredRole?: 'admin' | 'student' | 'teacher'
+  requiredRoles?: Array<'admin' | 'student' | 'teacher'>
 }
 
-export default function ProtectedRoute({ children, requiredRole }: Props) {
+export default function ProtectedRoute({ children, requiredRoles }: Props) {
   const { isAuthenticated, user } = useAuthStore()
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 
-  if (requiredRole && user?.role !== requiredRole) {
+  if (requiredRoles && user?.role && !requiredRoles.includes(user.role)) {
     return <Navigate to="/unauthorized" replace />
   }
 

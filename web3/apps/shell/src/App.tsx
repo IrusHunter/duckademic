@@ -37,19 +37,19 @@ function Routes_() {
         <Route path="/unauthorized" element={<div>Доступ заборонено</div>} />
 
         <Route path="/admin/*" element={
-          <ProtectedRoute requiredRole="admin">
+          <ProtectedRoute requiredRoles={['admin']}>
             <AdminApp />
           </ProtectedRoute>
         } />
 
         <Route path="/home" element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRoles={['student', 'teacher']}>
             <HomeApp />
           </ProtectedRoute>
         } />
 
         <Route path="/classroom/*" element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRoles={['student', 'teacher']}>
             <ClassroomApp />
           </ProtectedRoute>
         } />
