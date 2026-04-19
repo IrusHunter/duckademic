@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+import css from './App.module.css'
 
 const queryClient = new QueryClient()
 
@@ -759,30 +760,31 @@ function Sidebar() {
   const currentPath = window.location.pathname
 
   return (
-    <aside style={{ width: 220, minHeight: '100vh', borderRight: '1px solid #e0e0e0', padding: '16px 0', background: '#fafafa', flexShrink: 0 }}>
-      <p style={{ padding: '0 16px', fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Services</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <aside className={css.aside}>
+      <p className={css.servicesHeader}>Services</p>
+      <ul className={css.servicesList}>
         {SERVICES.map(service => {
           const isActive = currentPath.includes(`/admin/${service.key}`)
           return (
+            <li>
             <button
               key={service.key}
               onClick={() => navigate(`/admin/${service.key}`)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 16px', border: 'none',
-                background: isActive ? '#EEF2FF' : 'transparent',
+                background: isActive ? '#EFF6FF' : 'transparent',
                 color: isActive ? '#4A6CF7' : '#333',
-                cursor: 'pointer', fontSize: 14, textAlign: 'left',
-                borderRadius: 6, margin: '0 8px',
+                borderRight: isActive ? '1.6px solid #1D4ED8' : 'none'
               }}
+                
+                className={css.button}
             >
-              <span>{service.icon}</span>
-              <span>{service.label}</span>
-            </button>
+              <span className={css.serviceIcon}>{service.icon}</span>
+              <span className={css.serviceTitle}>{service.label}</span>
+              </button>
+              </li>
           )
         })}
-      </div>
+      </ul>
     </aside>
   )
 }
@@ -793,7 +795,7 @@ function AdminLayout() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1 }} className={css.mainDiv}>
         <Routes>
           <Route path="/" element={<ServiceHome service={SERVICES[0]} />} />
           <Route path=":serviceKey" element={<DynamicServiceRoute />} />
