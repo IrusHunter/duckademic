@@ -12,7 +12,7 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-var ExternalSeedCooldown time.Duration = 5000 * time.Millisecond
+var ExternalSeedCooldown time.Duration = 20000 * time.Millisecond
 
 type EventBus interface {
 	Publish(ctx context.Context, topic string, payload []byte) error

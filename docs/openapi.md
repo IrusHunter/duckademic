@@ -126,8 +126,16 @@
 
 - Auth Service (/auth)
   - Source of Truth
-    - [/permissions](#curriculum-permissions)
-    - [/permission/{id}](#curriculum-permission-id)
+    - [/permissions](#auth-permissions)
+    - [/permission/{id}](#auth-permission-id)
+    - [/roles](#auth-roles)
+    - [/role/{id}](#auth-role-id)
+    - [/role-permissions](#auth-role-permissions)
+    - [/role-permission/{id}](#auth-role-permission-id)
+    - [/services](#auth-services)
+    - [/service/{id}](#auth-service-id)
+    - [/service-permissions](#auth-service-permissions)
+    - [/service-permission/{id}](#auth-service-permission-id)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -1563,5 +1571,179 @@
 ```
 
 200 OK [=> Permission](schemas.md#auth-permission)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-roles"></a>
+
+## /roles
+
+### GET - gets all roles from the database
+
+200 OK [=> Role[]](schemas.md#auth-role)
+
+### POST - adds a new role
+
+```json
+{
+  "name": "string (unique name of the role)"
+}
+```
+
+200 OK [=> Role](schemas.md#auth-role)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-role-id"></a>
+
+## /role/{id}
+
+### GET - finds role with an ID as a URL parameter
+
+200 OK [=> Role](schemas.md#auth-role)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a role by its ID provided in the URL path
+
+200 OK [=> Role](schemas.md#auth-role)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a role by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (unique name of the role)"
+}
+```
+
+200 OK [=> Role](schemas.md#auth-role)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-role-permissions"></a>
+
+## /role-permissions
+
+### GET - gets all role-permission links from the database
+
+200 OK [=> RolePermissions[]](schemas.md#auth-role-permissions)
+
+### POST - adds a new role-permission link
+
+```json
+{
+  "role_id": "uuid (associated role identifier)",
+  "permission_id": "uuid (associated permission identifier)"
+}
+```
+
+200 OK [=> RolePermissions](schemas.md#auth-role-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+---
+
+<a id="auth-role-permission-id"></a>
+
+## /role-permission/{id}
+
+### GET - finds role-permission link by ID from URL parameter
+
+200 OK [=> RolePermissions](schemas.md#auth-role-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a role-permission link by ID from URL parameter
+
+200 OK [=> RolePermissions](schemas.md#auth-role-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-services"></a>
+
+## /services
+
+### GET - gets all services from the database
+
+200 OK [=> Service[]](schemas.md#auth-service)
+
+### POST - adds a new service
+
+```json
+{
+  "name": "string (unique name of the service)",
+  "secrete": "string (service secret key)"
+}
+```
+
+200 OK [=> Service](schemas.md#auth-service)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-service-id"></a>
+
+## /service/{id}
+
+### GET - finds service with an ID as a URL parameter
+
+200 OK [=> Service](schemas.md#auth-service)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a service by its ID provided in the URL path
+
+200 OK [=> Service](schemas.md#auth-service)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a service by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (unique name of the service)",
+  "secrete": "string (service secret key)"
+}
+```
+
+200 OK [=> Service](schemas.md#auth-service)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-service-permissions"></a>
+
+## /service-permissions
+
+### GET - gets all service-permission links from the database
+
+200 OK [=> ServicePermissions[]](schemas.md#auth-service-permissions)
+
+### POST - adds a new service-permission link
+
+```json
+{
+  "service_id": "uuid (associated service identifier)",
+  "permission_id": "uuid (associated permission identifier)"
+}
+```
+
+200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-service-permission-id"></a>
+
+## /service-permission/{id}
+
+### GET - finds service-permission link by ID from URL parameter
+
+200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a service-permission link by ID from URL parameter
+
+200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

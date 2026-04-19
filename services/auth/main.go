@@ -41,13 +41,29 @@ func main() {
 	eventBus := events.NewEventBus(rdc)
 
 	permissionRepository := repositories.NewPermissionRepository(database)
+	roleRepository := repositories.NewRoleRepository(database)
+	serviceRepository := repositories.NewServiceRepository(database)
+	rolePermissionsRepository := repositories.NewRolePermissionsRepository(database)
+	servicePermissionsRepository := repositories.NewServicePermissionsRepository(database)
 
 	permissionService := services.NewPermissionService(permissionRepository, eventBus)
+	roleService := services.NewRoleService(roleRepository)
+	serviceService := services.NewServiceService(serviceRepository)
+	rolePermissionsService := services.NewRolePermissionsService(rolePermissionsRepository, permissionRepository,
+		roleRepository)
+	servicePermissionsService := services.NewServicePermissionsService(servicePermissionsRepository, serviceRepository,
+		permissionRepository)
 
 	permissionHandler := resthandlers.NewPermissionHandler(permissionService)
-	databaseHandler := resthandlers.NewDatabaseHandler()
+	roleHandler := resthandlers.NewRoleHandler(roleService)
+	serviceHandler := resthandlers.NewServiceHandler(serviceService)
+	rolePermissionsHandler := resthandlers.NewRolePermissionsHandler(rolePermissionsService)
+	servicePermissionsHandler := resthandlers.NewServicePermissionsHandler(servicePermissionsService)
+	databaseHandler := resthandlers.NewDatabaseHandler(roleService, rolePermissionsService, serviceService,
+		servicePermissionsService)
 
-	restapi := NewRESTAPI(permissionHandler, databaseHandler)
+	restapi := NewRESTAPI(permissionHandler, roleHandler, rolePermissionsHandler, serviceHandler,
+		servicePermissionsHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

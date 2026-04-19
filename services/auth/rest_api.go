@@ -16,19 +16,31 @@ type RESTAPI interface {
 
 func NewRESTAPI(
 	ph resthandlers.PermissionHandler,
+	rh resthandlers.RoleHandler,
+	rph resthandlers.RolePermissionsHandler,
+	sh resthandlers.ServiceHandler,
+	sph resthandlers.ServicePermissionsHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:     platform.NewRESTAPIHelper("RESTAPI"),
-		permissionHandler: ph,
-		databaseHandler:   dh,
+		RESTAPIHelper:            platform.NewRESTAPIHelper("RESTAPI"),
+		permissionHandler:        ph,
+		roleHandler:              rh,
+		rolePermissionsHandler:   rph,
+		serviceHandler:           sh,
+		servicePermissionHandler: sph,
+		databaseHandler:          dh,
 	}
 }
 
 type restapi struct {
 	platform.RESTAPIHelper
-	permissionHandler resthandlers.PermissionHandler
-	databaseHandler   resthandlers.DatabaseHandler
+	permissionHandler        resthandlers.PermissionHandler
+	roleHandler              resthandlers.RoleHandler
+	rolePermissionsHandler   resthandlers.RolePermissionsHandler
+	serviceHandler           resthandlers.ServiceHandler
+	servicePermissionHandler resthandlers.ServicePermissionsHandler
+	databaseHandler          resthandlers.DatabaseHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -40,6 +52,44 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet:    ra.NewDefaultHandler(ra.permissionHandler.Find),
 		http.MethodDelete: ra.NewDefaultHandler(ra.permissionHandler.Delete),
 		http.MethodPut:    ra.NewDefaultHandler(ra.permissionHandler.Update),
+	})
+
+	ra.NewRoute("/roles", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.roleHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.roleHandler.Add),
+	})
+	ra.NewRoute("/role/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.roleHandler.Find),
+		http.MethodDelete: ra.NewDefaultHandler(ra.roleHandler.Delete),
+		http.MethodPut:    ra.NewDefaultHandler(ra.roleHandler.Update),
+	})
+
+	ra.NewRoute("/role-permissions", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.rolePermissionsHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.rolePermissionsHandler.Add),
+	})
+	ra.NewRoute("/role-permission/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.rolePermissionsHandler.Find),
+		http.MethodDelete: ra.NewDefaultHandler(ra.rolePermissionsHandler.Delete),
+	})
+
+	ra.NewRoute("/services", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.serviceHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.serviceHandler.Add),
+	})
+	ra.NewRoute("/service/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.serviceHandler.Find),
+		http.MethodDelete: ra.NewDefaultHandler(ra.serviceHandler.Delete),
+		http.MethodPut:    ra.NewDefaultHandler(ra.serviceHandler.Update),
+	})
+
+	ra.NewRoute("/service-permissions", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandler(ra.servicePermissionHandler.GetAll),
+		http.MethodPost: ra.NewDefaultHandler(ra.servicePermissionHandler.Add),
+	})
+	ra.NewRoute("/service-permission/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandler(ra.servicePermissionHandler.Find),
+		http.MethodDelete: ra.NewDefaultHandler(ra.servicePermissionHandler.Delete),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

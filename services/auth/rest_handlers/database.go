@@ -2,8 +2,10 @@ package resthandlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
+	"github.com/IrusHunter/duckademic/services/auth/services"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 )
 
@@ -12,27 +14,63 @@ type DatabaseHandler interface {
 	Clear(context.Context, http.ResponseWriter, *http.Request)
 }
 
-func NewDatabaseHandler() DatabaseHandler {
-	return &databaseHandler{}
+func NewDatabaseHandler(
+	rs services.RoleService,
+	rps services.RolePermissionsService,
+	ss services.ServiceService,
+	sps services.ServicePermissionsService,
+) DatabaseHandler {
+	return &databaseHandler{
+		roleService:               rs,
+		rolePermissionsService:    rps,
+		servicePermissionsService: sps,
+	}
 }
 
 type databaseHandler struct {
+	roleService               services.RoleService
+	rolePermissionsService    services.RolePermissionsService
+	serviceService            services.ServiceService
+	servicePermissionsService services.ServicePermissionsService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	// go func() {
-	// 	time.Sleep(events.ExternalSeedCooldown)
-	// 	ctx = contextutil.SetTraceID(context.Background())
-	// 	h.studentService.Seed(ctx)
-	// }()
+	if err := h.roleService.Seed(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed roles: %w", err))
+		return
+	}
+	if err := h.rolePermissionsService.Seed(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed role permissions: %w", err))
+		return
+	}
+	if err := h.serviceService.Seed(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed services: %w", err))
+		return
+	}
+	if err := h.servicePermissionsService.Seed(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed service permissions: %w", err))
+		return
+	}
 
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	// if err := h.studentService.Clear(ctx); err != nil {
-	// 	jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear students: %w", err))
-	// 	return
-	// }
+	if err := h.servicePermissionsService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear service permissions: %w", err))
+		return
+	}
+	if err := h.rolePermissionsService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear role permissions: %w", err))
+		return
+	}
+	if err := h.roleService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear roles: %w", err))
+		return
+	}
+	if err := h.serviceService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear services: %w", err))
+		return
+	}
 
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
