@@ -12,29 +12,38 @@ type FieldDef = {
   key: string
   label: string
   required?: boolean
+  format?: 'time-ns' | 'duration-ns' | 'weekday-ua'
+  // якщо вказано — рендерить dropdown замість input
+  relation?: {
+    serviceKey: string
+    tableKey: string
+    labelKey: string
+  }
 }
 
 type TableDef = {
-  key: string               // унікальний ключ таблиці
-  label: string             // назва в UI
-  listEndpoint: string      // GET всіх записів, напр. '/employees'
-  itemEndpoint: string      // DELETE/PUT одного запису, напр. '/employee'  (без /{id})
-  fields: FieldDef[]        // поля для форми додавання
-  columns: FieldDef[]       // колонки таблиці (включаючи id)
-  readOnly?: boolean        // якщо true — тільки перегляд, без Add/Delete
+  key: string
+  label: string
+  listEndpoint: string
+  itemEndpoint: string
+  fields: FieldDef[]
+  columns: FieldDef[]
+  readOnly?: boolean
+  numericKeys?: string[]
 }
 
 type ServiceDef = {
   key: string
   label: string
   icon: string
-  baseURL: string           // /api/employee, /api/student тощо
+  baseURL: string
   tables: TableDef[]
 }
 
 // ─── КОНФІГ СЕРВІСІВ ─────────────────────────────────────────────────────────
 
 const SERVICES: ServiceDef[] = [
+  // ── EMPLOYEE ──────────────────────────────────────────────────────────────
   {
     key: 'employee',
     label: 'Employee Service',
@@ -48,10 +57,14 @@ const SERVICES: ServiceDef[] = [
         itemEndpoint: '/employee',
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'first_name', label: 'First Name' },
           { key: 'last_name', label: 'Last Name' },
           { key: 'middle_name', label: 'Middle Name' },
           { key: 'phone_number', label: 'Phone' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+          { key: 'deleted_at', label: 'Deleted At' },
         ],
         fields: [
           { key: 'first_name', label: 'First Name', required: true },
@@ -66,17 +79,28 @@ const SERVICES: ServiceDef[] = [
         listEndpoint: '/teachers',
         itemEndpoint: '/teacher',
         columns: [
-          { key: 'id', label: 'ID' },
           { key: 'employee_id', label: 'Employee ID' },
           { key: 'email', label: 'Email' },
           { key: 'academic_rank_id', label: 'Academic Rank ID' },
           { key: 'academic_degree_id', label: 'Academic Degree ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+          { key: 'deleted_at', label: 'Deleted At' },
         ],
         fields: [
-          { key: 'employee_id', label: 'Employee ID', required: true },
+          {
+            key: 'employee_id', label: 'Employee', required: true,
+            relation: { serviceKey: 'employee', tableKey: 'employees', labelKey: 'last_name' },
+          },
           { key: 'email', label: 'Email', required: true },
-          { key: 'academic_rank_id', label: 'Academic Rank ID', required: true },
-          { key: 'academic_degree_id', label: 'Academic Degree ID' },
+          {
+            key: 'academic_rank_id', label: 'Academic Rank', required: true,
+            relation: { serviceKey: 'employee', tableKey: 'academic-ranks', labelKey: 'title' },
+          },
+          {
+            key: 'academic_degree_id', label: 'Academic Degree',
+            relation: { serviceKey: 'employee', tableKey: 'academic-degrees', labelKey: 'title' },
+          },
         ],
       },
       {
@@ -86,11 +110,12 @@ const SERVICES: ServiceDef[] = [
         itemEndpoint: '/academic-rank',
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'title', label: 'Title' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
-        fields: [
-          { key: 'title', label: 'Title', required: true },
-        ],
+        fields: [{ key: 'title', label: 'Title', required: true }],
       },
       {
         key: 'academic-degrees',
@@ -99,14 +124,17 @@ const SERVICES: ServiceDef[] = [
         itemEndpoint: '/academic-degree',
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'title', label: 'Title' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
-        fields: [
-          { key: 'title', label: 'Title', required: true },
-        ],
+        fields: [{ key: 'title', label: 'Title', required: true }],
       },
     ],
   },
+
+  // ── CURRICULUM ────────────────────────────────────────────────────────────
   {
     key: 'curriculum',
     label: 'Curriculum Service',
@@ -118,12 +146,16 @@ const SERVICES: ServiceDef[] = [
         label: 'Curriculums',
         listEndpoint: '/curriculums',
         itemEndpoint: '/curriculum',
+        numericKeys: ['duration_years'],
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'name', label: 'Name' },
           { key: 'duration_years', label: 'Duration (years)' },
           { key: 'effective_from', label: 'Effective From' },
           { key: 'effective_to', label: 'Effective To' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
           { key: 'name', label: 'Name', required: true },
@@ -137,13 +169,20 @@ const SERVICES: ServiceDef[] = [
         label: 'Semesters',
         listEndpoint: '/semesters',
         itemEndpoint: '/semester',
+        numericKeys: ['number'],
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'curriculum_id', label: 'Curriculum ID' },
           { key: 'number', label: 'Number' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
-          { key: 'curriculum_id', label: 'Curriculum ID', required: true },
+          {
+            key: 'curriculum_id', label: 'Curriculum', required: true,
+            relation: { serviceKey: 'curriculum', tableKey: 'curriculums', labelKey: 'name' },
+          },
           { key: 'number', label: 'Semester Number', required: true },
         ],
       },
@@ -154,21 +193,26 @@ const SERVICES: ServiceDef[] = [
         itemEndpoint: '/discipline',
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
-        fields: [
-          { key: 'name', label: 'Name', required: true },
-        ],
+        fields: [{ key: 'name', label: 'Name', required: true }],
       },
       {
         key: 'lesson-types',
         label: 'Lesson Types',
         listEndpoint: '/lesson-types',
         itemEndpoint: '/lesson-type',
+        numericKeys: ['hours_value'],
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'name', label: 'Name' },
           { key: 'hours_value', label: 'Hours per lesson' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
           { key: 'name', label: 'Name', required: true },
@@ -184,10 +228,18 @@ const SERVICES: ServiceDef[] = [
           { key: 'id', label: 'ID' },
           { key: 'semester_id', label: 'Semester ID' },
           { key: 'discipline_id', label: 'Discipline ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
-          { key: 'semester_id', label: 'Semester ID', required: true },
-          { key: 'discipline_id', label: 'Discipline ID', required: true },
+          {
+            key: 'semester_id', label: 'Semester', required: true,
+            relation: { serviceKey: 'curriculum', tableKey: 'semesters', labelKey: 'number' },
+          },
+          {
+            key: 'discipline_id', label: 'Discipline', required: true,
+            relation: { serviceKey: 'curriculum', tableKey: 'disciplines', labelKey: 'name' },
+          },
         ],
       },
       {
@@ -195,20 +247,31 @@ const SERVICES: ServiceDef[] = [
         label: 'Lesson Type Assignments',
         listEndpoint: '/lesson-type-assignments',
         itemEndpoint: '/lesson-type-assignment',
+        numericKeys: ['required_hours'],
         columns: [
           { key: 'id', label: 'ID' },
           { key: 'lesson_type_id', label: 'Lesson Type ID' },
           { key: 'discipline_id', label: 'Discipline ID' },
           { key: 'required_hours', label: 'Required Hours' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
-          { key: 'lesson_type_id', label: 'Lesson Type ID', required: true },
-          { key: 'discipline_id', label: 'Discipline ID', required: true },
+          {
+            key: 'lesson_type_id', label: 'Lesson Type', required: true,
+            relation: { serviceKey: 'curriculum', tableKey: 'lesson-types', labelKey: 'name' },
+          },
+          {
+            key: 'discipline_id', label: 'Discipline', required: true,
+            relation: { serviceKey: 'curriculum', tableKey: 'disciplines', labelKey: 'name' },
+          },
           { key: 'required_hours', label: 'Required Hours', required: true },
         ],
       },
     ],
   },
+
+  // ── STUDENT ───────────────────────────────────────────────────────────────
   {
     key: 'student',
     label: 'Student Service',
@@ -222,18 +285,26 @@ const SERVICES: ServiceDef[] = [
         itemEndpoint: '/student',
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'first_name', label: 'First Name' },
           { key: 'last_name', label: 'Last Name' },
           { key: 'middle_name', label: 'Middle Name' },
           { key: 'email', label: 'Email' },
           { key: 'phone_number', label: 'Phone' },
           { key: 'semester_id', label: 'Semester ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+          { key: 'deleted_at', label: 'Deleted At' },
         ],
         fields: [
           { key: 'first_name', label: 'First Name', required: true },
           { key: 'last_name', label: 'Last Name', required: true },
           { key: 'email', label: 'Email', required: true },
-          { key: 'semester_id', label: 'Semester ID', required: true },
+          {
+            key: 'semester_id', label: 'Semester', required: true,
+            // береться з curriculum сервісу, не student
+            relation: { serviceKey: 'curriculum', tableKey: 'semesters', labelKey: 'number' },
+          },
           { key: 'middle_name', label: 'Middle Name' },
           { key: 'phone_number', label: 'Phone Number' },
         ],
@@ -246,13 +317,18 @@ const SERVICES: ServiceDef[] = [
         readOnly: true,
         columns: [
           { key: 'id', label: 'ID' },
-          { key: 'number', label: 'Number' },
+          { key: 'slug', label: 'Slug' },
           { key: 'curriculum_id', label: 'Curriculum ID' },
+          { key: 'number', label: 'Number' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [],
       },
     ],
   },
+
+  // ── STUDENT GROUP ─────────────────────────────────────────────────────────
   {
     key: 'student-group',
     label: 'Student Group Service',
@@ -266,12 +342,19 @@ const SERVICES: ServiceDef[] = [
         itemEndpoint: '/group-cohort',
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'name', label: 'Name' },
           { key: 'semester_id', label: 'Semester ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
           { key: 'name', label: 'Name', required: true },
-          { key: 'semester_id', label: 'Semester ID', required: true },
+          {
+            key: 'semester_id', label: 'Semester', required: true,
+            // власний endpoint student-group сервісу, не student
+            relation: { serviceKey: 'student-group', tableKey: 'semesters', labelKey: 'number' },
+          },
         ],
       },
       {
@@ -281,12 +364,18 @@ const SERVICES: ServiceDef[] = [
         itemEndpoint: '/student-group',
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'name', label: 'Name' },
           { key: 'group_cohort_id', label: 'Group Cohort ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
           { key: 'name', label: 'Name', required: true },
-          { key: 'group_cohort_id', label: 'Group Cohort ID', required: true },
+          {
+            key: 'group_cohort_id', label: 'Group Cohort', required: true,
+            relation: { serviceKey: 'student-group', tableKey: 'group-cohorts', labelKey: 'name' },
+          },
         ],
       },
       {
@@ -296,12 +385,21 @@ const SERVICES: ServiceDef[] = [
         itemEndpoint: '/group-member',
         columns: [
           { key: 'id', label: 'ID' },
-          { key: 'student_id', label: 'Student ID' },
+          { key: 'studentId', label: 'Student ID' },
+          { key: 'group_cohort_id', label: 'Group Cohort ID' },
           { key: 'student_group_id', label: 'Student Group ID' },
+          { key: 'createdAt', label: 'Created At' },
+          { key: 'updatedAt', label: 'Updated At' },
         ],
         fields: [
-          { key: 'student_id', label: 'Student ID', required: true },
-          { key: 'student_group_id', label: 'Student Group ID', required: true },
+          {
+            key: 'studentId', label: 'Student', required: true,
+            relation: { serviceKey: 'student-group', tableKey: 'students', labelKey: 'name' },
+          },
+          {
+            key: 'student_group_id', label: 'Student Group', required: true,
+            relation: { serviceKey: 'student-group', tableKey: 'student-groups', labelKey: 'name' },
+          },
         ],
       },
       {
@@ -314,15 +412,90 @@ const SERVICES: ServiceDef[] = [
           { key: 'group_cohort_id', label: 'Group Cohort ID' },
           { key: 'discipline_id', label: 'Discipline ID' },
           { key: 'lesson_type_id', label: 'Lesson Type ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
-          { key: 'group_cohort_id', label: 'Group Cohort ID', required: true },
-          { key: 'discipline_id', label: 'Discipline ID', required: true },
-          { key: 'lesson_type_id', label: 'Lesson Type ID', required: true },
+          {
+            key: 'group_cohort_id', label: 'Group Cohort', required: true,
+            relation: { serviceKey: 'student-group', tableKey: 'group-cohorts', labelKey: 'name' },
+          },
+          {
+            key: 'discipline_id', label: 'Discipline', required: true,
+            relation: { serviceKey: 'student-group', tableKey: 'disciplines', labelKey: 'name' },
+          },
+          {
+            key: 'lesson_type_id', label: 'Lesson Type', required: true,
+            relation: { serviceKey: 'student-group', tableKey: 'lesson-types', labelKey: 'name' },
+          },
         ],
+      },
+      {
+        key: 'semesters',
+        label: 'Semesters (read)',
+        listEndpoint: '/semesters',
+        itemEndpoint: '/semester',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'curriculum_id', label: 'Curriculum ID' },
+          { key: 'number', label: 'Number' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
+      {
+        key: 'students',
+        label: 'Students (read)',
+        listEndpoint: '/students',
+        itemEndpoint: '/student',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'semester_id', label: 'Semester ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
+      {
+        key: 'disciplines',
+        label: 'Disciplines (read)',
+        listEndpoint: '/disciplines',
+        itemEndpoint: '/discipline',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
+      {
+        key: 'lesson-types',
+        label: 'Lesson Types (read)',
+        listEndpoint: '/lesson-types',
+        itemEndpoint: '/lesson-type',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
       },
     ],
   },
+
+  // ── TEACHER LOAD ──────────────────────────────────────────────────────────
   {
     key: 'teacher-load',
     label: 'Teacher Load Service',
@@ -334,22 +507,81 @@ const SERVICES: ServiceDef[] = [
         label: 'Teacher Loads',
         listEndpoint: '/teacher-loads',
         itemEndpoint: '/teacher-load',
+        numericKeys: ['group_count'],
         columns: [
           { key: 'id', label: 'ID' },
           { key: 'teacher_id', label: 'Teacher ID' },
           { key: 'discipline_id', label: 'Discipline ID' },
           { key: 'lesson_type_id', label: 'Lesson Type ID' },
           { key: 'group_count', label: 'Group Count' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
-          { key: 'teacher_id', label: 'Teacher ID', required: true },
-          { key: 'discipline_id', label: 'Discipline ID', required: true },
-          { key: 'lesson_type_id', label: 'Lesson Type ID', required: true },
+          {
+            key: 'teacher_id', label: 'Teacher', required: true,
+            relation: { serviceKey: 'teacher-load', tableKey: 'teachers', labelKey: 'name' },
+          },
+          {
+            key: 'discipline_id', label: 'Discipline', required: true,
+            relation: { serviceKey: 'teacher-load', tableKey: 'disciplines', labelKey: 'name' },
+          },
+          {
+            key: 'lesson_type_id', label: 'Lesson Type', required: true,
+            relation: { serviceKey: 'teacher-load', tableKey: 'lesson-types', labelKey: 'name' },
+          },
           { key: 'group_count', label: 'Group Count', required: true },
         ],
       },
+      {
+        key: 'teachers',
+        label: 'Teachers (read)',
+        listEndpoint: '/teachers',
+        itemEndpoint: '/teacher',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
+      {
+        key: 'disciplines',
+        label: 'Disciplines (read)',
+        listEndpoint: '/disciplines',
+        itemEndpoint: '/discipline',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
+      {
+        key: 'lesson-types',
+        label: 'Lesson Types (read)',
+        listEndpoint: '/lesson-types',
+        itemEndpoint: '/lesson-type',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
     ],
   },
+
+  // ── ASSET ─────────────────────────────────────────────────────────────────
   {
     key: 'asset',
     label: 'Asset Service',
@@ -361,10 +593,14 @@ const SERVICES: ServiceDef[] = [
         label: 'Classrooms',
         listEndpoint: '/classrooms',
         itemEndpoint: '/classroom',
+        numericKeys: ['capacity'],
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
           { key: 'number', label: 'Number' },
           { key: 'capacity', label: 'Capacity' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [
           { key: 'number', label: 'Classroom Number', required: true },
@@ -373,6 +609,8 @@ const SERVICES: ServiceDef[] = [
       },
     ],
   },
+
+  // ── SCHEDULE ──────────────────────────────────────────────────────────────
   {
     key: 'schedule',
     label: 'Schedule Service',
@@ -384,54 +622,226 @@ const SERVICES: ServiceDef[] = [
         label: 'Lesson Slots',
         listEndpoint: '/lesson-slots',
         itemEndpoint: '/lesson-slot',
+        readOnly: true,
         columns: [
           { key: 'id', label: 'ID' },
-          { key: 'teacher_id', label: 'Teacher ID' },
-          { key: 'discipline_id', label: 'Discipline ID' },
-          { key: 'lesson_type_id', label: 'Lesson Type ID' },
-          { key: 'group_cohort_id', label: 'Group Cohort ID' },
-          { key: 'student_group_id', label: 'Student Group ID' },
+          { key: 'slot', label: 'Slot' },
+          { key: 'weekday', label: 'Weekday', format: 'weekday-ua' },
+          { key: 'start_time', label: 'Start Time', format: 'time-ns' },
+          { key: 'duration', label: 'Duration', format: 'duration-ns' }, 
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
-        fields: [
-          { key: 'teacher_id', label: 'Teacher ID', required: true },
-          { key: 'discipline_id', label: 'Discipline ID', required: true },
-          { key: 'lesson_type_id', label: 'Lesson Type ID', required: true },
-          { key: 'group_cohort_id', label: 'Group Cohort ID', required: true },
-          { key: 'student_group_id', label: 'Student Group ID' },
-        ],
+        fields: [],
       },
       {
         key: 'lesson-occurrences',
         label: 'Lesson Occurrences',
         listEndpoint: '/lesson-occurrences',
         itemEndpoint: '/lesson-occurrence',
+        readOnly: true,
         columns: [
           { key: 'id', label: 'ID' },
+          { key: 'study_load_id', label: 'Study Load ID' },
+          { key: 'teacher_id', label: 'Teacher ID' },
+          { key: 'student_group_id', label: 'Student Group ID' },
           { key: 'lesson_slot_id', label: 'Lesson Slot ID' },
           { key: 'classroom_id', label: 'Classroom ID' },
-          { key: 'week_number', label: 'Week Number' },
-          { key: 'day_of_week', label: 'Day of Week' },
-          { key: 'time_slot', label: 'Time Slot' },
+          { key: 'date', label: 'Date' },
+          { key: 'status', label: 'Status' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
-        fields: [
-          { key: 'lesson_slot_id', label: 'Lesson Slot ID', required: true },
-          { key: 'classroom_id', label: 'Classroom ID', required: true },
-          { key: 'week_number', label: 'Week Number', required: true },
-          { key: 'day_of_week', label: 'Day of Week', required: true },
-          { key: 'time_slot', label: 'Time Slot', required: true },
+        fields: [],
+      },
+      {
+        key: 'academic-ranks',
+        label: 'Academic Ranks (read)',
+        listEndpoint: '/academic-ranks',
+        itemEndpoint: '/academic-rank',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'title', label: 'Title' },
+          { key: 'priority', label: 'Priority' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
         ],
+        fields: [],
+      },
+      {
+        key: 'lesson-types',
+        label: 'Lesson Types (read)',
+        listEndpoint: '/lesson-types',
+        itemEndpoint: '/lesson-type',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'hours_value', label: 'Hours' },
+          { key: 'reserved_weeks', label: 'Reserved Weeks' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
+      {
+        key: 'teachers',
+        label: 'Teachers (read)',
+        listEndpoint: '/teachers',
+        itemEndpoint: '/teacher',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'academic_rank_id', label: 'Academic Rank ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
+      {
+        key: 'classrooms',
+        label: 'Classrooms (read)',
+        listEndpoint: '/classrooms',
+        itemEndpoint: '/classroom',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'number', label: 'Number' },
+          { key: 'capacity', label: 'Capacity' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
+      },
+      {
+        key: 'student-groups',
+        label: 'Student Groups (read)',
+        listEndpoint: '/student-groups',
+        itemEndpoint: '/student-group',
+        readOnly: true,
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [],
       },
     ],
   },
 ]
 
-// ─── API ХЕЛПЕР ──────────────────────────────────────────────────────────────
+// ─── ХЕЛПЕРИ ─────────────────────────────────────────────────────────────────
 
 function makeApi(baseURL: string) {
   return axios.create({ baseURL, withCredentials: true })
 }
 
-// ─── КОМПОНЕНТИ ──────────────────────────────────────────────────────────────
+function getServiceByKey(key: string): ServiceDef | undefined {
+  return SERVICES.find(s => s.key === key)
+}
+
+function normalizeArray(result: unknown): Record<string, unknown>[] {
+  if (Array.isArray(result)) return result
+  if (result && typeof result === 'object') {
+    const obj = result as Record<string, unknown>
+    if (Array.isArray(obj.data)) return obj.data as Record<string, unknown>[]
+    if (Array.isArray(obj.items)) return obj.items as Record<string, unknown>[]
+    if (Array.isArray(obj.results)) return obj.results as Record<string, unknown>[]
+    return [obj]
+  }
+  return []
+}
+
+function nsToTime(ns: unknown): string {
+  if (ns === null || ns === undefined || ns === '') return ''
+  const totalSeconds = Math.floor(Number(ns) / 1_000_000_000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+}
+
+function nsToDuration(ns: unknown): string {
+  if (ns === null || ns === undefined || ns === '') return ''
+  const totalMinutes = Math.floor(Number(ns) / 60_000_000_000)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  if (hours === 0) return `${minutes}хв`
+  if (minutes === 0) return `${hours} год`
+  return `${hours} год ${minutes} хв`
+}
+
+function formatCell(value: unknown, format?: FieldDef['format']): string {
+  if (format === 'time-ns') return nsToTime(value)
+  if (format === 'duration-ns') return nsToDuration(value)
+  if (format === 'weekday-ua') return nsToWeekday(value)
+  return String(value ?? '')
+}
+
+function nsToWeekday(n: unknown): string {
+  const days: Record<number, string> = {
+    1: 'Понеділок',
+    2: 'Вівторок',
+    3: 'Середа',
+    4: 'Четвер',
+    5: 'Пʼятниця',
+    6: 'Субота',
+    7: 'Неділя',
+  }
+  return days[Number(n)] ?? String(n ?? '')
+}
+
+// ─── RELATION SELECT ─────────────────────────────────────────────────────────
+
+function RelationSelect({ field, value, onChange }: {
+  field: FieldDef
+  value: string
+  onChange: (v: string) => void
+}) {
+  const rel = field.relation!
+  const service = getServiceByKey(rel.serviceKey)
+  const table = service?.tables.find(t => t.key === rel.tableKey)
+
+  const { data: raw, isLoading } = useQuery({
+    queryKey: ['relation', rel.serviceKey, rel.tableKey],
+    queryFn: async () => {
+      const api = makeApi(service!.baseURL)
+      const r = await api.get(table!.listEndpoint)
+      return normalizeArray(r.data)
+    },
+    enabled: !!service && !!table,
+  })
+
+  const options = raw ?? []
+
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      required={field.required}
+      style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc', width: 194 }}
+    >
+      <option value="">— select —</option>
+      {isLoading && <option disabled>Loading...</option>}
+      {options.map((item, idx) => {
+        const id = String(item.id ?? idx)
+        const label = String(item[rel.labelKey] ?? id)
+        return (
+          <option key={id || `opt-${idx}`} value={id}>{label}</option>
+        )
+      })}
+    </select>
+  )
+}
+
+// ─── ADD FORM ─────────────────────────────────────────────────────────────────
 
 function AddForm({ fields, onSubmit }: {
   fields: FieldDef[]
@@ -460,22 +870,35 @@ function AddForm({ fields, onSubmit }: {
           {fields.map(field => (
             <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <label style={{ fontSize: 12, color: '#666' }}>{field.label}{field.required && ' *'}</label>
-              <input
-                value={values[field.key] ?? ''}
-                onChange={e => setValues(prev => ({ ...prev, [field.key]: e.target.value }))}
-                required={field.required}
-                style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc', width: 180 }}
-              />
+              {field.relation ? (
+                <RelationSelect
+                  field={field}
+                  value={values[field.key] ?? ''}
+                  onChange={v => setValues(prev => ({ ...prev, [field.key]: v }))}
+                />
+              ) : (
+                <input
+                  value={values[field.key] ?? ''}
+                  onChange={e => setValues(prev => ({ ...prev, [field.key]: e.target.value }))}
+                  required={field.required}
+                  style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc', width: 180 }}
+                />
+              )}
             </div>
           ))}
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button type="submit" style={{ padding: '6px 16px', background: '#333', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Save</button>
+            <button type="submit" style={{ padding: '6px 16px', background: '#333', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+              Save
+            </button>
           </div>
         </form>
       )}
     </div>
   )
 }
+
+
+// ─── DATA TABLE ───────────────────────────────────────────────────────────────
 
 function DataTable({ data, columns, onDelete, readOnly }: {
   data: Record<string, unknown>[]
@@ -508,54 +931,64 @@ function DataTable({ data, columns, onDelete, readOnly }: {
           <button onClick={handleGo} style={{ padding: '4px 12px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}>Go</button>
         </div>
       )}
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-        <thead>
-          <tr style={{ background: '#f5f5f5' }}>
-            {!readOnly && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', width: 40 }} />}
-            {columns.map(col => (
-              <th key={col.key} style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '2px solid #e0e0e0', color: '#555' }}>{col.label}</th>
-            ))}
-            {!readOnly && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', color: '#555' }}>Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {data.length === 0 && (
-            <tr><td colSpan={columns.length + (readOnly ? 0 : 2)} style={{ padding: 24, textAlign: 'center', color: '#aaa' }}>No data</td></tr>
-          )}
-          {data.map(row => {
-            const id = String(row.id ?? '')
-            return (
-              <tr key={id} style={{ background: selected.includes(id) ? '#e8f0fe' : 'white' }}>
-                {!readOnly && (
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>
-                    <input type="checkbox" checked={selected.includes(id)} onChange={() => toggleSelect(id)} />
-                  </td>
-                )}
-                {columns.map(col => (
-                  <td key={col.key} style={{ padding: '8px 12px', borderBottom: '1px solid #eee', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {String(row[col.key] ?? '')}
-                  </td>
-                ))}
-                {!readOnly && (
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>
-                    <button
-                      onClick={() => onDelete(id)}
-                      style={{ padding: '3px 10px', color: 'red', border: '1px solid red', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 13 }}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                )}
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <thead>
+            <tr style={{ background: '#f5f5f5' }}>
+              {!readOnly && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', width: 40 }} />}
+              {columns.map(col => (
+                <th key={col.key} style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '2px solid #e0e0e0', color: '#555', whiteSpace: 'nowrap' }}>
+                  {col.label}
+                </th>
+              ))}
+              {!readOnly && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', color: '#555' }}>Actions</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {data.length === 0 && (
+              <tr>
+                <td colSpan={columns.length + (readOnly ? 0 : 2)} style={{ padding: 24, textAlign: 'center', color: '#aaa' }}>
+                  No data
+                </td>
               </tr>
-            )
-          })}
-        </tbody>
-      </table>
+            )}
+            {data.map((row, idx) => {
+              const id = String(row.id ?? '')
+              // FIX: idx як fallback щоб уникнути дублікатів порожніх ключів
+              const rowKey = id || `row-${idx}`
+              return (
+                <tr key={rowKey} style={{ background: selected.includes(id) ? '#e8f0fe' : 'white' }}>
+                  {!readOnly && (
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>
+                      <input type="checkbox" checked={selected.includes(id)} onChange={() => toggleSelect(id)} />
+                    </td>
+                  )}
+                  {columns.map(col => (
+                    <td key={col.key} style={{ padding: '8px 12px', borderBottom: '1px solid #eee', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {formatCell(row[col.key], col.format)}
+                    </td>
+                  ))}
+                  {!readOnly && (
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>
+                      <button
+                        onClick={() => onDelete(id)}
+                        style={{ padding: '3px 10px', color: 'red', border: '1px solid red', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 13 }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
 
-// ─── ДИНАМІЧНА СТОРІНКА ТАБЛИЦІ ──────────────────────────────────────────────
+// ─── TABLE PAGE ───────────────────────────────────────────────────────────────
 
 function TablePage({ service, table }: { service: ServiceDef; table: TableDef }) {
   const navigate = useNavigate()
@@ -566,32 +999,45 @@ function TablePage({ service, table }: { service: ServiceDef; table: TableDef })
   const { data: rawData, isLoading, error } = useQuery({
     queryKey,
     queryFn: async () => {
-  const r = await api.get(table.listEndpoint)
-  const result = r.data
-  // якщо масив — повертаємо як є
-  if (Array.isArray(result)) return result
-  // якщо об'єкт з полем data/items/results — беремо його
-  if (result && Array.isArray(result.data)) return result.data
-  if (result && Array.isArray(result.items)) return result.items
-  if (result && Array.isArray(result.results)) return result.results
-  // якщо один об'єкт — обгортаємо в масив
-  if (result && typeof result === 'object') return [result]
-  return []
-},
+      const r = await api.get(table.listEndpoint)
+      return normalizeArray(r.data)
+    },
   })
-  const data = Array.isArray(rawData) ? rawData : []
+  const data = rawData ?? []
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`${table.itemEndpoint}/${id}`).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey }),
-    onError: (e) => console.error('Delete error:', e),
-  })
+const getErrorMessage = (e: any): string => {
+  return e?.response?.data?.error || 'Unknown error'
+}
 
-  const createMutation = useMutation({
-    mutationFn: (body: Record<string, string>) => api.post(table.listEndpoint, body).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey }),
-    onError: (e) => console.error('Create error:', e),
-  })
+const deleteMutation = useMutation({
+  mutationFn: (id: string) =>
+    api.delete(`${table.itemEndpoint}/${id}`).then(r => r.data),
+
+  onSuccess: () => qc.invalidateQueries({ queryKey }),
+
+  onError: (e) => {
+    const message = getErrorMessage(e)
+    console.error('Delete error:', message)
+  },
+})
+
+const createMutation = useMutation({
+  mutationFn: (body: Record<string, string>) => {
+    // Конвертуємо числові поля зі string → number
+    const converted: Record<string, unknown> = { ...body }
+    for (const key of table.numericKeys ?? []) {
+      if (converted[key] !== undefined && converted[key] !== '') {
+        converted[key] = Number(converted[key])
+      }
+    }
+    return api.post(table.listEndpoint, converted).then(r => r.data)
+  },
+  onSuccess: () => qc.invalidateQueries({ queryKey }),
+  onError: (e) => {
+    const message = getErrorMessage(e)
+    console.error('Create error:', message)
+  },
+})
 
   return (
     <div style={{ padding: 24, flex: 1 }}>
@@ -602,7 +1048,9 @@ function TablePage({ service, table }: { service: ServiceDef; table: TableDef })
         ← Back
       </button>
       <h2 style={{ marginBottom: 4 }}>{table.label}</h2>
-      <p style={{ color: '#999', fontSize: 13, marginBottom: 20 }}>{service.label} · {service.baseURL}{table.listEndpoint}</p>
+      <p style={{ color: '#999', fontSize: 13, marginBottom: 20 }}>
+        {service.label} · {service.baseURL}{table.listEndpoint}
+      </p>
 
       {!table.readOnly && table.fields.length > 0 && (
         <AddForm fields={table.fields} onSubmit={data => createMutation.mutate(data)} />
@@ -622,7 +1070,7 @@ function TablePage({ service, table }: { service: ServiceDef; table: TableDef })
   )
 }
 
-// ─── ДОМАШНЯ СТОРІНКА СЕРВІСУ ─────────────────────────────────────────────────
+// ─── SERVICE HOME ─────────────────────────────────────────────────────────────
 
 function ServiceHome({ service }: { service: ServiceDef }) {
   const navigate = useNavigate()
@@ -638,7 +1086,11 @@ function ServiceHome({ service }: { service: ServiceDef }) {
             style={{ padding: '14px 18px', textAlign: 'left', border: '1px solid #e0e0e0', borderRadius: 8, cursor: 'pointer', background: 'white', fontSize: 15 }}
           >
             {table.label}
-            {table.readOnly && <span style={{ marginLeft: 8, fontSize: 11, color: '#aaa', background: '#f0f0f0', padding: '2px 6px', borderRadius: 4 }}>read-only</span>}
+            {table.readOnly && (
+              <span style={{ marginLeft: 8, fontSize: 11, color: '#aaa', background: '#f0f0f0', padding: '2px 6px', borderRadius: 4 }}>
+                read-only
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -646,7 +1098,7 @@ function ServiceHome({ service }: { service: ServiceDef }) {
   )
 }
 
-// ─── ДИНАМІЧНИЙ РОУТЕР ────────────────────────────────────────────────────────
+// ─── DYNAMIC ROUTE ────────────────────────────────────────────────────────────
 
 function DynamicServiceRoute() {
   const { serviceKey, tableKey } = useParams<{ serviceKey: string; tableKey: string }>()
@@ -658,7 +1110,7 @@ function DynamicServiceRoute() {
   return <TablePage service={service} table={table} />
 }
 
-// ─── САЙДБАР ─────────────────────────────────────────────────────────────────
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 
 function Sidebar() {
   const navigate = useNavigate()
@@ -671,22 +1123,20 @@ function Sidebar() {
         {SERVICES.map(service => {
           const isActive = currentPath.includes(`/admin/${service.key}`)
           return (
-            <li>
-            <button
-              key={service.key}
-              onClick={() => navigate(`/admin/${service.key}`)}
-              style={{
-                background: isActive ? '#EFF6FF' : 'transparent',
-                color: isActive ? '#4A6CF7' : '#333',
-                borderRight: isActive ? '1.6px solid #1D4ED8' : 'none'
-              }}
-                
+            <li key={service.key}>
+              <button
+                onClick={() => navigate(`/admin/${service.key}`)}
+                style={{
+                  background: isActive ? '#EFF6FF' : 'transparent',
+                  color: isActive ? '#4A6CF7' : '#333',
+                  borderRight: isActive ? '2px solid #1D4ED8' : '2px solid transparent',
+                }}
                 className={css.button}
-            >
-              <span className={css.serviceIcon}>{service.icon}</span>
-              <span className={css.serviceTitle}>{service.label}</span>
+              >
+                <span className={css.serviceIcon}>{service.icon}</span>
+                <span className={css.serviceTitle}>{service.label}</span>
               </button>
-              </li>
+            </li>
           )
         })}
       </ul>
