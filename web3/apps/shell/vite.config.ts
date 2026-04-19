@@ -22,13 +22,43 @@ export default defineConfig({
   ],
   build: { target: 'esnext' },
   server: {
-    port: 5000,
-    proxy: {
-      '/api/employee': {
-        target: 'http://localhost:10000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/employee/, '/employee'),
-      }
-    }
+  port: 5000,
+  proxy: {
+    '/api/employee': {
+      target: 'http://localhost:10000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/employee/, '/employee'),
+    },
+    '/api/curriculum': {
+      target: 'http://localhost:10000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/curriculum/, '/curriculum'),
+    },
+    '/api/student-group': {
+      target: 'http://localhost:10000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/student-group/, '/student-group'),
+    },
+    '/api/student': {
+      target: 'http://localhost:10000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/student/, '/student'),
+    },
+    '/api/teacher-load': {
+      target: 'http://localhost:10000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/teacher-load/, '/teacher-load'),
+    },
+    '/api/asset': {
+      target: 'http://localhost:10000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/asset/, '/asset'),
+    },
+    '/api/schedule': {
+      target: 'http://localhost:10000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/schedule/, '/schedule'),
+    },
   }
+}
 })
