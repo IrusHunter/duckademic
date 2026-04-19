@@ -4,7 +4,7 @@ import { useAuthStore } from './store/authStore'
 import type { User } from './store/authStore'
 import ProtectedRoute from './components/ProtectedRoute'
 import RoleBasedRedirect from './components/RoleBasedRedirect'
-import Navigation from './components/Navigation'
+import Header from './components/Header'
 import { initAuth } from './utils/initAuth'
 
 const AuthApp = lazy(() => import('authApp/AuthApp'))
@@ -21,7 +21,6 @@ function Routes_() {
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
         <Route path="/" element={<RoleBasedRedirect />} />
-
         <Route
           path="/login"
           element={
@@ -33,21 +32,17 @@ function Routes_() {
             />
           }
         />
-
         <Route path="/unauthorized" element={<div>Доступ заборонено</div>} />
-
         <Route path="/admin/*" element={
           <ProtectedRoute requiredRoles={['admin']}>
             <AdminApp />
           </ProtectedRoute>
         } />
-
         <Route path="/home" element={
           <ProtectedRoute requiredRoles={['student', 'teacher']}>
             <HomeApp />
           </ProtectedRoute>
         } />
-
         <Route path="/classroom/*" element={
           <ProtectedRoute requiredRoles={['student', 'teacher']}>
             <ClassroomApp />
@@ -61,7 +56,7 @@ function Routes_() {
 function App() {
   return (
     <BrowserRouter>
-      <Navigation />
+      <Header />
       <Routes_ />
     </BrowserRouter>
   )

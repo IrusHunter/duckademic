@@ -11,20 +11,24 @@ export default defineConfig({
         authApp: 'http://localhost:5001/assets/remoteEntry.js',
         classroomApp: 'http://localhost:5002/assets/remoteEntry.js',
         homeApp: 'http://localhost:5006/assets/remoteEntry.js',
-        adminApp: 'http://localhost:5010/assets/remoteEntry.js',  
+        adminApp: 'http://localhost:5010/assets/remoteEntry.js',
       },
       shared: {
-        react: {
-          singleton: true,
-          requiredVersion: '^19.0.0'
-        } as any,
-        'react-dom': {
-          singleton: true,
-          requiredVersion: '^19.0.0'
-        } as any
+        react: { singleton: true, requiredVersion: '^19.0.0' } as any,
+        'react-dom': { singleton: true, requiredVersion: '^19.0.0' } as any,
+        'react-router-dom': { singleton: true, requiredVersion: '^7.0.0' } as any,
       }
     })
   ],
   build: { target: 'esnext' },
-  server: { port: 5000 }
+  server: {
+    port: 5000,
+    proxy: {
+      '/api/employee': {
+        target: 'http://localhost:10000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/employee/, '/employee'),
+      }
+    }
+  }
 })
