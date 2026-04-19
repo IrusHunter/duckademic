@@ -42,9 +42,8 @@ func NewTeacherService(
 
 	res.BaseService = platform.NewBaseServiceWithEventBus(sc, tr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Teacher]{
-			platform.OnAddPrepare:    res.onAddPrepare,
-			platform.ValidateEntity:  res.validateEntity,
-			platform.HardDeleteCheck: res.hardDeleteCheck,
+			platform.OnAddPrepare:   res.onAddPrepare,
+			platform.ValidateEntity: res.validateEntity,
 		},
 		eb,
 	)
