@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	resthandlers "github.com/IrusHunter/duckademic/services/schedule/rest_handlers"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/platform"
 )
 
@@ -31,9 +32,10 @@ func NewRESTAPI(
 	lsh resthandlers.LessonSlotHandler,
 	loh resthandlers.LessonOccurrenceHandler,
 	dh resthandlers.DatabaseHandler,
+	jwtSecrete []byte,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:                platform.NewRESTAPIHelper("RESTAPI"),
+		RESTAPIHelper:                platform.NewRESTAPIHelperWithAuth("RESTAPI", jwtSecrete),
 		academicRankHandler:          arh,
 		teacherHandler:               th,
 		databaseHandler:              dh,
@@ -75,71 +77,73 @@ type restapi struct {
 
 func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/academic-ranks", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.academicRankHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.academicRankHandler.GetAll, []string{"schedule.academic_rank"}),
 	})
 	ra.NewRoute("/academic-rank/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.academicRankHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.academicRankHandler.Update),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.academicRankHandler.Find, []string{"schedule.academic_rank"}),
+		http.MethodPut: ra.NewDefaultHandlerWithAuth(ra.academicRankHandler.Update, []string{"schedule.academic_rank"}),
 	})
 
 	ra.NewRoute("/teachers", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.teacherHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.teacherHandler.GetAll, []string{"schedule.teacher"}),
 	})
 
 	ra.NewRoute("/disciplines", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.disciplineHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.disciplineHandler.GetAll, []string{"schedule.discipline"}),
 	})
 
 	ra.NewRoute("/lesson-types", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.lessonTypeHandler.GetAll, []string{"schedule.lesson_type"}),
 	})
 	ra.NewRoute("/lesson-type/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.Find),
-		http.MethodPut: ra.NewDefaultHandler(ra.lessonTypeHandler.Update),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.lessonTypeHandler.Find, []string{"schedule.lesson_type"}),
+		http.MethodPut: ra.NewDefaultHandlerWithAuth(ra.lessonTypeHandler.Update, []string{"schedule.lesson_type"}),
 	})
 
 	ra.NewRoute("/lesson-type-assignments", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeAssignmentHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(
+			ra.lessonTypeAssignmentHandler.GetAll, []string{"schedule.lesson_type_assignment"}),
 	})
 
 	ra.NewRoute("/students", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.studentHandler.GetAll, []string{"schedule.student"}),
 	})
 
 	ra.NewRoute("/student-groups", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.studentGroupHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.studentGroupHandler.GetAll, []string{"schedule.student_group"}),
 	})
 
 	ra.NewRoute("/group-members", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.groupMemberHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.groupMemberHandler.GetAll, []string{"schedule.group_member"}),
 	})
 
 	ra.NewRoute("/group-cohorts", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.groupCohortHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.groupCohortHandler.GetAll, []string{"schedule.group_cohort"}),
 	})
 
 	ra.NewRoute("/group-cohort-assignments", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(
+			ra.groupCohortAssignmentHandler.GetAll, []string{"schedule.group_cohort_assignment"}),
 	})
 
 	ra.NewRoute("/teacher-loads", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.teacherLoadHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.teacherLoadHandler.GetAll, []string{"schedule.teacher_load"}),
 	})
 
 	ra.NewRoute("/classrooms", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.classroomHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.classroomHandler.GetAll, []string{"schedule.classroom"}),
 	})
 
 	ra.NewRoute("/study-loads", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.studyLoadHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.studyLoadHandler.GetAll, []string{"schedule.study_load"}),
 	})
 
 	ra.NewRoute("/lesson-slots", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonSlotHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.lessonSlotHandler.GetAll, []string{"schedule.lesson_slot"}),
 	})
 
 	ra.NewRoute("/lesson-occurrences", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonOccurrenceHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.lessonOccurrenceHandler.GetAll, []string{"schedule.lesson_occurrence"}),
 	})
 
 	http.HandleFunc("/extract-data-from-generator", func(w http.ResponseWriter, r *http.Request) {
@@ -156,4 +160,24 @@ func (ra *restapi) Run(port int) error {
 	log.Printf("Server start at port %d \n", port)
 
 	return http.ListenAndServe(":"+strconv.Itoa(port), nil)
+}
+
+func BuildAccessPermissions() []events.AccessPermissionRE {
+	return []events.AccessPermissionRE{
+		{Name: "schedule.academic_rank"},
+		{Name: "schedule.teacher"},
+		{Name: "schedule.discipline"},
+		{Name: "schedule.lesson_type"},
+		{Name: "schedule.lesson_type_assignment"},
+		{Name: "schedule.student"},
+		{Name: "schedule.student_group"},
+		{Name: "schedule.group_member"},
+		{Name: "schedule.group_cohort"},
+		{Name: "schedule.group_cohort_assignment"},
+		{Name: "schedule.teacher_load"},
+		{Name: "schedule.classroom"},
+		{Name: "schedule.study_load"},
+		{Name: "schedule.lesson_slot"},
+		{Name: "schedule.lesson_occurrence"},
+	}
 }

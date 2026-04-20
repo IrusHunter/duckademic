@@ -133,22 +133,11 @@ func (ra *restapi) Run(port int) error {
 }
 func BuildAccessPermissions() []events.AccessPermissionRE {
 	return []events.AccessPermissionRE{
-		// permissions
 		{Name: "auth.permission"},
-
-		// roles
 		{Name: "auth.role"},
-
-		// role-permissions
 		{Name: "auth.role_permission"},
-
-		// services
 		{Name: "auth.service"},
-
-		// service-permissions
 		{Name: "auth.service_permission"},
-
-		// users
 		{Name: "auth.user"},
 		{Name: "auth.user.reset_password"},
 	}

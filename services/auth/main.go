@@ -77,7 +77,7 @@ func main() {
 		log.Fatalf("SUPER_ADMIN_PASSWORD not specified in the .env file")
 	}
 	jwtSecret := envutil.GetStringFromENV("JWT_SECRET")
-	if adminPassword == "" {
+	if jwtSecret == "" {
 		log.Fatalf("JWT_SECRET not specified in the .env file")
 	}
 	userService := services.NewUserService(userRepository, roleRepository, rolePermissionsRepository, eventBus, defaultPassword,

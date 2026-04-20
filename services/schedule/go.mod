@@ -3,7 +3,7 @@ module github.com/IrusHunter/duckademic/services/schedule
 go 1.23.4
 
 require (
-	github.com/IrusHunter/duckademic/shared v0.0.0-20260411154312-d7938d4df855
+	github.com/IrusHunter/duckademic/shared v0.0.0-20260420001452-e30331371253
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
 )

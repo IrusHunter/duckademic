@@ -19,7 +19,7 @@ services:
     env_file:
       - ./api_gateway/.env.docker
     environment:
-    - DOCKER_ENV=true
+      - DOCKER_ENV=true
 
   employee-service:
     build: ./services/employee
@@ -28,8 +28,8 @@ services:
     env_file:
       - ./services/employee/.env.docker
     environment:
-    - DOCKER_ENV=true
-  
+      - DOCKER_ENV=true
+
   schedule-service:
     build: ./services/schedule
     expose:
@@ -37,7 +37,7 @@ services:
     env_file:
       - ./services/schedule/.env.docker
     environment:
-    - DOCKER_ENV=true
+      - DOCKER_ENV=true
 
   student-service:
     build: ./services/student
@@ -46,8 +46,8 @@ services:
     env_file:
       - ./services/student/.env.docker
     environment:
-    - DOCKER_ENV=true
-  
+      - DOCKER_ENV=true
+
   student-group-service:
     build: ./services/student_group
     expose:
@@ -55,8 +55,8 @@ services:
     env_file:
       - ./services/student_group/.env.docker
     environment:
-    - DOCKER_ENV=true
-  
+      - DOCKER_ENV=true
+
   curriculum-service:
     build: ./services/curriculum
     expose:
@@ -64,8 +64,8 @@ services:
     env_file:
       - ./services/curriculum/.env.docker
     environment:
-    - DOCKER_ENV=true
-  
+      - DOCKER_ENV=true
+
   teacher-load-service:
     build: ./services/teacher_load
     expose:
@@ -73,8 +73,8 @@ services:
     env_file:
       - ./services/teacher_load/.env.docker
     environment:
-    - DOCKER_ENV=true
-  
+      - DOCKER_ENV=true
+
   schedule-generator-service:
     build: ./services/schedule_generator
     expose:
@@ -82,8 +82,8 @@ services:
     env_file:
       - ./services/schedule_generator/.env.docker
     environment:
-    - DOCKER_ENV=true
-  
+      - DOCKER_ENV=true
+
   asset-service:
     build: ./services/asset
     expose:
@@ -91,9 +91,8 @@ services:
     env_file:
       - ./services/asset/.env.docker
     environment:
-    - DOCKER_ENV=true
-  
-  
+      - DOCKER_ENV=true
+
   auth-service:
     build: ./services/auth
     expose:
@@ -101,4 +100,4 @@ services:
     env_file:
       - ./services/auth/.env.docker
     environment:
-    - DOCKER_ENV=true
+      - DOCKER_ENV=true

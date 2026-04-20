@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	resthandlers "github.com/IrusHunter/duckademic/services/student_group/rest_handlers"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/platform"
 )
 
@@ -24,9 +25,10 @@ func NewRESTAPI(
 	disH resthandlers.DisciplineHandler,
 	gcah resthandlers.GroupCohortAssignmentHandler,
 	dh resthandlers.DatabaseHandler,
+	jwtSecret []byte,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:                platform.NewRESTAPIHelper("RESTAPI"),
+		RESTAPIHelper:                platform.NewRESTAPIHelperWithAuth("RESTAPI", jwtSecret),
 		studentHandler:               sh,
 		groupCohortHandler:           gch,
 		semesterHandler:              semH,
@@ -54,59 +56,64 @@ type restapi struct {
 
 func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/students", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.studentHandler.GetAll, []string{"student_group.student"}),
 	})
 
 	ra.NewRoute("/semesters", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.studentHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.semesterHandler.GetAll, []string{"student_group.semester"}),
 	})
 
 	ra.NewRoute("/group-cohorts", map[string]platform.HandlerFunc{
-		http.MethodGet:  ra.NewDefaultHandler(ra.groupCohortHandler.GetAll),
-		http.MethodPost: ra.NewDefaultHandler(ra.groupCohortHandler.Add),
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.groupCohortHandler.GetAll, []string{"student_group.group_cohort"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.groupCohortHandler.Add, []string{"student_group.group_cohort"}),
 	})
 	ra.NewRoute("/group-cohort/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet:    ra.NewDefaultHandler(ra.groupCohortHandler.Find),
-		http.MethodPut:    ra.NewDefaultHandler(ra.groupCohortHandler.Update),
-		http.MethodDelete: ra.NewDefaultHandler(ra.groupCohortHandler.Delete),
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.groupCohortHandler.Find, []string{"student_group.group_cohort"}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.groupCohortHandler.Update, []string{"student_group.group_cohort"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.groupCohortHandler.Delete, []string{"student_group.group_cohort"}),
 	})
 
 	ra.NewRoute("/student-groups", map[string]platform.HandlerFunc{
-		http.MethodGet:  ra.NewDefaultHandler(ra.studentGroupHandler.GetAll),
-		http.MethodPost: ra.NewDefaultHandler(ra.studentGroupHandler.Add),
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.studentGroupHandler.GetAll, []string{"student_group.student_group"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.studentGroupHandler.Add, []string{"student_group.student_group"}),
 	})
 	ra.NewRoute("/student-group/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet:    ra.NewDefaultHandler(ra.studentGroupHandler.Find),
-		http.MethodPut:    ra.NewDefaultHandler(ra.studentGroupHandler.Update),
-		http.MethodDelete: ra.NewDefaultHandler(ra.studentGroupHandler.Delete),
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.studentGroupHandler.Find, []string{"student_group.student_group"}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.studentGroupHandler.Update, []string{"student_group.student_group"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.studentGroupHandler.Delete, []string{"student_group.student_group"}),
 	})
 
 	ra.NewRoute("/group-members", map[string]platform.HandlerFunc{
-		http.MethodGet:  ra.NewDefaultHandler(ra.groupMembersHandler.GetAll),
-		http.MethodPost: ra.NewDefaultHandler(ra.groupMembersHandler.Add),
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.groupMembersHandler.GetAll, []string{"student_group.group_member"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.groupMembersHandler.Add, []string{"student_group.group_member"}),
 	})
 	ra.NewRoute("/group-member/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet:    ra.NewDefaultHandler(ra.groupMembersHandler.Find),
-		http.MethodPut:    ra.NewDefaultHandler(ra.groupMembersHandler.Update),
-		http.MethodDelete: ra.NewDefaultHandler(ra.groupMembersHandler.Delete),
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.groupMembersHandler.Find, []string{"student_group.group_member"}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.groupMembersHandler.Update, []string{"student_group.group_member"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.groupMembersHandler.Delete, []string{"student_group.group_member"}),
 	})
 
 	ra.NewRoute("/disciplines", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.disciplineHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.disciplineHandler.GetAll, []string{"student_group.discipline"}),
 	})
 
 	ra.NewRoute("/lesson-types", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.lessonTypeHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.lessonTypeHandler.GetAll, []string{"student_group.lesson_type"}),
 	})
 
 	ra.NewRoute("/group-cohort-assignments", map[string]platform.HandlerFunc{
-		http.MethodGet:  ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.GetAll),
-		http.MethodPost: ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.Add),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(
+			ra.groupCohortAssignmentHandler.GetAll, []string{"student_group.group_cohort_assignment"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(
+			ra.groupCohortAssignmentHandler.Add, []string{"student_group.group_cohort_assignment"}),
 	})
 	ra.NewRoute("/group-cohort-assignment/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet:    ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.Find),
-		http.MethodPut:    ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.Update),
-		http.MethodDelete: ra.NewDefaultHandler(ra.groupCohortAssignmentHandler.Delete),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(
+			ra.groupCohortAssignmentHandler.Find, []string{"student_group.group_cohort_assignment"}),
+		http.MethodPut: ra.NewDefaultHandlerWithAuth(
+			ra.groupCohortAssignmentHandler.Update, []string{"student_group.group_cohort_assignment"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(
+			ra.groupCohortAssignmentHandler.Delete, []string{"student_group.group_cohort_assignment"}),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
@@ -119,4 +126,17 @@ func (ra *restapi) Run(port int) error {
 	log.Printf("Server start at port %d \n", port)
 
 	return http.ListenAndServe(":"+strconv.Itoa(port), nil)
+}
+
+func BuildAccessPermissions() []events.AccessPermissionRE {
+	return []events.AccessPermissionRE{
+		{Name: "student_group.student"},
+		{Name: "student_group.semester"},
+		{Name: "student_group.group_cohort"},
+		{Name: "student_group.student_group"},
+		{Name: "student_group.group_member"},
+		{Name: "student_group.discipline"},
+		{Name: "student_group.lesson_type"},
+		{Name: "student_group.group_cohort_assignment"},
+	}
 }

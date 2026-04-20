@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
+	"time"
 
 	"github.com/IrusHunter/duckademic/services/employee/repositories"
 	resthandlers "github.com/IrusHunter/duckademic/services/employee/rest_handlers"
 	"github.com/IrusHunter/duckademic/services/employee/services"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/db"
 	"github.com/IrusHunter/duckademic/shared/envutil"
 	"github.com/IrusHunter/duckademic/shared/events"
@@ -58,9 +61,21 @@ func main() {
 	databaseHandler := resthandlers.NewDatabaseHandler(academicRankService, academicDegreeService,
 		employeeService, teacherService)
 
+	jwtSecret := envutil.GetStringFromENV("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatalf("JWT_SECRET not specified in the .env file")
+	}
 	restapi := NewRESTAPI(academicRankHandler, academicDegreeHandler, employeeHandler,
-		teacherHandler, databaseHandler)
+		teacherHandler, databaseHandler, []byte(jwtSecret))
 
+	go func() {
+		time.Sleep(events.ExternalSeedCooldown)
+		ctx := contextutil.SetTraceID(context.Background())
+		err := eventBus.PublishAccessPermissions(ctx, BuildAccessPermissions())
+		if err != nil {
+			log.Fatalf("Can't publish access permissions: %s", err)
+		}
+	}()
 	err = restapi.Run(port)
 	log.Fatal(err)
 }
