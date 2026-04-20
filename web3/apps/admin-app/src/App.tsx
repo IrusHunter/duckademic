@@ -3,6 +3,7 @@ import { useNavigate, useParams, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import css from './App.module.css'
+import { LuUser, LuBookCopy, LuGraduationCap, LuUsers, LuNotebookText, LuUniversity, LuSheet } from 'react-icons/lu';
 
 const queryClient = new QueryClient()
 
@@ -13,7 +14,6 @@ type FieldDef = {
   label: string
   required?: boolean
   format?: 'time-ns' | 'duration-ns' | 'weekday-ua'
-  // якщо вказано — рендерить dropdown замість input
   relation?: {
     serviceKey: string
     tableKey: string
@@ -27,6 +27,7 @@ type TableDef = {
   listEndpoint: string
   itemEndpoint: string
   fields: FieldDef[]
+  editFields?: FieldDef[]   // окремі поля для редагування (якщо відрізняються від fields)
   columns: FieldDef[]
   readOnly?: boolean
   numericKeys?: string[]
@@ -35,7 +36,7 @@ type TableDef = {
 type ServiceDef = {
   key: string
   label: string
-  icon: string
+  icon: React.ReactNode | string
   baseURL: string
   tables: TableDef[]
 }
@@ -47,7 +48,7 @@ const SERVICES: ServiceDef[] = [
   {
     key: 'employee',
     label: 'Employee Service',
-    icon: '👤',
+    icon: <LuUser />,
     baseURL: '/api/employee',
     tables: [
       {
@@ -138,7 +139,7 @@ const SERVICES: ServiceDef[] = [
   {
     key: 'curriculum',
     label: 'Curriculum Service',
-    icon: '📚',
+    icon: <LuBookCopy />,
     baseURL: '/api/curriculum',
     tables: [
       {
@@ -275,7 +276,7 @@ const SERVICES: ServiceDef[] = [
   {
     key: 'student',
     label: 'Student Service',
-    icon: '🎓',
+    icon: <LuGraduationCap />,
     baseURL: '/api/student',
     tables: [
       {
@@ -302,7 +303,6 @@ const SERVICES: ServiceDef[] = [
           { key: 'email', label: 'Email', required: true },
           {
             key: 'semester_id', label: 'Semester', required: true,
-            // береться з curriculum сервісу, не student
             relation: { serviceKey: 'curriculum', tableKey: 'semesters', labelKey: 'number' },
           },
           { key: 'middle_name', label: 'Middle Name' },
@@ -332,7 +332,7 @@ const SERVICES: ServiceDef[] = [
   {
     key: 'student-group',
     label: 'Student Group Service',
-    icon: '👥',
+    icon: <LuUsers  />,
     baseURL: '/api/student-group',
     tables: [
       {
@@ -352,7 +352,6 @@ const SERVICES: ServiceDef[] = [
           { key: 'name', label: 'Name', required: true },
           {
             key: 'semester_id', label: 'Semester', required: true,
-            // власний endpoint student-group сервісу, не student
             relation: { serviceKey: 'student-group', tableKey: 'semesters', labelKey: 'number' },
           },
         ],
@@ -499,7 +498,7 @@ const SERVICES: ServiceDef[] = [
   {
     key: 'teacher-load',
     label: 'Teacher Load Service',
-    icon: '📋',
+    icon: <LuNotebookText />,
     baseURL: '/api/teacher-load',
     tables: [
       {
@@ -585,7 +584,7 @@ const SERVICES: ServiceDef[] = [
   {
     key: 'asset',
     label: 'Asset Service',
-    icon: '🏫',
+    icon: <LuUniversity />,
     baseURL: '/api/asset',
     tables: [
       {
@@ -614,7 +613,7 @@ const SERVICES: ServiceDef[] = [
   {
     key: 'schedule',
     label: 'Schedule Service',
-    icon: '📅',
+    icon: <LuSheet  />,
     baseURL: '/api/schedule',
     tables: [
       {
@@ -628,7 +627,7 @@ const SERVICES: ServiceDef[] = [
           { key: 'slot', label: 'Slot' },
           { key: 'weekday', label: 'Weekday', format: 'weekday-ua' },
           { key: 'start_time', label: 'Start Time', format: 'time-ns' },
-          { key: 'duration', label: 'Duration', format: 'duration-ns' }, 
+          { key: 'duration', label: 'Duration', format: 'duration-ns' },
           { key: 'created_at', label: 'Created At' },
           { key: 'updated_at', label: 'Updated At' },
         ],
@@ -655,11 +654,15 @@ const SERVICES: ServiceDef[] = [
         fields: [],
       },
       {
+        // Schedule academic-ranks: тільки PUT /priority, не POST/DELETE
+        // fields порожні → кнопки Add/Delete відсутні
+        // editFields → лише priority → кнопка Edit є
         key: 'academic-ranks',
-        label: 'Academic Ranks (read)',
+        label: 'Academic Ranks',
         listEndpoint: '/academic-ranks',
         itemEndpoint: '/academic-rank',
-        readOnly: true,
+        readOnly: false,
+        numericKeys: ['priority'],
         columns: [
           { key: 'id', label: 'ID' },
           { key: 'slug', label: 'Slug' },
@@ -669,6 +672,9 @@ const SERVICES: ServiceDef[] = [
           { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [],
+        editFields: [
+          { key: 'priority', label: 'Priority', required: true },
+        ],
       },
       {
         key: 'lesson-types',
@@ -778,13 +784,6 @@ function nsToDuration(ns: unknown): string {
   return `${hours} год ${minutes} хв`
 }
 
-function formatCell(value: unknown, format?: FieldDef['format']): string {
-  if (format === 'time-ns') return nsToTime(value)
-  if (format === 'duration-ns') return nsToDuration(value)
-  if (format === 'weekday-ua') return nsToWeekday(value)
-  return String(value ?? '')
-}
-
 function nsToWeekday(n: unknown): string {
   const days: Record<number, string> = {
     1: 'Понеділок',
@@ -796,6 +795,13 @@ function nsToWeekday(n: unknown): string {
     7: 'Неділя',
   }
   return days[Number(n)] ?? String(n ?? '')
+}
+
+function formatCell(value: unknown, format?: FieldDef['format']): string {
+  if (format === 'time-ns') return nsToTime(value)
+  if (format === 'duration-ns') return nsToDuration(value)
+  if (format === 'weekday-ua') return nsToWeekday(value)
+  return String(value ?? '')
 }
 
 // ─── RELATION SELECT ─────────────────────────────────────────────────────────
@@ -897,14 +903,16 @@ function AddForm({ fields, onSubmit }: {
   )
 }
 
-
 // ─── DATA TABLE ───────────────────────────────────────────────────────────────
 
-function DataTable({ data, columns, onDelete, readOnly }: {
+function DataTable({ data, columns, editFields, onDelete, onEditClick, readOnly, canDelete }: {
   data: Record<string, unknown>[]
   columns: FieldDef[]
+  editFields: FieldDef[]
   onDelete: (id: string) => void
+  onEditClick: (id: string) => void
   readOnly?: boolean
+  canDelete: boolean
 }) {
   const [selected, setSelected] = useState<string[]>([])
   const [action, setAction] = useState('')
@@ -919,9 +927,12 @@ function DataTable({ data, columns, onDelete, readOnly }: {
     }
   }
 
+  // Показувати колонку Actions якщо є кнопка Edit або Delete
+  const showActions = !readOnly && (editFields.length > 0 || canDelete)
+
   return (
     <div>
-      {!readOnly && (
+      {canDelete && (
         <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
           <span style={{ fontSize: 14 }}>Action:</span>
           <select value={action} onChange={e => setAction(e.target.value)} style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc' }}>
@@ -935,30 +946,29 @@ function DataTable({ data, columns, onDelete, readOnly }: {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
           <thead>
             <tr style={{ background: '#f5f5f5' }}>
-              {!readOnly && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', width: 40 }} />}
+              {canDelete && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', width: 40 }} />}
               {columns.map(col => (
                 <th key={col.key} style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '2px solid #e0e0e0', color: '#555', whiteSpace: 'nowrap' }}>
                   {col.label}
                 </th>
               ))}
-              {!readOnly && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', color: '#555' }}>Actions</th>}
+              {showActions && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', color: '#555' }}>Actions</th>}
             </tr>
           </thead>
           <tbody>
             {data.length === 0 && (
               <tr>
-                <td colSpan={columns.length + (readOnly ? 0 : 2)} style={{ padding: 24, textAlign: 'center', color: '#aaa' }}>
+                <td colSpan={columns.length + (showActions ? 1 : 0) + (canDelete ? 1 : 0)} style={{ padding: 24, textAlign: 'center', color: '#aaa' }}>
                   No data
                 </td>
               </tr>
             )}
             {data.map((row, idx) => {
               const id = String(row.id ?? '')
-              // FIX: idx як fallback щоб уникнути дублікатів порожніх ключів
               const rowKey = id || `row-${idx}`
               return (
                 <tr key={rowKey} style={{ background: selected.includes(id) ? '#e8f0fe' : 'white' }}>
-                  {!readOnly && (
+                  {canDelete && (
                     <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>
                       <input type="checkbox" checked={selected.includes(id)} onChange={() => toggleSelect(id)} />
                     </td>
@@ -968,14 +978,24 @@ function DataTable({ data, columns, onDelete, readOnly }: {
                       {formatCell(row[col.key], col.format)}
                     </td>
                   ))}
-                  {!readOnly && (
-                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>
-                      <button
-                        onClick={() => onDelete(id)}
-                        style={{ padding: '3px 10px', color: 'red', border: '1px solid red', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 13 }}
-                      >
-                        Delete
-                      </button>
+                  {showActions && (
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee', whiteSpace: 'nowrap' }}>
+                      {editFields.length > 0 && (
+                        <button
+                          onClick={() => onEditClick(id)}
+                          style={{ padding: '3px 10px', color: '#4A6CF7', border: '1px solid #4A6CF7', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 13, marginRight: 6 }}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          onClick={() => onDelete(id)}
+                          style={{ padding: '3px 10px', color: 'red', border: '1px solid red', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 13 }}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </td>
                   )}
                 </tr>
@@ -984,6 +1004,144 @@ function DataTable({ data, columns, onDelete, readOnly }: {
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+// ─── EDIT PAGE ────────────────────────────────────────────────────────────────
+
+function EditPage({ service, table }: { service: ServiceDef; table: TableDef }) {
+  const navigate = useNavigate()
+  const { itemId } = useParams<{ itemId: string }>()
+  const qc = useQueryClient()
+  const api = makeApi(service.baseURL)
+  const queryKey = [service.key, table.key]
+
+  const editFields = table.editFields ?? table.fields
+
+  const { data: raw, isLoading } = useQuery({
+    queryKey: [service.key, table.key, itemId],
+    queryFn: async () => {
+      const r = await api.get(`${table.itemEndpoint}/${itemId}`)
+      return r.data as Record<string, unknown>
+    },
+    enabled: !!itemId,
+  })
+
+  const [values, setValues] = useState<Record<string, string>>({})
+  const initialized = Object.keys(values).length > 0
+  if (raw && !initialized) {
+    const initial = Object.fromEntries(editFields.map(f => [f.key, String(raw[f.key] ?? '')]))
+    setValues(initial)
+  }
+
+  const getErrorMessage = (e: any): string => e?.response?.data?.error || 'Unknown error'
+
+  const updateMutation = useMutation({
+    mutationFn: (body: Record<string, string>) => {
+      const converted: Record<string, unknown> = { ...body }
+      for (const key of table.numericKeys ?? []) {
+        if (converted[key] !== undefined && converted[key] !== '') {
+          converted[key] = Number(converted[key])
+        }
+      }
+      return api.put(`${table.itemEndpoint}/${itemId}`, converted).then(r => r.data)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey })
+      navigate(-1)
+    },
+    onError: (e) => console.error('Update error:', getErrorMessage(e)),
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    updateMutation.mutate(values)
+  }
+
+  return (
+    <div style={{ padding: 24, flex: 1, maxWidth: 600 }}>
+      <button
+        onClick={() => navigate(-1)}
+        style={{ marginBottom: 20, padding: '6px 14px', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', background: 'white' }}
+      >
+        ← Back
+      </button>
+
+      <h2 style={{ marginBottom: 4 }}>Edit — {table.label}</h2>
+      <p style={{ color: '#999', fontSize: 13, marginBottom: 24 }}>
+        {service.label} · {service.baseURL}{table.itemEndpoint}/{itemId}
+      </p>
+
+      {isLoading && <p>Loading...</p>}
+
+      {!isLoading && raw && (
+        <>
+          {/* Інформаційні (read-only) поля запису */}
+          <div style={{ marginBottom: 24, padding: 16, background: '#f9f9f9', borderRadius: 8, fontSize: 13 }}>
+            <p style={{ fontWeight: 600, marginBottom: 8, color: '#555' }}>Record info</p>
+            {table.columns
+              .filter(col => !editFields.find(f => f.key === col.key))
+              .map(col => (
+                <div key={col.key} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                  <span style={{ color: '#999', minWidth: 140 }}>{col.label}:</span>
+                  <span style={{ color: '#333' }}>{formatCell(raw[col.key], col.format)}</span>
+                </div>
+              ))
+            }
+          </div>
+
+          {/* Форма редагування */}
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+              {editFields.map(field => (
+                <div key={field.key}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#444', marginBottom: 6 }}>
+                    {field.label}{field.required && ' *'}
+                  </label>
+                  {field.relation ? (
+                    <RelationSelect
+                      field={field}
+                      value={values[field.key] ?? ''}
+                      onChange={v => setValues(prev => ({ ...prev, [field.key]: v }))}
+                    />
+                  ) : (
+                    <input
+                      value={values[field.key] ?? ''}
+                      onChange={e => setValues(prev => ({ ...prev, [field.key]: e.target.value }))}
+                      required={field.required}
+                      style={{ padding: '8px 12px', borderRadius: 4, border: '1px solid #ccc', width: '100%', boxSizing: 'border-box', fontSize: 14 }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                type="submit"
+                disabled={updateMutation.isPending}
+                style={{ padding: '8px 24px', background: '#4A6CF7', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 14 }}
+              >
+                {updateMutation.isPending ? 'Saving...' : '✓ Save'}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                style={{ padding: '8px 24px', background: 'white', color: '#666', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 14 }}
+              >
+                Cancel
+              </button>
+            </div>
+
+            {updateMutation.isError && (
+              <p style={{ color: 'red', marginTop: 12, fontSize: 13 }}>
+                Error: {(updateMutation.error as any)?.response?.data?.error || 'Unknown error'}
+              </p>
+            )}
+          </form>
+        </>
+      )}
     </div>
   )
 }
@@ -1005,39 +1163,34 @@ function TablePage({ service, table }: { service: ServiceDef; table: TableDef })
   })
   const data = rawData ?? []
 
-const getErrorMessage = (e: any): string => {
-  return e?.response?.data?.error || 'Unknown error'
-}
+  const getErrorMessage = (e: any): string => e?.response?.data?.error || 'Unknown error'
 
-const deleteMutation = useMutation({
-  mutationFn: (id: string) =>
-    api.delete(`${table.itemEndpoint}/${id}`).then(r => r.data),
-
-  onSuccess: () => qc.invalidateQueries({ queryKey }),
-
-  onError: (e) => {
-    const message = getErrorMessage(e)
-    console.error('Delete error:', message)
-  },
-})
-
-const createMutation = useMutation({
-  mutationFn: (body: Record<string, string>) => {
-    // Конвертуємо числові поля зі string → number
+  const convertNumeric = (body: Record<string, string>): Record<string, unknown> => {
     const converted: Record<string, unknown> = { ...body }
     for (const key of table.numericKeys ?? []) {
       if (converted[key] !== undefined && converted[key] !== '') {
         converted[key] = Number(converted[key])
       }
     }
-    return api.post(table.listEndpoint, converted).then(r => r.data)
-  },
-  onSuccess: () => qc.invalidateQueries({ queryKey }),
-  onError: (e) => {
-    const message = getErrorMessage(e)
-    console.error('Create error:', message)
-  },
-})
+    return converted
+  }
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`${table.itemEndpoint}/${id}`).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey }),
+    onError: (e) => console.error('Delete error:', getErrorMessage(e)),
+  })
+
+  const createMutation = useMutation({
+    mutationFn: (body: Record<string, string>) =>
+      api.post(table.listEndpoint, convertNumeric(body)).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey }),
+    onError: (e) => console.error('Create error:', getErrorMessage(e)),
+  })
+
+  const editFields = table.editFields ?? table.fields
+  // Delete доступний лише якщо є fields (є POST → є й DELETE)
+  const canDelete = !table.readOnly && table.fields.length > 0
 
   return (
     <div style={{ padding: 24, flex: 1 }}>
@@ -1053,7 +1206,7 @@ const createMutation = useMutation({
       </p>
 
       {!table.readOnly && table.fields.length > 0 && (
-        <AddForm fields={table.fields} onSubmit={data => createMutation.mutate(data)} />
+        <AddForm fields={table.fields} onSubmit={body => createMutation.mutate(body)} />
       )}
 
       {isLoading && <p>Loading...</p>}
@@ -1062,8 +1215,11 @@ const createMutation = useMutation({
         <DataTable
           data={data}
           columns={table.columns}
+          editFields={editFields}
           onDelete={id => deleteMutation.mutate(id)}
+          onEditClick={id => navigate(`/admin/${service.key}/${table.key}/edit/${id}`)}
           readOnly={table.readOnly}
+          canDelete={canDelete}
         />
       )}
     </div>
@@ -1101,12 +1257,13 @@ function ServiceHome({ service }: { service: ServiceDef }) {
 // ─── DYNAMIC ROUTE ────────────────────────────────────────────────────────────
 
 function DynamicServiceRoute() {
-  const { serviceKey, tableKey } = useParams<{ serviceKey: string; tableKey: string }>()
+  const { serviceKey, tableKey, itemId } = useParams<{ serviceKey: string; tableKey: string; itemId: string }>()
   const service = SERVICES.find(s => s.key === serviceKey)
   if (!service) return <div style={{ padding: 24 }}>Service not found</div>
   if (!tableKey) return <ServiceHome service={service} />
   const table = service.tables.find(t => t.key === tableKey)
   if (!table) return <div style={{ padding: 24 }}>Table not found</div>
+  if (itemId) return <EditPage service={service} table={table} />
   return <TablePage service={service} table={table} />
 }
 
@@ -1126,12 +1283,7 @@ function Sidebar() {
             <li key={service.key}>
               <button
                 onClick={() => navigate(`/admin/${service.key}`)}
-                style={{
-                  background: isActive ? '#EFF6FF' : 'transparent',
-                  color: isActive ? '#4A6CF7' : '#333',
-                  borderRight: isActive ? '2px solid #1D4ED8' : '2px solid transparent',
-                }}
-                className={css.button}
+                className={`${css.button} ${isActive ? css.active : ''}`}
               >
                 <span className={css.serviceIcon}>{service.icon}</span>
                 <span className={css.serviceTitle}>{service.label}</span>
@@ -1155,6 +1307,7 @@ function AdminLayout() {
           <Route path="/" element={<ServiceHome service={SERVICES[0]} />} />
           <Route path=":serviceKey" element={<DynamicServiceRoute />} />
           <Route path=":serviceKey/:tableKey" element={<DynamicServiceRoute />} />
+          <Route path=":serviceKey/:tableKey/edit/:itemId" element={<DynamicServiceRoute />} />
         </Routes>
       </div>
     </div>

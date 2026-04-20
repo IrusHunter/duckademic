@@ -4,8 +4,9 @@ import { useAuthStore } from './store/authStore'
 import type { User } from './store/authStore'
 import ProtectedRoute from './components/ProtectedRoute'
 import RoleBasedRedirect from './components/RoleBasedRedirect'
-import Header from './components/Header'
+import Header from './components/header/Header'
 import { initAuth } from './utils/initAuth'
+import css from "./App.module.css"
 
 const AuthApp = lazy(() => import('authApp/AuthApp'))
 const ClassroomApp = lazy(() => import('classroomApp/ClassroomApp'))
@@ -56,8 +57,10 @@ function Routes_() {
 function App() {
   return (
     <BrowserRouter>
-      <Header />
-      <Routes_ />
+      <div className={css.container}>
+        <Header />
+        <Routes_ />
+      </div>
     </BrowserRouter>
   )
 }

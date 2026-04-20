@@ -1,4 +1,4 @@
-/* *,
+*,
 *::before,
 *::after {
     box-sizing: border-box;
@@ -24,4 +24,11 @@ button {
 ul,
 ol {
     list-style: none;
-} */
+}
+
+.container {
+    max-width: 1728px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding-top: 80px;
+}
