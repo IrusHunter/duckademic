@@ -30,15 +30,17 @@ type TeacherRE struct {
 	ID             uuid.UUID
 	Slug           string
 	Name           string
+	Email          string
 	AcademicRankID uuid.UUID
 }
 
 func (t TeacherRE) String() string {
-	parts := make([]string, 0, 4)
+	parts := make([]string, 0, 6)
 	parts = append(parts, fmt.Sprintf("event: %s", t.Event))
 	parts = append(parts, fmt.Sprintf("id: %s", t.ID))
 	parts = append(parts, fmt.Sprintf("slug: %s", t.Slug))
 	parts = append(parts, fmt.Sprintf("name: %s", t.Name))
+	parts = append(parts, fmt.Sprintf("email: %s", t.Email))
 	parts = append(parts, fmt.Sprintf("academic rank id: %s", t.AcademicRankID))
 	return fmt.Sprintf("TeacherRE{%s}", strings.Join(parts, ", "))
 }
@@ -48,15 +50,17 @@ type StudentRE struct {
 	ID         uuid.UUID
 	Slug       string
 	Name       string
+	Email      string
 	SemesterID uuid.UUID
 }
 
 func (s StudentRE) String() string {
-	parts := make([]string, 0, 4)
+	parts := make([]string, 0, 6)
 	parts = append(parts, fmt.Sprintf("event: %s", s.Event))
 	parts = append(parts, fmt.Sprintf("id: %s", s.ID))
 	parts = append(parts, fmt.Sprintf("slug: %s", s.Slug))
 	parts = append(parts, fmt.Sprintf("name: %s", s.Name))
+	parts = append(parts, fmt.Sprintf("email: %s", s.Email))
 	parts = append(parts, fmt.Sprintf("semester_id: %s", s.SemesterID))
 	return fmt.Sprintf("StudentRE{%s}", strings.Join(parts, ", "))
 }
@@ -254,4 +258,12 @@ func (c ClassroomRE) String() string {
 	parts = append(parts, fmt.Sprintf("capacity: %d", c.Capacity))
 
 	return fmt.Sprintf("ClassroomRE{%s}", strings.Join(parts, ", "))
+}
+
+type AccessPermissionRE struct {
+	Name string
+}
+
+func (a AccessPermissionRE) String() string {
+	return fmt.Sprintf("AccessPermission{%s}", a.Name)
 }

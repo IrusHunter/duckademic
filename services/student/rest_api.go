@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	resthandlers "github.com/IrusHunter/duckademic/services/student/rest_handlers"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/platform"
 )
 
@@ -18,9 +19,10 @@ func NewRESTAPI(
 	sh resthandlers.StudentHandler,
 	semH resthandlers.SemesterHandler,
 	dh resthandlers.DatabaseHandler,
+	jwtSecret []byte,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:   platform.NewRESTAPIHelper("RESTAPI"),
+		RESTAPIHelper:   platform.NewRESTAPIHelperWithAuth("RESTAPI", jwtSecret),
 		studentHandler:  sh,
 		semesterHandler: semH,
 		databaseHandler: dh,
@@ -36,17 +38,17 @@ type restapi struct {
 
 func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/students", map[string]platform.HandlerFunc{
-		http.MethodGet:  ra.NewDefaultHandler(ra.studentHandler.GetAll),
-		http.MethodPost: ra.NewDefaultHandler(ra.studentHandler.Add),
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.studentHandler.GetAll, []string{"student.student"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.studentHandler.Add, []string{"student.student"}),
 	})
 	ra.NewRoute("/student/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet:    ra.NewDefaultHandler(ra.studentHandler.Find),
-		http.MethodDelete: ra.NewDefaultHandler(ra.studentHandler.Delete),
-		http.MethodPut:    ra.NewDefaultHandler(ra.studentHandler.Update),
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.studentHandler.Find, []string{"student.student"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.studentHandler.Delete, []string{"student.student"}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.studentHandler.Update, []string{"student.student"}),
 	})
 
 	ra.NewRoute("/semesters", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandler(ra.semesterHandler.GetAll),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.semesterHandler.GetAll, []string{"student.semester"}),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
@@ -59,4 +61,11 @@ func (ra *restapi) Run(port int) error {
 	log.Printf("Server start at port %d \n", port)
 
 	return http.ListenAndServe(":"+strconv.Itoa(port), nil)
+}
+
+func BuildAccessPermissions() []events.AccessPermissionRE {
+	return []events.AccessPermissionRE{
+		{Name: "student.student"},
+		{Name: "student.semester"},
+	}
 }

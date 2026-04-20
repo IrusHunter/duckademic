@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	resthandlers "github.com/IrusHunter/duckademic/services/asset/rest_handlers"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/platform"
 )
 
@@ -17,9 +18,10 @@ type RESTAPI interface {
 func NewRESTAPI(
 	ch resthandlers.ClassroomHandler,
 	dh resthandlers.DatabaseHandler,
+	jwtSecrete []byte,
 ) RESTAPI {
 	return &restapi{
-		RESTAPIHelper:    platform.NewRESTAPIHelper("RESTAPI"),
+		RESTAPIHelper:    platform.NewRESTAPIHelperWithAuth("RESTAPI", jwtSecrete),
 		classroomHandler: ch,
 		databaseHandler:  dh,
 	}
@@ -33,13 +35,13 @@ type restapi struct {
 
 func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/classrooms", map[string]platform.HandlerFunc{
-		http.MethodGet:  ra.NewDefaultHandler(ra.classroomHandler.GetAll),
-		http.MethodPost: ra.NewDefaultHandler(ra.classroomHandler.Add),
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.classroomHandler.GetAll, []string{"asset.classroom"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.classroomHandler.Add, []string{"asset.classroom"}),
 	})
 	ra.NewRoute("/classroom/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet:    ra.NewDefaultHandler(ra.classroomHandler.Find),
-		http.MethodDelete: ra.NewDefaultHandler(ra.classroomHandler.Delete),
-		http.MethodPut:    ra.NewDefaultHandler(ra.classroomHandler.Update),
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.classroomHandler.Find, []string{"asset.classroom"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.classroomHandler.Delete, []string{"asset.classroom"}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.classroomHandler.Update, []string{"asset.classroom"}),
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
@@ -52,4 +54,10 @@ func (ra *restapi) Run(port int) error {
 	log.Printf("Server start at port %d \n", port)
 
 	return http.ListenAndServe(":"+strconv.Itoa(port), nil)
+}
+
+func BuildAccessPermissions() []events.AccessPermissionRE {
+	return []events.AccessPermissionRE{
+		{Name: "auth.classroom"},
+	}
 }

@@ -26,9 +26,7 @@ func NewStudentService(tr repositories.StudentRepository, eb events.EventBus) St
 		repository: tr,
 	}
 	res.BaseService = platform.NewBaseService(sc, tr,
-		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Student]{
-			platform.HardDeleteCheck: res.hardDeleteCheck,
-		},
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Student]{},
 	)
 	res.logger = res.GetLogger()
 
@@ -43,9 +41,6 @@ type studentService struct {
 	logger     logger.Logger
 }
 
-func (s *studentService) hardDeleteCheck(ctx context.Context, student *entities.Student) error {
-	return fmt.Errorf("plug")
-}
 func (s *studentService) eventHandler(ctx context.Context, b []byte) {
 	student, err := events.FromByteConvertor[events.StudentRE](b)
 	if err != nil {

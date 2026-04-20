@@ -39,9 +39,8 @@ func NewStudentService(
 
 	res.BaseService = platform.NewBaseServiceWithEventBus(sc, sr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Student]{
-			platform.OnAddPrepare:    res.onAddPrepare,
-			platform.ValidateEntity:  res.validateEntity,
-			platform.HardDeleteCheck: res.hardDeleteCheck,
+			platform.OnAddPrepare:   res.onAddPrepare,
+			platform.ValidateEntity: res.validateEntity,
 		},
 		eb,
 	)
@@ -80,9 +79,6 @@ func (s *studentService) onAddPrepare(ctx context.Context, student *entities.Stu
 	student.Slug = slug
 
 	return nil
-}
-func (s *studentService) hardDeleteCheck(ctx context.Context, student *entities.Student) error {
-	return fmt.Errorf("plug")
 }
 
 func (s *studentService) Seed(ctx context.Context) error {
@@ -187,6 +183,7 @@ func (s *studentService) sendChanges(
 		ID:         student.ID,
 		Slug:       student.Slug,
 		Name:       student.GetShortFullName(),
+		Email:      student.Email,
 		SemesterID: student.SemesterID,
 	}
 
