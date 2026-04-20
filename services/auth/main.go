@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
+	"time"
 
 	"github.com/IrusHunter/duckademic/services/auth/repositories"
 	resthandlers "github.com/IrusHunter/duckademic/services/auth/rest_handlers"
 	"github.com/IrusHunter/duckademic/services/auth/services"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/db"
 	"github.com/IrusHunter/duckademic/shared/envutil"
 	"github.com/IrusHunter/duckademic/shared/events"
@@ -52,12 +55,12 @@ func main() {
 		log.Fatalf("SUPER_ADMIN_ROLE not specified in the .env file")
 	}
 	roleService, adminRoleID := services.NewRoleService(roleRepository, adminRole)
-	permissionService := services.NewPermissionService(permissionRepository, roleRepository, rolePermissionsRepository,
+	rolePermissionsService := services.NewRolePermissionsService(rolePermissionsRepository, permissionRepository,
+		roleRepository)
+	permissionService := services.NewPermissionService(permissionRepository, roleRepository, rolePermissionsService,
 		eventBus, adminRoleID)
 
 	serviceService := services.NewServiceService(serviceRepository)
-	rolePermissionsService := services.NewRolePermissionsService(rolePermissionsRepository, permissionRepository,
-		roleRepository)
 	servicePermissionsService := services.NewServicePermissionsService(servicePermissionsRepository, serviceRepository,
 		permissionRepository)
 
@@ -90,8 +93,16 @@ func main() {
 		serviceService, servicePermissionsService, userService)
 
 	restapi := NewRESTAPI(permissionHandler, roleHandler, rolePermissionsHandler, serviceHandler,
-		servicePermissionsHandler, userHandler, databaseHandler)
+		servicePermissionsHandler, userHandler, databaseHandler, []byte(jwtSecret))
 
+	go func() {
+		time.Sleep(1 * time.Second)
+		ctx := contextutil.SetTraceID(context.Background())
+		err := eventBus.PublishAccessPermissions(ctx, BuildAccessPermissions())
+		if err != nil {
+			log.Fatalf("Can't publish access permissions: %s", err)
+		}
+	}()
 	err = restapi.Run(port)
 	log.Fatal(err)
 }

@@ -17,6 +17,7 @@ var ExternalSeedCooldown time.Duration = 20000 * time.Millisecond
 type EventBus interface {
 	Publish(ctx context.Context, topic string, payload []byte) error
 	Subscribe(ctx context.Context, topic string, handler func(context.Context, []byte)) error
+	PublishAccessPermissions(ctx context.Context, data []AccessPermissionRE) error
 }
 
 func NewRedisConnection(host, port, password string, dbNumber int) (*redis.Client, error) {
@@ -73,6 +74,19 @@ func (r *redisPubSub) Subscribe(ctx context.Context, topic string, handler func(
 			handler(contextutil.SetTraceID(context.Background()), []byte(msg.Payload))
 		}
 	}()
+	return nil
+}
+func (r *redisPubSub) PublishAccessPermissions(ctx context.Context, data []AccessPermissionRE) error {
+	for _, item := range data {
+		bytes, err := ToByteConvertor(item)
+		if err != nil {
+			return fmt.Errorf("failed to encode %v: %w", item, err)
+		}
+
+		if err := r.Publish(ctx, string(AccessPermissionRT), bytes); err != nil {
+			return fmt.Errorf("failed to publish %v: %w", item, err)
+		}
+	}
 	return nil
 }
 

@@ -21,7 +21,8 @@ type Middleware func(HandlerFunc) HandlerFunc
 
 // RESTAPIHelper provides utilities for routing, middleware, and logging HTTP requests.
 type RESTAPIHelper struct {
-	Logger logger.Logger
+	Logger    logger.Logger
+	JWTSecret []byte
 }
 
 // NewRESTAPIHelper creates a new RESTAPIHelper instance.
@@ -30,6 +31,13 @@ type RESTAPIHelper struct {
 func NewRESTAPIHelper(cn string) RESTAPIHelper {
 	return RESTAPIHelper{
 		Logger: logger.NewLogger(cn+".txt", cn),
+	}
+}
+
+func NewRESTAPIHelperWithAuth(cn string, jwtSecret []byte) RESTAPIHelper {
+	return RESTAPIHelper{
+		Logger:    logger.NewLogger(cn+".txt", cn),
+		JWTSecret: jwtSecret,
 	}
 }
 
@@ -72,9 +80,106 @@ func (rh *RESTAPIHelper) LoggingMiddleware(next HandlerFunc) HandlerFunc {
 	}
 }
 
+func (rh *RESTAPIHelper) NewAuthMiddleware(requiredPermissions []string) Middleware {
+	return func(next HandlerFunc) HandlerFunc {
+		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+			traceID := contextutil.GetTraceID(ctx)
+
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				jsonutil.ResponseWithError(
+					w,
+					http.StatusUnauthorized,
+					rh.Logger.LogAndReturnError(
+						traceID,
+						"AuthMiddleware",
+						fmt.Errorf("missing authorization header"),
+						logger.MiddlewareFailed,
+					),
+				)
+				return
+			}
+
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+				jsonutil.ResponseWithError(
+					w,
+					http.StatusUnauthorized,
+					rh.Logger.LogAndReturnError(
+						traceID,
+						"AuthMiddleware",
+						fmt.Errorf("invalid authorization header format"),
+						logger.MiddlewareFailed,
+					),
+				)
+				return
+			}
+
+			token := parts[1]
+
+			claims, err := jsonutil.ParseAccessTokenWithValidation(token, rh.JWTSecret)
+			if err != nil {
+				jsonutil.ResponseWithError(
+					w,
+					http.StatusUnauthorized,
+					rh.Logger.LogAndReturnError(
+						traceID,
+						"AuthMiddleware",
+						fmt.Errorf("invalid token: %w", err),
+						logger.MiddlewareFailed,
+					),
+				)
+				return
+			}
+
+			if len(requiredPermissions) > 0 {
+				if !hasPermissions(claims.Permissions, requiredPermissions) {
+					jsonutil.ResponseWithError(
+						w,
+						http.StatusForbidden,
+						rh.Logger.LogAndReturnError(
+							traceID,
+							"AuthMiddleware",
+							fmt.Errorf("missing required permissions"),
+							logger.MiddlewareFailed,
+						),
+					)
+					return
+				}
+			}
+
+			ctx = contextutil.SetAccessClaims(ctx, claims)
+			next(ctx, w, r)
+		}
+	}
+}
+
+func hasPermissions(userPerms []string, required []string) bool {
+	if len(required) == 0 {
+		return true
+	}
+
+	permMap := make(map[string]struct{}, len(userPerms))
+	for _, p := range userPerms {
+		permMap[p] = struct{}{}
+	}
+
+	for _, req := range required {
+		if _, ok := permMap[req]; !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
 // NewDefaultHandler creates a handler wrapped with TraceMiddleware and LoggingMiddleware.
 func (rh *RESTAPIHelper) NewDefaultHandler(h HandlerFunc) HandlerFunc {
 	return rh.NewHandler(h, rh.TraceMiddleware, rh.LoggingMiddleware)
+}
+
+func (rh *RESTAPIHelper) NewDefaultHandlerWithAuth(h HandlerFunc, requiredPermissions []string) HandlerFunc {
+	return rh.NewHandler(h, rh.TraceMiddleware, rh.LoggingMiddleware, rh.NewAuthMiddleware(requiredPermissions))
 }
 
 // NewRoute registers a set of HTTP methods and their corresponding handlers for a given path.

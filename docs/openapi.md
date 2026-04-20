@@ -126,23 +126,23 @@
 
 - Auth Service (/auth)
   - Source of Truth
-    - [/permissions](#auth-permissions)
-    - [/permission/{id}](#auth-permission-id)
-    - [/roles](#auth-roles)
-    - [/role/{id}](#auth-role-id)
-    - [/role-permissions](#auth-role-permissions)
-    - [/role-permission/{id}](#auth-role-permission-id)
-    - [/services](#auth-services)
-    - [/service/{id}](#auth-service-id)
-    - [/service-permissions](#auth-service-permissions)
-    - [/service-permission/{id}](#auth-service-permission-id)
+    - [/permissions](#auth-permissions) !auth.permission
+    - [/permission/{id}](#auth-permission-id) !auth.permission
+    - [/roles](#auth-roles) !auth.role
+    - [/role/{id}](#auth-role-id) !auth.role
+    - [/role-permissions](#auth-role-permissions) !auth.role_permission
+    - [/role-permission/{id}](#auth-role-permission-id) !auth.role_permission
+    - [/services](#auth-services) !auth.service
+    - [/service/{id}](#auth-service-id) !auth.service
+    - [/service-permissions](#auth-service-permissions) !auth.service_permission
+    - [/service-permission/{id}](#auth-service-permission-id) !auth.service_permission
   - Projection
-    - [/users](#auth-users)
-    - [/user/{id}](#auth-user-id)
+    - [/users](#auth-users) !auth.user
+    - [/user/{id}](#auth-user-id) !auth.user
   - Operations
     - [/login](#auth-login)
     - [/refresh](#auth-refresh)
-    - [/reset-password/{id}](#auth-reset-password-id)
+    - [/reset-password/{id}](#auth-reset-password-id) !auth.user.reset_password
     - [/change-password](#auth-change-password)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
@@ -1538,11 +1538,11 @@
 
 ## /permissions
 
-### GET - gets all permissions from the database
+### GET (auth.permission) - gets all permissions from the database
 
 200 OK [=> Permission[]](schemas.md#auth-permission)
 
-### POST - adds a new permission
+### POST (auth.permission) - adds a new permission
 
 ```json
 {
@@ -1558,19 +1558,19 @@
 
 ## /permission/{id}
 
-### GET - finds permission with an ID as a URL parameter
+### GET (auth.permission) - finds permission with an ID as a URL parameter
 
 200 OK [=> Permission](schemas.md#auth-permission)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a permission by its ID provided in the URL path
+### DELETE (auth.permission) - deletes a permission by its ID provided in the URL path
 
 200 OK [=> Permission](schemas.md#auth-permission)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a permission by its ID with the data provided in the request body
+### PUT (auth.permission) - updates a permission by its ID with the data provided in the request body
 
 ```json
 {
@@ -1586,11 +1586,11 @@
 
 ## /roles
 
-### GET - gets all roles from the database
+### GET (auth.role) - gets all roles from the database
 
 200 OK [=> Role[]](schemas.md#auth-role)
 
-### POST - adds a new role
+### POST (auth.role) - adds a new role
 
 ```json
 {
@@ -1606,19 +1606,19 @@
 
 ## /role/{id}
 
-### GET - finds role with an ID as a URL parameter
+### GET (auth.role) - finds role with an ID as a URL parameter
 
 200 OK [=> Role](schemas.md#auth-role)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a role by its ID provided in the URL path
+### DELETE (auth.role) - deletes a role by its ID provided in the URL path
 
 200 OK [=> Role](schemas.md#auth-role)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a role by its ID with the data provided in the request body
+### PUT (auth.role) - updates a role by its ID with the data provided in the request body
 
 ```json
 {
@@ -1634,11 +1634,11 @@
 
 ## /role-permissions
 
-### GET - gets all role-permission links from the database
+### GET (auth.role_permission) - gets all role-permission links from the database
 
 200 OK [=> RolePermissions[]](schemas.md#auth-role-permissions)
 
-### POST - adds a new role-permission link
+### POST (auth.role_permission) - adds a new role-permission link
 
 ```json
 {
@@ -1655,13 +1655,13 @@
 
 ## /role-permission/{id}
 
-### GET - finds role-permission link by ID from URL parameter
+### GET (auth.role_permission) - finds role-permission link by ID from URL parameter
 
 200 OK [=> RolePermissions](schemas.md#auth-role-permissions)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a role-permission link by ID from URL parameter
+### DELETE (auth.role_permission) - deletes a role-permission link by ID from URL parameter
 
 200 OK [=> RolePermissions](schemas.md#auth-role-permissions)
 
@@ -1671,11 +1671,11 @@
 
 ## /services
 
-### GET - gets all services from the database
+### GET (auth.service) - gets all services from the database
 
 200 OK [=> Service[]](schemas.md#auth-service)
 
-### POST - adds a new service
+### POST (auth.service) - adds a new service
 
 ```json
 {
@@ -1692,19 +1692,19 @@
 
 ## /service/{id}
 
-### GET - finds service with an ID as a URL parameter
+### GET (auth.service) - finds service with an ID as a URL parameter
 
 200 OK [=> Service](schemas.md#auth-service)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a service by its ID provided in the URL path
+### DELETE (auth.service) - deletes a service by its ID provided in the URL path
 
 200 OK [=> Service](schemas.md#auth-service)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a service by its ID with the data provided in the request body
+### PUT (auth.service) - updates a service by its ID with the data provided in the request body
 
 ```json
 {
@@ -1721,11 +1721,11 @@
 
 ## /service-permissions
 
-### GET - gets all service-permission links from the database
+### GET (auth.service_permission) - gets all service-permission links from the database
 
 200 OK [=> ServicePermissions[]](schemas.md#auth-service-permissions)
 
-### POST - adds a new service-permission link
+### POST (auth.service_permission) - adds a new service-permission link
 
 ```json
 {
@@ -1742,13 +1742,13 @@
 
 ## /service-permission/{id}
 
-### GET - finds service-permission link by ID from URL parameter
+### GET (auth.service_permission) - finds service-permission link by ID from URL parameter
 
 200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a service-permission link by ID from URL parameter
+### DELETE (auth.service_permission) - deletes a service-permission link by ID from URL parameter
 
 200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
 
@@ -1758,11 +1758,11 @@
 
 ## /users
 
-### GET - gets all users from the database
+### GET (auth.user) - gets all users from the database
 
 200 OK [=> User[]](schemas.md#auth-user)
 
-### POST - creates a new user
+### POST (auth.user) - creates a new user
 
 ```json
 {
@@ -1779,19 +1779,19 @@
 
 ## /user/{id}
 
-### GET - finds user by ID provided as a URL parameter
+### GET (auth.user) - finds user by ID provided as a URL parameter
 
 200 OK [=> User](schemas.md#auth-user)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a user by ID provided in the URL path
+### DELETE (auth.user) - deletes a user by ID provided in the URL path
 
 200 OK [=> User](schemas.md#auth-user)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a user by ID with data provided in request body
+### PUT (auth.user) - updates a user by ID with data provided in request body
 
 ```json
 {
@@ -1860,7 +1860,7 @@
 
 ## /reset-password-id
 
-### ANY - resets the password for a user specified by ID in the URL path
+### ANY (auth.user.reset_password) - resets the password for a user specified by ID in the URL path
 
 204 NO CONTENT
 

@@ -22,7 +22,7 @@ type PermissionService interface {
 func NewPermissionService(
 	pr repositories.PermissionRepository,
 	rr repositories.RoleRepository,
-	rpr repositories.RolePermissionsRepository,
+	rps RolePermissionsService,
 	eb events.EventBus,
 	arID uuid.UUID,
 ) PermissionService {
@@ -33,10 +33,10 @@ func NewPermissionService(
 	)
 
 	s := &permissionService{
-		repository:                pr,
-		roleRepository:            rr,
-		rolePermissionsRepository: rpr,
-		adminRoleID:               arID,
+		repository:             pr,
+		roleRepository:         rr,
+		rolePermissionsService: rps,
+		adminRoleID:            arID,
 	}
 
 	s.BaseService = platform.NewBaseService(
@@ -60,11 +60,11 @@ func NewPermissionService(
 
 type permissionService struct {
 	platform.BaseService[entities.Permission]
-	repository                repositories.PermissionRepository
-	roleRepository            repositories.RoleRepository
-	rolePermissionsRepository repositories.RolePermissionsRepository
-	logger                    logger.Logger
-	adminRoleID               uuid.UUID
+	repository             repositories.PermissionRepository
+	roleRepository         repositories.RoleRepository
+	rolePermissionsService RolePermissionsService
+	logger                 logger.Logger
+	adminRoleID            uuid.UUID
 }
 
 func (s *permissionService) eventHandler(ctx context.Context, b []byte) {
@@ -101,7 +101,7 @@ func (s *permissionService) onAddPrepare(ctx context.Context, p *entities.Permis
 func (s *permissionService) Add(ctx context.Context, p entities.Permission) (entities.Permission, error) {
 	res, err := s.BaseService.Add(ctx, p)
 	if err == nil {
-		s.rolePermissionsRepository.Add(ctx, entities.RolePermissions{
+		s.rolePermissionsService.Add(ctx, entities.RolePermissions{
 			RoleID:       s.adminRoleID,
 			PermissionID: res.ID,
 		})
@@ -124,7 +124,21 @@ func (s *permissionService) Seed(ctx context.Context) error {
 	}
 
 	s.adminRoleID = adminRole.ID
-	return nil
+
+	var lastError error
+	permissions := s.repository.GetAll(ctx)
+	for _, permission := range permissions {
+		_, err := s.rolePermissionsService.Add(ctx, entities.RolePermissions{
+			RoleID:       s.adminRoleID,
+			PermissionID: permission.ID,
+		})
+		if err != nil {
+			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+				fmt.Errorf("failed to add %s for admin: %w", permission, err), logger.ServiceDataFetchFailed)
+		}
+	}
+
+	return lastError
 }
 
 // func (s *permissionService) ExternalUpdate(

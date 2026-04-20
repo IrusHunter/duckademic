@@ -9,6 +9,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/auth/entities"
 	"github.com/IrusHunter/duckademic/services/auth/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/envutil"
 	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
@@ -275,7 +276,66 @@ func (s *userService) Seed(ctx context.Context) error {
 	s.studentRoleID = studentRole.ID
 	s.teacherRoleID = teacherRole.ID
 
-	return nil
+	assignments := []struct {
+		Login    string `json:"login"`
+		RoleName string `json:"role_name"`
+	}{}
+
+	if err := jsonutil.ReadFileTo(filepath.Join("data", "users.json"), &assignments); err != nil {
+		return s.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"Seed",
+			fmt.Errorf("failed to load users seed data: %w", err),
+			logger.ServiceValidationFailed,
+		)
+	}
+
+	var lastError error
+
+	for _, item := range assignments {
+		role := s.roleRepository.FindByName(ctx, item.RoleName)
+		if role == nil {
+			lastError = s.GetLogger().LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"Seed",
+				fmt.Errorf("role not found for user %s: %s", item.Login, item.RoleName),
+				logger.ServiceValidationFailed,
+			)
+			continue
+		}
+
+		user := entities.User{
+			ID:     uuid.New(),
+			Login:  item.Login,
+			RoleID: role.ID,
+		}
+
+		_, err := s.Add(ctx, user)
+		if err != nil {
+			lastError = s.GetLogger().LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"Seed",
+				fmt.Errorf("failed to add user %s: %w", user.Login, err),
+				logger.ServiceValidationFailed,
+			)
+			continue
+		}
+	}
+
+	s.createSuperAdmin(contextutil.SetTraceID(context.Background()),
+		envutil.GetStringFromENV("SUPER_ADMIN_LOGIN"),
+		envutil.GetStringFromENV("SUPER_ADMIN_PASSWORD"),
+		envutil.GetStringFromENV("SUPER_ADMIN_ROLE"),
+	)
+
+	s.GetLogger().Log(
+		contextutil.GetTraceID(ctx),
+		"Seed",
+		"users seed processed",
+		logger.ServiceOperationSuccess,
+	)
+
+	return lastError
 }
 
 type ResponseUser struct {
