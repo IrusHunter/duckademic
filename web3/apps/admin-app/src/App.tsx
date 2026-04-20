@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient
 import axios from 'axios'
 import css from './App.module.css'
 import { LuUser, LuBookCopy, LuGraduationCap, LuUsers, LuNotebookText, LuUniversity, LuSheet } from 'react-icons/lu';
+import { LiaLongArrowAltLeftSolid } from "react-icons/lia";
+
 
 const queryClient = new QueryClient()
 
@@ -1060,15 +1062,14 @@ function EditPage({ service, table }: { service: ServiceDef; table: TableDef }) 
   }
 
   return (
-    <div style={{ padding: 24, flex: 1, maxWidth: 600 }}>
+    <div className={css.wrapper}>
       <button
         onClick={() => navigate(-1)}
-        style={{ marginBottom: 20, padding: '6px 14px', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', background: 'white' }}
+        className={ css.buttonBack}
       >
-        ← Back
+        <LiaLongArrowAltLeftSolid size={20}/>Back
       </button>
-
-      <h2 style={{ marginBottom: 4 }}>Edit — {table.label}</h2>
+      <h2 className={css.itemTitle}>Edit — {table.label}</h2>
       <p style={{ color: '#999', fontSize: 13, marginBottom: 24 }}>
         {service.label} · {service.baseURL}{table.itemEndpoint}/{itemId}
       </p>
@@ -1196,14 +1197,11 @@ function TablePage({ service, table }: { service: ServiceDef; table: TableDef })
     <div style={{ padding: 24, flex: 1 }}>
       <button
         onClick={() => navigate(`/admin/${service.key}`)}
-        style={{ marginBottom: 16, padding: '6px 14px', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', background: 'white' }}
+        className={ css.buttonBack}
       >
-        ← Back
+        <LiaLongArrowAltLeftSolid size={20} /> <span className={ css.spanBack}>Back</span>
       </button>
-      <h2 style={{ marginBottom: 4 }}>{table.label}</h2>
-      <p style={{ color: '#999', fontSize: 13, marginBottom: 20 }}>
-        {service.label} · {service.baseURL}{table.listEndpoint}
-      </p>
+      <h2 className={ css.itemTitle }>{table.label}</h2>
 
       {!table.readOnly && table.fields.length > 0 && (
         <AddForm fields={table.fields} onSubmit={body => createMutation.mutate(body)} />
@@ -1231,25 +1229,27 @@ function TablePage({ service, table }: { service: ServiceDef; table: TableDef })
 function ServiceHome({ service }: { service: ServiceDef }) {
   const navigate = useNavigate()
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ marginBottom: 4 }}>{service.label}</h2>
-      <p style={{ color: '#999', fontSize: 13, marginBottom: 24 }}>{service.baseURL}</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 400 }}>
+    <div className={css.wrapper}>
+      <h2 className={css.serviceItemTitle}>{service.label}</h2>
+      {/* <p style={{ color: '#999', fontSize: 13, marginBottom: 24 }}>{service.baseURL}</p> */}
+      <ul className={css.serviceItemList}>
         {service.tables.map(table => (
+          <li>
           <button
             key={table.key}
-            onClick={() => navigate(`/admin/${service.key}/${table.key}`)}
-            style={{ padding: '14px 18px', textAlign: 'left', border: '1px solid #e0e0e0', borderRadius: 8, cursor: 'pointer', background: 'white', fontSize: 15 }}
+              onClick={() => navigate(`/admin/${service.key}/${table.key}`)}
+              className={css.serviceItemButton}
           >
             {table.label}
             {table.readOnly && (
-              <span style={{ marginLeft: 8, fontSize: 11, color: '#aaa', background: '#f0f0f0', padding: '2px 6px', borderRadius: 4 }}>
+                <span className={ css.span }>
                 read-only
               </span>
             )}
-          </button>
+            </button>
+            </li>
         ))}
-      </div>
+      </ul>
     </div>
   )
 }

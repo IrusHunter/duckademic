@@ -61,3 +61,82 @@
 .mainDiv {
     background-color: #F3F4F6;
 }
+
+.wrapper {
+    padding: 0 20px;
+}
+
+.serviceItemTitle {
+    size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    color: #111827;
+    padding: 24px 0 24px 0;
+}
+
+.itemTitle {
+    size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    color: #111827;
+    padding: 0 0 24px 0;
+}
+
+.serviceItemList {
+    display: flex;
+    flex-direction: column;
+    width: 650px;
+    gap: 16px;
+}
+
+.serviceItemButton {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    font-size: 14px;
+    background-color: #fff;
+    border: 1px solid #E4E4E7;
+    border-radius: 6px;
+}
+
+.serviceItemButton:hover {
+    background-color: #61708C;
+    color: #fff;
+    transition: all 0.25s ease;
+}
+
+.span {
+    margin-left: 8px;
+    font-size: 11px;
+    line-height: 16px;
+    color: #aaa;
+    background: #f0f0f0;
+    border-radius: 4px;
+    padding: 0 4px;
+}
+
+.buttonBack {
+    font-size: 14px;
+    line-height: 16px;
+    display: flex; 
+    gap: 4px;
+    color: #909090;
+    background-color: transparent;
+    margin-bottom: 12px;
+}
+
+.buttonBack:hover,
+.buttonBack:focus {
+    color: #61708C;
+    transition: all 0.25s ease;
+}
+
+.spanBack {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
