@@ -3,7 +3,7 @@ module github.com/IrusHunter/duckademic/services/student_group
 go 1.23.4
 
 require (
-	github.com/IrusHunter/duckademic/shared v0.0.0-20260407075026-e200fd17916a
+	github.com/IrusHunter/duckademic/shared v0.0.0-20260420001452-e30331371253
 	github.com/google/uuid v1.6.0
 	github.com/gosimple/slug v1.15.0
 	github.com/jmoiron/sqlx v1.4.0

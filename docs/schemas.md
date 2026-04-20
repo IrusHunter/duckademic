@@ -1086,3 +1086,89 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+## Auth Service
+
+<a id="auth-permission"></a>
+
+### Permission
+
+```json
+{
+  "id": "uuid (unique identifier of the classroom)",
+  "name": "string (unique name of the permission)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="auth-role"></a>
+
+### Role
+
+```json
+{
+  "id": "uuid (unique identifier of the role)",
+  "name": "string (unique name of the role)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="auth-service"></a>
+
+### Service
+
+```json
+{
+  "id": "uuid (unique identifier of the service)",
+  "name": "string (unique name of the service)",
+  "secrete": "string (service secret key)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="auth-role-permissions"></a>
+
+### Role Permissions
+
+```json
+{
+  "id": "uuid (unique identifier of the role permission link)",
+  "role_id": "uuid (associated role identifier)",
+  "permission_id": "uuid (associated permission identifier)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="auth-service-permissions"></a>
+
+### Service Permissions
+
+```json
+{
+  "id": "uuid (unique identifier of the service permission link)",
+  "service_id": "uuid (associated service identifier)",
+  "permission_id": "uuid (associated permission identifier)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="auth-user"></a>
+
+### User
+
+```json
+{
+  "id": "uuid (unique identifier of the user)",
+  "login": "string (user login/username)",
+  "is_default_password": "boolean (indicates whether the user is using a default password)",
+  "role_id": "uuid (associated role identifier)",
+  "last_login": "timestamp (last login time)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

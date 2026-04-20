@@ -28,9 +28,8 @@ func NewEmployeeService(er repositories.EmployeeRepository) EmployeeService {
 	}
 	res.BaseService = platform.NewBaseService(sc, er,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Employee]{
-			platform.OnAddPrepare:    res.onAddPrepare,
-			platform.ValidateEntity:  res.validateEntity,
-			platform.HardDeleteCheck: res.hardDeleteCheck,
+			platform.OnAddPrepare:   res.onAddPrepare,
+			platform.ValidateEntity: res.validateEntity,
 		},
 	)
 
@@ -61,7 +60,4 @@ func (s *employeeRepository) onAddPrepare(ctx context.Context, employee *entitie
 	employee.Slug = slug
 
 	return nil
-}
-func (s *employeeRepository) hardDeleteCheck(ctx context.Context, employee *entities.Employee) error {
-	return fmt.Errorf("plug")
 }

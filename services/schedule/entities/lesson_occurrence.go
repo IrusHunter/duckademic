@@ -63,11 +63,9 @@ func (l LessonOccurrence) String() string {
 
 	return fmt.Sprintf("LessonOccurrence{%s}", strings.Join(parts, ", "))
 }
-
 func (LessonOccurrence) TableName() string {
 	return "lesson_occurrences"
 }
-
 func (LessonOccurrence) EntityName() string {
 	return "lesson occurrence"
 }
@@ -80,4 +78,13 @@ type ExternalLesson struct {
 	Slot           int        `json:"slot"`
 	Day            int        `json:"day"`
 	ClassroomID    *uuid.UUID `json:"classroom_id,omitempty"`
+}
+
+type ScheduledLesson struct {
+	ID          uuid.UUID              `json:"id"`
+	StudyLoad   CompactStudyLoad       `json:"study_load"`
+	Date        time.Time              `json:"date"`
+	ClassroomID *uuid.UUID             `json:"classroom_id,omitempty"`
+	Status      LessonOccurrenceStatus `json:"status"`
+	MovedToID   *uuid.UUID             `json:"moved_to_id,omitempty"`
 }

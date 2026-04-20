@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/IrusHunter/duckademic/services/employee/services"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 )
 
@@ -38,6 +41,12 @@ type databaseHandler struct {
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	go func() {
+		time.Sleep(events.ExternalSeedCooldown)
+		ctx := contextutil.SetTraceID(context.Background())
+		h.teacherService.Seed(ctx)
+	}()
+
 	if err := h.academicRankService.Seed(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed academic ranks: %w", err))
 		return
@@ -48,10 +57,6 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 	}
 	if err := h.employeeService.Seed(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed employees: %w", err))
-		return
-	}
-	if err := h.teacherService.Seed(ctx); err != nil {
-		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed teachers: %w", err))
 		return
 	}
 

@@ -42,9 +42,8 @@ func NewTeacherService(
 
 	res.BaseService = platform.NewBaseServiceWithEventBus(sc, tr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Teacher]{
-			platform.OnAddPrepare:    res.onAddPrepare,
-			platform.ValidateEntity:  res.validateEntity,
-			platform.HardDeleteCheck: res.hardDeleteCheck,
+			platform.OnAddPrepare:   res.onAddPrepare,
+			platform.ValidateEntity: res.validateEntity,
 		},
 		eb,
 	)
@@ -183,6 +182,7 @@ func (s *teacherService) sendChanges(ctx context.Context, teacher entities.Teach
 		ID:             filledT.EmployeeID,
 		Slug:           filledT.Employee.Slug,
 		Name:           filledT.Employee.GetShortFullName(),
+		Email:          filledT.Email,
 		AcademicRankID: filledT.AcademicRankID,
 	}
 

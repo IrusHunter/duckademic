@@ -4,7 +4,7 @@ type RedisTopic string
 
 const (
 	AcademicRankRT          RedisTopic = "academic:ranks"
-	TeacherRT               RedisTopic = "teachers"
+	TeacherRT               RedisTopic = "teachers" // 1 delay
 	StudentRT               RedisTopic = "students" // 1 delay
 	LessonTypeRT            RedisTopic = "lesson:types"
 	DisciplineRT            RedisTopic = "disciplines"
@@ -16,6 +16,7 @@ const (
 	TeacherLoadRT           RedisTopic = "teacher:loads"           // 2 delay
 	GroupCohortAssignmentRT RedisTopic = "group:cohort:assignment" // 1 delay
 	ClassroomRT             RedisTopic = "classroom"
+	AccessPermissionRT      RedisTopic = "access:permission"
 )
 
 type EventType string

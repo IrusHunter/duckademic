@@ -15,99 +15,135 @@
 ### ANY - routes and proxies incoming requests to the appropriate backend service based on the request path.
 
 - Employee Service (/employee)
-  - [/academic-ranks](#employee-academic-ranks)
-  - [/academic-rank/{id}](#employee-academic-rank-id)
-  - [/academic-degrees](#employee-academic-degrees)
-  - [/academic-degree/{id}](#employee-academic-degree-id)
-  - [/employees](#employee-employees)
-  - [/employee/{id}](#employee-employee-id)
-  - [/teachers](#employee-teachers)
-  - [/teacher/{id}](#employee-teacher-id)
+  - Source of Truth
+    - [/academic-ranks](#employee-academic-ranks) !employee.academic_rank
+    - [/academic-rank/{id}](#employee-academic-rank-id) !employee.academic_rank
+    - [/academic-degrees](#employee-academic-degrees) !employee.academic_degree
+    - [/academic-degree/{id}](#employee-academic-degree-id) !employee.academic_degree
+    - [/employees](#employee-employees) !employee.employee
+    - [/employee/{id}](#employee-employee-id) !employee.employee
+    - [/teachers](#employee-teachers) !employee.teacher
+    - [/teacher/{id}](#employee-teacher-id) !employee.teacher
 
 - Schedule Service (/schedule)
-  - [/academic-ranks](#schedule-academic-ranks)
-  - [/academic-rank/{id}](#schedule-academic-rank-id)
-  - [/lesson-types](#schedule-lesson-types)
-  - [/lesson-type/{id}](#schedule-lesson-type-id)
-  - [/teachers](#schedule-teachers)
-  - [/disciplines](#schedule-disciplines)
-  - [/lesson-type-assignments](#schedule-lesson-type-assignments)
-  - [/students](#schedule-students)
-  - [/student-groups](#schedule-student-groups)
-  - [/group_members](#schedule-group-members)
-  - [/teacher-loads](#schedule-teacher-loads)
-  - [/group-cohorts](#schedule-group-cohorts)
-  - [/group-cohort-assignments](#schedule-group-cohort-assignments)
-  - [/classrooms](#schedule-classrooms)
-  - [/study-loads](#schedule-study-loads)
-  - [/lesson-slots](#schedule-lesson-slots)
-  - [/lesson-occurrences](#schedule-lesson-occurrences)
-  - [/extract-data-from-generator](#schedule-extract-data-from-generator)
+  - Enriched View
+    - [/academic-ranks](#schedule-academic-ranks) !schedule.academic_rank
+    - [/academic-rank/{id}](#schedule-academic-rank-id) !schedule.academic_rank
+    - [/lesson-types](#schedule-lesson-types) !schedule.lesson_type
+    - [/lesson-type/{id}](#schedule-lesson-type-id) !schedule.lesson_type
+  - Mirror
+    - [/teachers](#schedule-teachers) !schedule.teacher
+    - [/disciplines](#schedule-disciplines) !schedule.discipline
+    - [/lesson-type-assignments](#schedule-lesson-type-assignments) !schedule.lesson_type_assignment
+    - [/students](#schedule-students) !schedule.student
+    - [/student-groups](#schedule-student-groups) !schedule.student_group
+    - [/group_members](#schedule-group-members) !schedule.group_member
+    - [/teacher-loads](#schedule-teacher-loads) !schedule.teacher_load
+    - [/group-cohorts](#schedule-group-cohorts) !schedule.group_cohort
+    - [/group-cohort-assignments](#schedule-group-cohort-assignments) !schedule.group_cohort_assignment
+    - [/classrooms](#schedule-classrooms) !schedule.classroom
+  - Schedule Generator Integration
+    - [/extract-data-from-generator](#schedule-extract-data-from-generator)
+    - [/study-loads](#schedule-study-loads) !schedule.study_load
+    - [/lesson-slots](#schedule-lesson-slots) !schedule.lesson_slot
+    - [/lesson-occurrences](#schedule-lesson-occurrences) !schedule.lesson_occurrence
 
 - Schedule Generator Service (/schedule-generator)
-  - [/init](#schedule-generator-init)
-  - [/set-teachers](#schedule-generator-set-teachers)
-  - [/set-disciplines](#schedule-generator-set-disciplines)
-  - [/set-lesson-types](#schedule-generator-set-lesson-types)
-  - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
-  - [/set-student-groups](#schedule-generator-set-student-groups)
-  - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
-  - [/set-classrooms](#schedule-generator-set-classrooms)
-  - [/submit-and-go](#schedule-generator-submit-and-go)
-  - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
-  - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
-  - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
-  - [/build-schedule-skeleton](#schedule-generator-build-schedule-skeleton)
-  - [/add-floating-lessons](#schedule-generator-add-floating-lessons)
-  - [/assign-classrooms-to-floating-lessons](#schedule-generator-assign-classrooms-to-floating-lessons)
-  - [/get-study-loads](#schedule-generator-get-study-loads)
-  - [/get-lessons](#schedule-generator-get-lessons)
-  - [/default-generator-config](#schedule-generator-default-generator-config)
-  - [/get-fault](#schedule-generator-get-fault)
+  - Source of Truth
+    - [/default-generator-config](#schedule-generator-default-generator-config)
+  - Generation Pipeline
+    - [/init](#schedule-generator-init)
+    - [/submit-and-go](#schedule-generator-submit-and-go)
+    - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
+    - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
+    - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
+    - [/build-schedule-skeleton](#schedule-generator-build-schedule-skeleton)
+    - [/add-floating-lessons](#schedule-generator-add-floating-lessons)
+    - [/assign-classrooms-to-floating-lessons](#schedule-generator-assign-classrooms-to-floating-lessons)
+    - [/get-study-loads](#schedule-generator-get-study-loads)
+    - [/get-lessons](#schedule-generator-get-lessons)
+    - [/get-fault](#schedule-generator-get-fault)
+  - Internal
+    - [/set-teachers](#schedule-generator-set-teachers)
+    - [/set-disciplines](#schedule-generator-set-disciplines)
+    - [/set-lesson-types](#schedule-generator-set-lesson-types)
+    - [/set-lesson-type-assignments](#schedule-generator-set-lesson-type-assignments)
+    - [/set-student-groups](#schedule-generator-set-student-groups)
+    - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
+    - [/set-classrooms](#schedule-generator-set-classrooms)
 
 - Student Service (/student)
-  - [/semesters](#student-semesters)
-  - [/students](#student-students)
-  - [/student/{id}](#student-student-id)
+  - Source of Truth
+    - [/students](#student-students) !student.student
+    - [/student/{id}](#student-student-id) !student.student
+  - Mirror
+    - [/semesters](#student-semesters) !student.semester
 
 - Student Group Service (/student-group)
-  - [/semesters](#student-group-semesters)
-  - [/students](#student-group-students)
-  - [/group-cohorts](#student-group-group-cohorts)
-  - [/group-cohort/{id}](#student-group-group-cohort-id)
-  - [/student-groups](#student-group-student-groups)
-  - [/student-group/{id}](#student-group-student-group-id)
-  - [/group-members](#student-group-group-members)
-  - [/group-member/{id}](#student-group-group-member-id)
-  - [/lesson-types](#student-group-lesson-types)
-  - [/disciplines](#student-group-disciplines)
-  - [/group-cohort-assignments](#student-group-group-cohort-assignments)
-  - [/group-cohort-assignment/{id}](#student-group-group-cohort-assignment)
+  - Source of Truth
+    - [/group-cohorts](#student-group-group-cohorts) !student_group.group_cohort
+    - [/group-cohort/{id}](#student-group-group-cohort-id) !student_group.group_cohort
+    - [/student-groups](#student-group-student-groups) !student_group.student_group
+    - [/student-group/{id}](#student-group-student-group-id) !student_group.student_group
+    - [/group-members](#student-group-group-members) !student_group.group_member
+    - [/group-member/{id}](#student-group-group-member-id) !student_group.group_member
+    - [/group-cohort-assignments](#student-group-group-cohort-assignments) !student_group.group_cohort_assignment
+    - [/group-cohort-assignment/{id}](#student-group-group-cohort-assignment) !student_group.group_cohort_assignment
+  - Mirror
+    - [/semesters](#student-group-semesters) !student_group.semester
+    - [/students](#student-group-students) !student_group.student
+    - [/lesson-types](#student-group-lesson-types) !student_group.lesson_type
+    - [/disciplines](#student-group-disciplines) !student_group.discipline
 
 - Curriculum Service (/curriculum)
-  - [/curriculums](#curriculum-curriculum)
-  - [/curriculum/{id}](#curriculum-curriculum-id)
-  - [/semesters](#curriculum-semesters)
-  - [/semester/{id}](#curriculum-semester-id)
-  - [/lesson-types](#curriculum-lesson-types)
-  - [/lesson-type/{id}](#curriculum-lesson-type-id)
-  - [/disciplines](#curriculum-disciplines)
-  - [/discipline/{id}](#curriculum-discipline-id)
-  - [/lesson-type-assignments](#curriculum-lesson-type-assignments)
-  - [/lesson-type-assignment/{id}](#curriculum-lesson-type-assignment-id)
-  - [/semester-disciplines](#curriculum-semester-disciplines)
-  - [/semester-discipline/{id}](#curriculum-semester-discipline-id)
+  - Source of Truth
+    - [/curriculums](#curriculum-curriculum) !curriculum.curriculum
+    - [/curriculum/{id}](#curriculum-curriculum-id) !curriculum.curriculum
+    - [/semesters](#curriculum-semesters) !curriculum.semester
+    - [/semester/{id}](#curriculum-semester-id) !curriculum.semester
+    - [/lesson-types](#curriculum-lesson-types) !curriculum.lesson_type
+    - [/lesson-type/{id}](#curriculum-lesson-type-id) !curriculum.lesson_type
+    - [/disciplines](#curriculum-disciplines) !curriculum.discipline
+    - [/discipline/{id}](#curriculum-discipline-id) !curriculum.discipline
+    - [/lesson-type-assignments](#curriculum-lesson-type-assignments) !curriculum.lesson_type_assignment
+    - [/lesson-type-assignment/{id}](#curriculum-lesson-type-assignment-id) !curriculum.lesson_type_assignment
+    - [/semester-disciplines](#curriculum-semester-disciplines) !curriculum.semester_discipline
+    - [/semester-discipline/{id}](#curriculum-semester-discipline-id) !curriculum.semester_discipline
 
 - Teacher Load Service (/teacher-load)
-  - [/teachers](#teacher-load-teachers)
-  - [/lesson-types](#teacher-load-lesson-types)
-  - [/disciplines](#teacher-load-disciplines)
-  - [/teacher-loads](#teacher-load-teacher-loads)
-  - [/teacher-load/{id}](#teacher-load-teacher-load-id)
+  - Source of Truth
+    - [/teacher-loads](#teacher-load-teacher-loads) !teacher_load.teacher_load
+    - [/teacher-load/{id}](#teacher-load-teacher-load-id) !teacher_load.teacher_load
+  - Mirror
+    - [/teachers](#teacher-load-teachers) !teacher_load.teacher_load
+    - [/lesson-types](#teacher-load-lesson-types) !teacher_load.teacher_load
+    - [/disciplines](#teacher-load-disciplines) !teacher_load.teacher_load
 
 - Asset Service (/asset)
-  - [/classrooms](#employee-classrooms)
-  - [/classroom/{id}](#employee-classroom)
+  - Source of Truth
+    - [/classrooms](#employee-classrooms) !asset.classroom
+    - [/classroom/{id}](#employee-classroom) !asset.classroom
+
+- Auth Service (/auth)
+  - Source of Truth
+    - [/permissions](#auth-permissions) !auth.permission
+    - [/permission/{id}](#auth-permission-id) !auth.permission
+    - [/roles](#auth-roles) !auth.role
+    - [/role/{id}](#auth-role-id) !auth.role
+    - [/role-permissions](#auth-role-permissions) !auth.role_permission
+    - [/role-permission/{id}](#auth-role-permission-id) !auth.role_permission
+    - [/services](#auth-services) !auth.service
+    - [/service/{id}](#auth-service-id) !auth.service
+    - [/service-permissions](#auth-service-permissions) !auth.service_permission
+    - [/service-permission/{id}](#auth-service-permission-id) !auth.service_permission
+  - Projection
+    - [/users](#auth-users) !auth.user
+    - [/user/{id}](#auth-user-id) !auth.user
+  - Operations
+    - [/login](#auth-login)
+    - [/refresh](#auth-refresh)
+    - [/reset-password/{id}](#auth-reset-password-id) !auth.user.reset_password
+    - [/change-password](#auth-change-password)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -117,11 +153,11 @@
 
 ## /academic-ranks
 
-### GET - gets all academic ranks from the database
+### GET (employee.academic_rank) - gets all academic ranks from the database
 
 200 OK [=> AcademicRank[]](schemas.md#employee-academic-rank)
 
-### POST - adds a new academic rank
+### POST (employee.academic_rank) - adds a new academic rank
 
 ```json
 {
@@ -137,19 +173,19 @@
 
 ## /academic-rank/{id}
 
-### GET - finds academic rank with an ID as an URL parameter
+### GET (employee.academic_rank) - finds academic rank with an ID as an URL parameter
 
 200 OK [=> AcademicRank](schemas.md#employee-academic-rank)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes an academic rank by its ID provided in the URL path
+### DELETE (employee.academic_rank) - deletes an academic rank by its ID provided in the URL path
 
 200 OK [=> AcademicRank](schemas.md#employee-academic-rank)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates an academic rank by its ID with the data provided in the request body
+### PUT (employee.academic_rank) - updates an academic rank by its ID with the data provided in the request body
 
 ```json
 {
@@ -165,11 +201,11 @@
 
 ## /academic-degrees
 
-### GET - gets all academic degrees from the database
+### GET (employee.academic_degree) - gets all academic degrees from the database
 
 200 OK [=> AcademicDegree[]](schemas.md#employee-academic-degree)
 
-### POST - adds a new academic degree
+### POST (employee.academic_degree) - adds a new academic degree
 
 ```json
 {
@@ -185,19 +221,19 @@
 
 ## /academic-degree/{id}
 
-### GET - finds academic degree with an ID as a URL parameter
+### GET (employee.academic_degree) - finds academic degree with an ID as a URL parameter
 
 200 OK [=> AcademicDegree](schemas.md#employee-academic-degree)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes an academic degree by its ID provided in the URL path
+### DELETE (employee.academic_degree) - deletes an academic degree by its ID provided in the URL path
 
 **200 OK** [=> AcademicDegree](schemas.md#employee-academic-degree)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates an academic degree by its ID with the data provided in the request body
+### PUT (employee.academic_degree) - updates an academic degree by its ID with the data provided in the request body
 
 ```json
 {
@@ -213,11 +249,11 @@
 
 ## /employees
 
-### GET - gets all employees from the database
+### GET (employee.employee) - gets all employees from the database
 
 **200 OK** [=> Employee[]](schemas.md#employee-employee)
 
-### POST - adds a new employee
+### POST (employee.employee) - adds a new employee
 
 ```json
 {
@@ -238,19 +274,19 @@
 
 ## /employee/{id}
 
-### GET - finds employee with an ID as a URL parameter
+### GET (employee.employee) - finds employee with an ID as a URL parameter
 
 **200 OK** [=> Employee](schemas.md#employee-employee)
 
 **400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes an employee by its ID provided in the URL path
+### DELETE (employee.employee) - deletes an employee by its ID provided in the URL path
 
 **200 OK** [=> Employee](schemas.md#employee-employee)
 
 **400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates an employee by its ID with the data provided in the request body
+### PUT (employee.employee) - updates an employee by its ID with the data provided in the request body
 
 ```json
 {
@@ -271,11 +307,11 @@
 
 ## /teachers
 
-### GET - gets all teachers from the database
+### GET (employee.teacher) - gets all teachers from the database
 
 **200 OK** [=> Teacher[]](schemas.md#employee-teacher)
 
-### POST - adds a new teacher
+### POST (employee.teacher) - adds a new teacher
 
 ```json
 {
@@ -296,19 +332,19 @@
 
 ## /teacher/{id}
 
-### GET - finds teacher with an ID as a URL parameter
+### GET (employee.teacher) - finds teacher with an ID as a URL parameter
 
 **200 OK** [=> Teacher](schemas.md#employee-teacher)
 
 **400 BAD REQUEST** [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a teacher by its ID provided in the URL path
+### DELETE (employee.teacher) - deletes a teacher by its ID provided in the URL path
 
 **200 OK** [=> Teacher](schemas.md#employee-teacher)
 
 **400 BAD REQUEST** [-> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a teacher by its ID with the data provided in the request body
+### PUT (employee.teacher) - updates a teacher by its ID with the data provided in the request body
 
 ```json
 {
@@ -331,7 +367,7 @@
 
 ## /academic-ranks
 
-### GET - gets all academic ranks from the database
+### GET (schedule.academic_rank) - gets all academic ranks from the database
 
 200 OK [=> AcademicRank[]](schemas.md#schedule-academic-rank)
 
@@ -339,13 +375,13 @@
 
 ## /academic-rank/{id}
 
-### GET - finds academic rank with an ID as an URL parameter
+### GET (schedule.academic_rank) - finds academic rank with an ID as an URL parameter
 
 200 OK [=> AcademicRank](schemas.md#schedule-academic-rank)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates an academic rank by its ID with the data provided in the request body
+### PUT (schedule.academic_rank) - updates an academic rank by its ID with the data provided in the request body
 
 ```json
 {
@@ -361,7 +397,7 @@
 
 ## /teachers
 
-### GET - gets all teachers from the database
+### GET (schedule.teacher) - gets all teachers from the database
 
 **200 OK** [=> Teacher[]](schemas.md#schedule-teacher)
 
@@ -369,7 +405,7 @@
 
 ## /lesson-types
 
-### GET - gets all lesson types from the database
+### GET (schedule.lesson_type) - gets all lesson types from the database
 
 200 OK [=> LessonType[]](schemas.md#schedule-lesson-type)
 
@@ -377,13 +413,13 @@
 
 ## /lesson-type/{id}
 
-### GET - finds lesson type by ID (provided as a URL parameter)
+### GET (schedule.lesson_type) - finds lesson type by ID (provided as a URL parameter)
 
 200 OK [=> LessonType](schemas.md#schedule-lesson-type)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a lesson type by its ID using the request body
+### PUT (schedule.lesson_type) - updates a lesson type by its ID using the request body
 
 ```json
 {
@@ -399,7 +435,7 @@
 
 ## /disciplines
 
-### GET – gets all disciplines from the database
+### GET (schedule.discipline) – gets all disciplines from the database
 
 200 OK [=> Discipline[]](schemas.md#schedule-discipline)
 
@@ -407,7 +443,7 @@
 
 ## /lesson-type-assignments
 
-### GET – gets all lesson type assignments from the database
+### GET (schedule.lesson_type_assignment) – gets all lesson type assignments from the database
 
 200 OK [=> LessonTypeAssignment[]](schemas.md#schedule-lesson-type-assignment)
 
@@ -415,7 +451,7 @@
 
 ## /students
 
-### GET - gets all students from the database
+### GET (schedule.student) - gets all students from the database
 
 200 OK [=> Student[]](schemas.md#schedule-student)
 
@@ -423,7 +459,7 @@
 
 ## /student-groups
 
-### GET - gets all student groups from the database
+### GET (schedule.student_group) - gets all student groups from the database
 
 200 OK [=> StudentGroup[]](schemas.md#schedule-student-group)
 
@@ -431,7 +467,7 @@
 
 ## /group-members
 
-### GET - gets all group members from the database
+### GET (schedule.group_member) - gets all group members from the database
 
 200 OK [=> GroupMember[]](schemas.md#schedule-group-member)
 
@@ -439,7 +475,7 @@
 
 ## /teacher-loads
 
-### GET – gets all teacher loads from the database
+### GET (schedule.teacher_load) – gets all teacher loads from the database
 
 200 OK [=> TeacherLoad[]](schemas.md#schedule-teacher-load)
 
@@ -447,7 +483,7 @@
 
 ## /group-cohorts
 
-### GET - gets all group cohorts from the database
+### GET (schedule.group_cohort) - gets all group cohorts from the database
 
 200 OK [=> GroupCohort[]](schemas.md#schedule-group-cohort)
 
@@ -455,7 +491,7 @@
 
 ## /group-cohort-assignments
 
-### GET - gets all group cohort assignments from the database
+### GET (schedule.group_cohort_assignment) - gets all group cohort assignments from the database
 
 200 OK [=> GroupCohortAssignment[]](schemas.md#schedule-group-cohort-assignment)
 
@@ -463,7 +499,7 @@
 
 ## /classrooms
 
-### GET - gets all classrooms from the database
+### GET (schedule.classroom) - gets all classrooms from the database
 
 200 OK [=> Classroom[]](schemas.md#schedule-classroom)
 
@@ -471,7 +507,7 @@
 
 ## /study-loads
 
-### GET - gets all study loads from the database
+### GET (schedule.study_load) - gets all study loads from the database
 
 200 OK [=> StudyLoad[]](schemas.md#schedule-study-load)
 
@@ -479,7 +515,7 @@
 
 ## /lesson-slots
 
-### GET - gets all lesson slots from the database
+### GET (schedule.lesson_slot) - gets all lesson slots from the database
 
 200 OK [=> LessonSlot[]](schemas.md#schedule-lesson-slot)
 
@@ -487,7 +523,7 @@
 
 ## /lesson-occurrences
 
-### GET - gets all lesson occurrences from the database
+### GET (schedule.lesson_occurrence) - gets all lesson occurrences from the database
 
 200 OK [=> LessonOccurrence[]](schemas.md#schedule-lesson-occurrence)
 
@@ -756,7 +792,7 @@
 
 ## /semesters
 
-### GET - gets all semesters from the database
+### GET (student.semester) - gets all semesters from the database
 
 200 OK [=> Semester[]](schemas.md#student-semester)
 
@@ -764,11 +800,11 @@
 
 ## /students
 
-### GET - gets all students from the database
+### GET (student.student) - gets all students from the database
 
 200 OK [=> Student[]](schemas.md#student-student)
 
-### POST - adds a new student
+### POST (student.student) - adds a new student
 
 ```json
 {
@@ -791,19 +827,19 @@
 
 ## /student/{id}
 
-### GET - finds student with an ID as an URL parameter
+### GET (student.student) - finds student with an ID as an URL parameter
 
 200 OK [=> Student](schemas.md#student-student)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes an student by its ID provided in the URL path
+### DELETE (student.student) - deletes an student by its ID provided in the URL path
 
 **200 OK** [=> Student](schemas.md#student-student)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a student by its ID with the data provided in the request body
+### PUT (student.student) - updates a student by its ID with the data provided in the request body
 
 ```json
 {
@@ -828,7 +864,7 @@
 
 ## /semesters
 
-### GET - gets all semesters from the database
+### GET (student_group.semester) - gets all semesters from the database
 
 200 OK [=> Semester[]](schemas.md#student-group-semester)
 
@@ -836,7 +872,7 @@
 
 ## /students
 
-### GET - gets all students from the database
+### GET (student_group.student) - gets all students from the database
 
 200 OK [=> Student[]](schemas.md#student-group-student)
 
@@ -844,11 +880,11 @@
 
 ## /group-cohorts
 
-### GET - gets all group cohorts from the database
+### GET (student_group.group_cohort) - gets all group cohorts from the database
 
 200 OK [=> GroupCohort[]](schemas.md#student-group-group-cohort)
 
-### POST - adds a new group cohort
+### POST (student_group.group_cohort) - adds a new group cohort
 
 ```json
 {
@@ -865,19 +901,19 @@
 
 ## /group-cohort/{id}
 
-### GET - finds group cohort with an ID as a URL parameter
+### GET (student_group.group_cohort) - finds group cohort with an ID as a URL parameter
 
 200 OK [=> GroupCohort](schemas.md#student-group-group-cohort)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a group cohort by its ID provided in the URL path
+### DELETE (student_group.group_cohort) - deletes a group cohort by its ID provided in the URL path
 
 200 OK [=> GroupCohort](schemas.md#student-group-group-cohort)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a group cohort by its ID with the data provided in the request body
+### PUT (student_group.group_cohort) - updates a group cohort by its ID with the data provided in the request body
 
 ```json
 {
@@ -894,11 +930,11 @@
 
 ## /student-groups
 
-### GET - gets all student groups from the database
+### GET (student_group.student_group) - gets all student groups from the database
 
 200 OK [=> StudentGroup[]](schemas.md#student-group-student-group)
 
-### POST - adds a new student group
+### POST (student_group.student_group) - adds a new student group
 
 ```json
 {
@@ -915,19 +951,19 @@
 
 ## /student-group/{id}
 
-### GET - finds a student group by its ID provided in the URL path
+### GET (student_group.student_group) - finds a student group by its ID provided in the URL path
 
 200 OK [=> StudentGroup](schemas.md#student-group-student-group)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a student group by its ID provided in the URL path
+### DELETE (student_group.student_group) - deletes a student group by its ID provided in the URL path
 
 200 OK [=> StudentGroup](schemas.md#student-group-student-group)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a student group by its ID with the data provided in the request body
+### PUT (student_group.student_group) - updates a student group by its ID with the data provided in the request body
 
 ```json
 {
@@ -944,11 +980,11 @@
 
 ## /group-members
 
-### GET - gets all group members from the database
+### GET (student_group.group_member) - gets all group members from the database
 
 200 OK [=> GroupMember[]](schemas.md#student-group-group-member)
 
-### POST - adds a new group member
+### POST (student_group.group_member) - adds a new group member
 
 ```json
 {
@@ -968,19 +1004,19 @@
 
 ## /group-members/{id}
 
-### GET - finds a group member by its ID provided in the URL path
+### GET (student_group.group_member) - finds a group member by its ID provided in the URL path
 
 200 OK [=> GroupMember](schemas.md#student-group-group-member)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a group member by its ID provided in the URL path
+### DELETE (student_group.group_member) - deletes a group member by its ID provided in the URL path
 
 200 OK [=> GroupMember](schemas.md#student-group-group-member)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a group member by its ID with the data provided in the request body
+### PUT (student_group.group_member) - updates a group member by its ID with the data provided in the request body
 
 ```json
 {
@@ -1000,7 +1036,7 @@
 
 ## /lesson-types
 
-### GET - gets all lesson types from the database
+### GET (student_group.lesson_type) - gets all lesson types from the database
 
 200 OK [=> LessonType[]](schemas.md#student-group-lesson-type)
 
@@ -1008,7 +1044,7 @@
 
 ## /disciplines
 
-### GET – gets all disciplines from the database
+### GET (student_group.discipline) – gets all disciplines from the database
 
 200 OK [=> Discipline[]](schemas.md#student-group-discipline)
 
@@ -1016,11 +1052,11 @@
 
 ## /group-cohort-assignments
 
-### GET - gets all group cohort assignments from the database
+### GET (student_group.group_cohort_assignment) - gets all group cohort assignments from the database
 
 200 OK [=> GroupCohortAssignment[]](schemas.md#student-group-group-cohort-assignment)
 
-### POST - adds a new group cohort assignment
+### POST (student_group.group_cohort_assignment) - adds a new group cohort assignment
 
 ```json
 {
@@ -1038,19 +1074,19 @@
 
 ## /group-cohort-assignments/{id}
 
-### GET - finds a group cohort assignment by its ID provided in the URL path
+### GET (student_group.group_cohort_assignment) - finds a group cohort assignment by its ID provided in the URL path
 
 200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a group cohort assignment by its ID provided in the URL path
+### DELETE (student_group.group_cohort_assignment) - deletes a group cohort assignment by its ID provided in the URL path
 
 200 OK [=> GroupCohortAssignment](schemas.md#student-group-group-cohort-assignment)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a group cohort assignment by its ID with the data provided in the request body
+### PUT (student_group.group_cohort_assignment) - updates a group cohort assignment by its ID with the data provided in the request body
 
 ```json
 {
@@ -1070,11 +1106,11 @@
 
 ## /curriculums
 
-### GET - gets all curriculums from the database
+### GET (curriculum.curriculum) - gets all curriculums from the database
 
 200 OK [=> Curriculum[]](schemas.md#curriculum-curriculum)
 
-### POST - adds a new curriculum
+### POST (curriculum.curriculum) - adds a new curriculum
 
 ```json
 {
@@ -1095,19 +1131,19 @@
 
 ## /curriculum/{id}
 
-### GET - finds curriculum with an ID as an URL parameter
+### GET (curriculum.curriculum) - finds curriculum with an ID as an URL parameter
 
 200 OK [=> Curriculum](schemas.md#curriculum-curriculum)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a curriculum by its ID provided in the URL path
+### DELETE (curriculum.curriculum) - deletes a curriculum by its ID provided in the URL path
 
 200 OK [=> Curriculum](schemas.md#curriculum-curriculum)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a curriculum by its ID with the data provided in the request body
+### PUT (curriculum.curriculum) - updates a curriculum by its ID with the data provided in the request body
 
 ```json
 {
@@ -1128,11 +1164,11 @@
 
 ## /semesters
 
-### GET - gets all semesters from the database
+### GET (curriculum.semester) - gets all semesters from the database
 
 200 OK [=> Semester[]](schemas.md#curriculum-semester)
 
-### POST - adds a new semester
+### POST (curriculum.semester) - adds a new semester
 
 ```json
 {
@@ -1149,19 +1185,19 @@
 
 ## /semester/{id}
 
-### GET - finds semester with an ID as an URL parameter
+### GET (curriculum.semester) - finds semester with an ID as an URL parameter
 
 200 OK [=> Semester](schemas.md#curriculum-semester)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a semester by its ID provided in the URL path
+### DELETE (curriculum.semester) - deletes a semester by its ID provided in the URL path
 
 200 OK [=> Semester](schemas.md#curriculum-semester)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a semester by its ID with the data provided in the request body
+### PUT (curriculum.semester) - updates a semester by its ID with the data provided in the request body
 
 ```json
 {
@@ -1178,11 +1214,11 @@
 
 ## /lesson-types
 
-### GET - gets all lesson types from the database
+### GET (curriculum.lesson_type) - gets all lesson types from the database
 
 200 OK [=> LessonType[]](schemas.md#curriculum-lesson-type)
 
-### POST - adds a new lesson type
+### POST (curriculum.lesson_type) - adds a new lesson type
 
 ```json
 {
@@ -1199,19 +1235,19 @@
 
 ## /lesson-type/{id}
 
-### GET - finds lesson type with an ID as an URL parameter
+### GET (curriculum.lesson_type) - finds lesson type with an ID as an URL parameter
 
 200 OK [=> LessonType](schemas.md#curriculum-lesson-type)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a lesson type by its ID provided in the URL path
+### DELETE (curriculum.lesson_type) - deletes a lesson type by its ID provided in the URL path
 
 200 OK [=> LessonType](schemas.md#curriculum-lesson-type)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a lesson type by its ID with the data provided in the request body
+### PUT (curriculum.lesson_type) - updates a lesson type by its ID with the data provided in the request body
 
 ```json
 {
@@ -1228,11 +1264,11 @@
 
 ## /disciplines
 
-### GET – gets all disciplines from the database
+### GET (curriculum.discipline) – gets all disciplines from the database
 
 200 OK [=> Discipline[]](schemas.md#curriculum-discipline)
 
-### POST – adds a new discipline
+### POST (curriculum.discipline) – adds a new discipline
 
 ```json
 {
@@ -1248,19 +1284,19 @@
 
 ## /discipline/{id}
 
-### GET – finds a discipline with an ID as a URL parameter
+### GET (curriculum.discipline) – finds a discipline with an ID as a URL parameter
 
 200 OK [=> Discipline](schemas.md#curriculum-discipline)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE – deletes a discipline by its ID provided in the URL path
+### DELETE (curriculum.discipline) – deletes a discipline by its ID provided in the URL path
 
 200 OK [=> Discipline](schemas.md#curriculum-discipline)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT – updates a discipline by its ID with the data provided in the request body
+### PUT (curriculum.discipline) – updates a discipline by its ID with the data provided in the request body
 
 ```json
 {
@@ -1276,11 +1312,11 @@
 
 ## /lesson-type-assignments
 
-### GET – gets all lesson type assignments from the database
+### GET (curriculum.lesson_type_assignment) – gets all lesson type assignments from the database
 
 200 OK [=> LessonTypeAssignment[]](schemas.md#curriculum-lesson-type-assignment)
 
-### POST – adds a new lesson type assignment
+### POST (curriculum.lesson_type_assignment) – adds a new lesson type assignment
 
 ```json
 {
@@ -1298,19 +1334,19 @@
 
 ## /lesson-type-assignment/{id}
 
-### GET – finds a lesson type assignment with an ID as a URL parameter
+### GET (curriculum.lesson_type_assignment) – finds a lesson type assignment with an ID as a URL parameter
 
 200 OK [=> LessonTypeAssignment](schemas.md#curriculum-lesson-type-assignment)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE – deletes a lesson type assignment by its ID provided in the URL path
+### DELETE (curriculum.lesson_type_assignment) – deletes a lesson type assignment by its ID provided in the URL path
 
 200 OK [=> LessonTypeAssignment](schemas.md#curriculum-lesson-type-assignment)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT – updates a lesson type assignment by its ID with the data provided in the request body
+### PUT (curriculum.lesson_type_assignment) – updates a lesson type assignment by its ID with the data provided in the request body
 
 ```json
 {
@@ -1328,11 +1364,11 @@
 
 ## /semester-disciplines
 
-### GET – gets all semester discipline relations from the database
+### GET (curriculum.semester_discipline) – gets all semester discipline relations from the database
 
 200 OK [=> SemesterDiscipline[]](schemas.md#curriculum-semester-discipline)
 
-### POST – adds a new semester discipline relation
+### POST (curriculum.semester_discipline) – adds a new semester discipline relation
 
 ```json
 {
@@ -1351,13 +1387,13 @@
 
 ## /semester-discipline/{id}
 
-### GET – finds a semester discipline relation by ID (URL parameter)
+### GET (curriculum.semester_discipline) – finds a semester discipline relation by ID (URL parameter)
 
 200 OK [=> SemesterDiscipline](schemas.md#curriculum-semester-discipline)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE – deletes a semester discipline relation by its ID (URL path)
+### DELETE (curriculum.semester_discipline) – deletes a semester discipline relation by its ID (URL path)
 
 200 OK [=> SemesterDiscipline](schemas.md#curriculum-semester-discipline)
 
@@ -1369,7 +1405,7 @@
 
 ## /teachers
 
-### GET - gets all teachers from the database
+### GET (teacher_load.teacher) - gets all teachers from the database
 
 200 OK [=> Teacher[]](schemas.md#teacher-load-teacher)
 
@@ -1377,7 +1413,7 @@
 
 ## /lesson-types
 
-### GET - gets all lesson types from the database
+### GET (teacher_load.lesson_type) - gets all lesson types from the database
 
 200 OK [=> LessonType[]](schemas.md#teacher-load-lesson-type)
 
@@ -1385,7 +1421,7 @@
 
 ## /disciplines
 
-### GET – gets all disciplines from the database
+### GET (teacher_load.discipline) – gets all disciplines from the database
 
 200 OK [=> Discipline[]](schemas.md#teacher-load-discipline)
 
@@ -1393,11 +1429,11 @@
 
 ## /teacher-loads
 
-### GET – gets all teacher loads from the database
+### GET (teacher_load.teacher_load) – gets all teacher loads from the database
 
 200 OK [=> TeacherLoad[]](schemas.md#teacher-load-teacher-load)
 
-### POST – adds a new teacher load
+### POST (teacher_load.teacher_load) – adds a new teacher load
 
 ```json
 {
@@ -1416,19 +1452,19 @@
 
 ## /teacher-load/{id}
 
-### GET – finds a teacher load with an ID as an URL parameter
+### GET (teacher_load.teacher_load) – finds a teacher load with an ID as an URL parameter
 
 200 OK [=> TeacherLoad](schemas.md#teacher-load-teacher-load)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE – deletes a teacher load by its ID provided in the URL path
+### DELETE (teacher_load.teacher_load) – deletes a teacher load by its ID provided in the URL path
 
 200 OK [=> TeacherLoad](schemas.md#teacher-load-teacher-load)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT – updates a teacher load by its ID with the data provided in the request body
+### PUT (teacher_load.teacher_load) – updates a teacher load by its ID with the data provided in the request body
 
 ```json
 {
@@ -1450,11 +1486,11 @@
 
 ## /classrooms
 
-### GET - gets all classrooms from the database
+### GET (asset.classroom) - gets all classrooms from the database
 
 200 OK [=> Classroom[]](schemas.md#asset-classroom)
 
-### POST - adds a new classroom
+### POST (asset.classroom) - adds a new classroom
 
 ```json
 {
@@ -1471,19 +1507,19 @@
 
 ## /classroom/{id}
 
-### GET - finds classroom with an ID as an URL parameter
+### GET (asset.classroom) - finds classroom with an ID as an URL parameter
 
 200 OK [=> Classroom](schemas.md#asset-classroom)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### DELETE - deletes a classroom by its ID provided in the URL path
+### DELETE (asset.classroom) - deletes a classroom by its ID provided in the URL path
 
 200 OK [=> Classroom](schemas.md#asset-classroom)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-### PUT - updates a classroom by its ID with the data provided in the request body
+### PUT (asset.classroom) - updates a classroom by its ID with the data provided in the request body
 
 ```json
 {
@@ -1493,5 +1529,358 @@
 ```
 
 200 OK [=> Classroom](schemas.md#asset-classroom)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+# Auth Service
+
+<a id="auth-permissions"></a>
+
+## /permissions
+
+### GET (auth.permission) - gets all permissions from the database
+
+200 OK [=> Permission[]](schemas.md#auth-permission)
+
+### POST (auth.permission) - adds a new permission
+
+```json
+{
+  "name": "string (unique name of the permission)"
+}
+```
+
+200 OK [=> Permission](schemas.md#auth-permission)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-permission-id"></a>
+
+## /permission/{id}
+
+### GET (auth.permission) - finds permission with an ID as a URL parameter
+
+200 OK [=> Permission](schemas.md#auth-permission)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (auth.permission) - deletes a permission by its ID provided in the URL path
+
+200 OK [=> Permission](schemas.md#auth-permission)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT (auth.permission) - updates a permission by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (unique name of the permission)"
+}
+```
+
+200 OK [=> Permission](schemas.md#auth-permission)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-roles"></a>
+
+## /roles
+
+### GET (auth.role) - gets all roles from the database
+
+200 OK [=> Role[]](schemas.md#auth-role)
+
+### POST (auth.role) - adds a new role
+
+```json
+{
+  "name": "string (unique name of the role)"
+}
+```
+
+200 OK [=> Role](schemas.md#auth-role)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-role-id"></a>
+
+## /role/{id}
+
+### GET (auth.role) - finds role with an ID as a URL parameter
+
+200 OK [=> Role](schemas.md#auth-role)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (auth.role) - deletes a role by its ID provided in the URL path
+
+200 OK [=> Role](schemas.md#auth-role)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT (auth.role) - updates a role by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (unique name of the role)"
+}
+```
+
+200 OK [=> Role](schemas.md#auth-role)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-role-permissions"></a>
+
+## /role-permissions
+
+### GET (auth.role_permission) - gets all role-permission links from the database
+
+200 OK [=> RolePermissions[]](schemas.md#auth-role-permissions)
+
+### POST (auth.role_permission) - adds a new role-permission link
+
+```json
+{
+  "role_id": "uuid (associated role identifier)",
+  "permission_id": "uuid (associated permission identifier)"
+}
+```
+
+200 OK [=> RolePermissions](schemas.md#auth-role-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-role-permission-id"></a>
+
+## /role-permission/{id}
+
+### GET (auth.role_permission) - finds role-permission link by ID from URL parameter
+
+200 OK [=> RolePermissions](schemas.md#auth-role-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (auth.role_permission) - deletes a role-permission link by ID from URL parameter
+
+200 OK [=> RolePermissions](schemas.md#auth-role-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-services"></a>
+
+## /services
+
+### GET (auth.service) - gets all services from the database
+
+200 OK [=> Service[]](schemas.md#auth-service)
+
+### POST (auth.service) - adds a new service
+
+```json
+{
+  "name": "string (unique name of the service)",
+  "secrete": "string (service secret key)"
+}
+```
+
+200 OK [=> Service](schemas.md#auth-service)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-service-id"></a>
+
+## /service/{id}
+
+### GET (auth.service) - finds service with an ID as a URL parameter
+
+200 OK [=> Service](schemas.md#auth-service)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (auth.service) - deletes a service by its ID provided in the URL path
+
+200 OK [=> Service](schemas.md#auth-service)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT (auth.service) - updates a service by its ID with the data provided in the request body
+
+```json
+{
+  "name": "string (unique name of the service)",
+  "secrete": "string (service secret key)"
+}
+```
+
+200 OK [=> Service](schemas.md#auth-service)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-service-permissions"></a>
+
+## /service-permissions
+
+### GET (auth.service_permission) - gets all service-permission links from the database
+
+200 OK [=> ServicePermissions[]](schemas.md#auth-service-permissions)
+
+### POST (auth.service_permission) - adds a new service-permission link
+
+```json
+{
+  "service_id": "uuid (associated service identifier)",
+  "permission_id": "uuid (associated permission identifier)"
+}
+```
+
+200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-service-permission-id"></a>
+
+## /service-permission/{id}
+
+### GET (auth.service_permission) - finds service-permission link by ID from URL parameter
+
+200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (auth.service_permission) - deletes a service-permission link by ID from URL parameter
+
+200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-users"></a>
+
+## /users
+
+### GET (auth.user) - gets all users from the database
+
+200 OK [=> User[]](schemas.md#auth-user)
+
+### POST (auth.user) - creates a new user
+
+```json
+{
+  "login": "string (unique username for the user)",
+  "role_id": "uuid (assigned role identifier)"
+}
+```
+
+200 OK [=> User](schemas.md#auth-user)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-user-id"></a>
+
+## /user/{id}
+
+### GET (auth.user) - finds user by ID provided as a URL parameter
+
+200 OK [=> User](schemas.md#auth-user)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (auth.user) - deletes a user by ID provided in the URL path
+
+200 OK [=> User](schemas.md#auth-user)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT (auth.user) - updates a user by ID with data provided in request body
+
+```json
+{
+  "role_id": "uuid (assigned role identifier)",
+  "is_default_password": "boolean (indicates whether the user is using a default password)"
+}
+```
+
+200 OK [=> User](schemas.md#auth-user)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-login"></a>
+
+## /login
+
+### ANY - authenticates user and returns access credentials (tokens)
+
+```json
+{
+  "login": "string (user login/username)",
+  "password": "string (user password)"
+}
+```
+
+200 OK
+
+```json
+{
+  "id": "uuid (unique identifier of the user)",
+  "login": "string (user login/username)",
+  "role": "string (user role name)",
+  "is_default_password": "boolean (indicates whether the user is using a default password)",
+  "access_token": "string (JWT token used for authentication)",
+  "refresh_token": "string (token used to refresh access token)"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-refresh"></a>
+
+## /refresh
+
+### ANY - issues a new access token using a valid refresh token
+
+```json
+{
+  "access_token": "string (JWT token used for authentication)",
+  "refresh_token": "string (token used to refresh access token)"
+}
+```
+
+200 OK
+
+```json
+{
+  "access_token": "string (JWT token used for authentication)",
+  "refresh_token": "string (token used to refresh access token)"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-reset-password-id"></a>
+
+## /reset-password-id
+
+### ANY (auth.user.reset_password) - resets the password for a user specified by ID in the URL path
+
+204 NO CONTENT
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-change-password"></a>
+
+## /change-password
+
+### ANY - changes the user's password
+
+```json
+{
+  "id": "uuid (unique identifier of the user)",
+  "login": "string (user login/username)",
+  "password": "string (current user password, required for verification)",
+  "new_password": "string (new password to be set for the user)"
+}
+```
+
+204 NO CONTENT
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

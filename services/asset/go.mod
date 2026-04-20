@@ -3,7 +3,7 @@ module github.com/IrusHunter/duckademic/services/asset
 go 1.23.4
 
 require (
-	github.com/IrusHunter/duckademic/shared v0.0.0-20260411150206-e75e762c5ac8
+	github.com/IrusHunter/duckademic/shared v0.0.0-20260420001452-e30331371253
 	github.com/google/uuid v1.6.0
 	github.com/gosimple/slug v1.15.0
 	github.com/jmoiron/sqlx v1.4.0
