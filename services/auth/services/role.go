@@ -6,7 +6,7 @@ import (
 
 	"github.com/IrusHunter/duckademic/services/auth/entities"
 	"github.com/IrusHunter/duckademic/services/auth/repositories"
-	"github.com/IrusHunter/duckademic/shared/logger"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
 )
@@ -15,7 +15,7 @@ type RoleService interface {
 	platform.BaseService[entities.Role]
 }
 
-func NewRoleService(rr repositories.RoleRepository) RoleService {
+func NewRoleService(rr repositories.RoleRepository, ar string) (RoleService, uuid.UUID) {
 	sc := platform.NewServiceConfig(
 		"RoleService",
 		filepath.Join("data", "roles.json"),
@@ -34,15 +34,22 @@ func NewRoleService(rr repositories.RoleRepository) RoleService {
 		},
 	)
 
-	s.logger = s.GetLogger()
+	s.Add(contextutil.SetTraceID(context.Background()), entities.Role{Name: ar})
+	s.Add(contextutil.SetTraceID(context.Background()), entities.Role{Name: "teacher"})
+	s.Add(contextutil.SetTraceID(context.Background()), entities.Role{Name: "student"})
 
-	return s
+	adminRole := s.repository.FindByName(contextutil.SetTraceID(context.Background()), ar)
+
+	if adminRole == nil {
+		adminRole = &entities.Role{}
+	}
+
+	return s, adminRole.ID
 }
 
 type roleService struct {
 	platform.BaseService[entities.Role]
 	repository repositories.RoleRepository
-	logger     logger.Logger
 }
 
 func (s *roleService) onAddPrepare(ctx context.Context, r *entities.Role) error {

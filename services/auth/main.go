@@ -45,25 +45,52 @@ func main() {
 	serviceRepository := repositories.NewServiceRepository(database)
 	rolePermissionsRepository := repositories.NewRolePermissionsRepository(database)
 	servicePermissionsRepository := repositories.NewServicePermissionsRepository(database)
+	userRepository := repositories.NewUserRepository(database)
 
-	permissionService := services.NewPermissionService(permissionRepository, eventBus)
-	roleService := services.NewRoleService(roleRepository)
+	adminRole := envutil.GetStringFromENV("SUPER_ADMIN_ROLE")
+	if adminRole == "" {
+		log.Fatalf("SUPER_ADMIN_ROLE not specified in the .env file")
+	}
+	roleService, adminRoleID := services.NewRoleService(roleRepository, adminRole)
+	permissionService := services.NewPermissionService(permissionRepository, roleRepository, rolePermissionsRepository,
+		eventBus, adminRoleID)
+
 	serviceService := services.NewServiceService(serviceRepository)
 	rolePermissionsService := services.NewRolePermissionsService(rolePermissionsRepository, permissionRepository,
 		roleRepository)
 	servicePermissionsService := services.NewServicePermissionsService(servicePermissionsRepository, serviceRepository,
 		permissionRepository)
 
+	defaultPassword := envutil.GetStringFromENV("DEFAULT_PASSWORD")
+	if defaultPassword == "" {
+		log.Fatalf("DEFAULT_PASSWORD not specified in the .env file")
+	}
+	adminLogin := envutil.GetStringFromENV("SUPER_ADMIN_LOGIN")
+	if adminLogin == "" {
+		log.Fatalf("SUPER_ADMIN_LOGIN not specified in the .env file")
+	}
+	adminPassword := envutil.GetStringFromENV("SUPER_ADMIN_PASSWORD")
+	if adminPassword == "" {
+		log.Fatalf("SUPER_ADMIN_PASSWORD not specified in the .env file")
+	}
+	jwtSecret := envutil.GetStringFromENV("JWT_SECRET")
+	if adminPassword == "" {
+		log.Fatalf("JWT_SECRET not specified in the .env file")
+	}
+	userService := services.NewUserService(userRepository, roleRepository, rolePermissionsRepository, eventBus, defaultPassword,
+		[]byte(jwtSecret), adminLogin, adminPassword, adminRole)
+
 	permissionHandler := resthandlers.NewPermissionHandler(permissionService)
 	roleHandler := resthandlers.NewRoleHandler(roleService)
 	serviceHandler := resthandlers.NewServiceHandler(serviceService)
 	rolePermissionsHandler := resthandlers.NewRolePermissionsHandler(rolePermissionsService)
 	servicePermissionsHandler := resthandlers.NewServicePermissionsHandler(servicePermissionsService)
-	databaseHandler := resthandlers.NewDatabaseHandler(roleService, rolePermissionsService, serviceService,
-		servicePermissionsService)
+	userHandler := resthandlers.NewUserHandler(userService)
+	databaseHandler := resthandlers.NewDatabaseHandler(permissionService, roleService, rolePermissionsService,
+		serviceService, servicePermissionsService, userService)
 
 	restapi := NewRESTAPI(permissionHandler, roleHandler, rolePermissionsHandler, serviceHandler,
-		servicePermissionsHandler, databaseHandler)
+		servicePermissionsHandler, userHandler, databaseHandler)
 
 	err = restapi.Run(port)
 	log.Fatal(err)

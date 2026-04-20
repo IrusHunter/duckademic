@@ -1156,3 +1156,19 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+<a id="auth-user"></a>
+
+### User
+
+```json
+{
+  "id": "uuid (unique identifier of the user)",
+  "login": "string (user login/username)",
+  "is_default_password": "boolean (indicates whether the user is using a default password)",
+  "role_id": "uuid (associated role identifier)",
+  "last_login": "timestamp (last login time)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

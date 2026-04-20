@@ -44,6 +44,7 @@ type BaseHandler[T fmt.Stringer] interface {
 	ParseID(ctx context.Context, w http.ResponseWriter, r *http.Request, method string) (uuid.UUID, bool)
 	// DecodeEntity extracts and decodes an entity from the request body.
 	DecodeEntity(ctx context.Context, w http.ResponseWriter, r *http.Request, method string) (T, bool)
+	GetLogger() logger.Logger
 }
 
 // NewBaseHandler creates a new BaseHandler instance.
@@ -175,4 +176,7 @@ func (h *baseHandler[T]) DecodeEntity(ctx context.Context, w http.ResponseWriter
 	}
 
 	return entity, true
+}
+func (h *baseHandler[T]) GetLogger() logger.Logger {
+	return h.logger
 }

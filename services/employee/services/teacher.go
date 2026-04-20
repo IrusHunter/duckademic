@@ -182,6 +182,7 @@ func (s *teacherService) sendChanges(ctx context.Context, teacher entities.Teach
 		ID:             filledT.EmployeeID,
 		Slug:           filledT.Employee.Slug,
 		Name:           filledT.Employee.GetShortFullName(),
+		Email:          filledT.Email,
 		AcademicRankID: filledT.AcademicRankID,
 	}
 

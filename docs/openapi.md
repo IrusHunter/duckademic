@@ -136,6 +136,14 @@
     - [/service/{id}](#auth-service-id)
     - [/service-permissions](#auth-service-permissions)
     - [/service-permission/{id}](#auth-service-permission-id)
+  - Projection
+    - [/users](#auth-users)
+    - [/user/{id}](#auth-user-id)
+  - Operations
+    - [/login](#auth-login)
+    - [/refresh](#auth-refresh)
+    - [/reset-password/{id}](#auth-reset-password-id)
+    - [/change-password](#auth-change-password)
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -1643,8 +1651,6 @@
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
----
-
 <a id="auth-role-permission-id"></a>
 
 ## /role-permission/{id}
@@ -1745,5 +1751,136 @@
 ### DELETE - deletes a service-permission link by ID from URL parameter
 
 200 OK [=> ServicePermissions](schemas.md#auth-service-permissions)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-users"></a>
+
+## /users
+
+### GET - gets all users from the database
+
+200 OK [=> User[]](schemas.md#auth-user)
+
+### POST - creates a new user
+
+```json
+{
+  "login": "string (unique username for the user)",
+  "role_id": "uuid (assigned role identifier)"
+}
+```
+
+200 OK [=> User](schemas.md#auth-user)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-user-id"></a>
+
+## /user/{id}
+
+### GET - finds user by ID provided as a URL parameter
+
+200 OK [=> User](schemas.md#auth-user)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE - deletes a user by ID provided in the URL path
+
+200 OK [=> User](schemas.md#auth-user)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT - updates a user by ID with data provided in request body
+
+```json
+{
+  "role_id": "uuid (assigned role identifier)",
+  "is_default_password": "boolean (indicates whether the user is using a default password)"
+}
+```
+
+200 OK [=> User](schemas.md#auth-user)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-login"></a>
+
+## /login
+
+### ANY - authenticates user and returns access credentials (tokens)
+
+```json
+{
+  "login": "string (user login/username)",
+  "password": "string (user password)"
+}
+```
+
+200 OK
+
+```json
+{
+  "id": "uuid (unique identifier of the user)",
+  "login": "string (user login/username)",
+  "role": "string (user role name)",
+  "is_default_password": "boolean (indicates whether the user is using a default password)",
+  "access_token": "string (JWT token used for authentication)",
+  "refresh_token": "string (token used to refresh access token)"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-refresh"></a>
+
+## /refresh
+
+### ANY - issues a new access token using a valid refresh token
+
+```json
+{
+  "access_token": "string (JWT token used for authentication)",
+  "refresh_token": "string (token used to refresh access token)"
+}
+```
+
+200 OK
+
+```json
+{
+  "access_token": "string (JWT token used for authentication)",
+  "refresh_token": "string (token used to refresh access token)"
+}
+```
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-reset-password-id"></a>
+
+## /reset-password-id
+
+### ANY - resets the password for a user specified by ID in the URL path
+
+204 NO CONTENT
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="auth-change-password"></a>
+
+## /change-password
+
+### ANY - changes the user's password
+
+```json
+{
+  "id": "uuid (unique identifier of the user)",
+  "login": "string (user login/username)",
+  "password": "string (current user password, required for verification)",
+  "new_password": "string (new password to be set for the user)"
+}
+```
+
+204 NO CONTENT
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

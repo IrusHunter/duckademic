@@ -17,6 +17,8 @@ func Migrate(database *sqlx.DB) error {
 		roleMigrations,
 		rolePermissionsMigrations,
 		serviceMigrations,
+		servicePermissionsMigrations,
+		userMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -203,6 +205,51 @@ func servicePermissionsMigrations(database *sqlx.DB) error {
 
 	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "service_permissions"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for service_permissions: %w", err)
+	}
+
+	return nil
+}
+func userMigrations(database *sqlx.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS users (
+		id UUID PRIMARY KEY,
+		login TEXT NOT NULL,
+		password TEXT NOT NULL,
+		is_default_password BOOLEAN NOT NULL,
+		role_id UUID NOT NULL,
+		last_login TIMESTAMP WITH TIME ZONE,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := database.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create users table: %w", err)
+	}
+
+	indexLogin := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_users_login
+	ON users (login);
+	`
+
+	if _, err := database.Exec(indexLogin); err != nil {
+		return fmt.Errorf("failed to create users login index: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTrigger(context.Background(), database, "users"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for users: %w", err)
+	}
+
+	if err := db.EnsureForeignKey(
+		context.Background(),
+		database,
+		"fk_users_role",
+		"users",
+		"role_id",
+		"roles",
+		"id",
+	); err != nil {
+		return fmt.Errorf("failed to create role_id foreign key: %w", err)
 	}
 
 	return nil

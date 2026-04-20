@@ -183,6 +183,7 @@ func (s *studentService) sendChanges(
 		ID:         student.ID,
 		Slug:       student.Slug,
 		Name:       student.GetShortFullName(),
+		Email:      student.Email,
 		SemesterID: student.SemesterID,
 	}
 

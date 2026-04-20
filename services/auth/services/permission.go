@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/auth/entities"
 	"github.com/IrusHunter/duckademic/services/auth/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/envutil"
 	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
@@ -18,7 +19,13 @@ type PermissionService interface {
 	platform.BaseService[entities.Permission]
 }
 
-func NewPermissionService(pr repositories.PermissionRepository, eb events.EventBus) PermissionService {
+func NewPermissionService(
+	pr repositories.PermissionRepository,
+	rr repositories.RoleRepository,
+	rpr repositories.RolePermissionsRepository,
+	eb events.EventBus,
+	arID uuid.UUID,
+) PermissionService {
 	sc := platform.NewServiceConfig(
 		"PermissionService",
 		filepath.Join("data", "permissions.json"),
@@ -26,7 +33,10 @@ func NewPermissionService(pr repositories.PermissionRepository, eb events.EventB
 	)
 
 	s := &permissionService{
-		repository: pr,
+		repository:                pr,
+		roleRepository:            rr,
+		rolePermissionsRepository: rpr,
+		adminRoleID:               arID,
 	}
 
 	s.BaseService = platform.NewBaseService(
@@ -50,8 +60,11 @@ func NewPermissionService(pr repositories.PermissionRepository, eb events.EventB
 
 type permissionService struct {
 	platform.BaseService[entities.Permission]
-	repository repositories.PermissionRepository
-	logger     logger.Logger
+	repository                repositories.PermissionRepository
+	roleRepository            repositories.RoleRepository
+	rolePermissionsRepository repositories.RolePermissionsRepository
+	logger                    logger.Logger
+	adminRoleID               uuid.UUID
 }
 
 func (s *permissionService) eventHandler(ctx context.Context, b []byte) {
@@ -82,6 +95,35 @@ func (s *permissionService) eventHandler(ctx context.Context, b []byte) {
 func (s *permissionService) onAddPrepare(ctx context.Context, p *entities.Permission) error {
 	p.ID = uuid.New()
 
+	return nil
+}
+
+func (s *permissionService) Add(ctx context.Context, p entities.Permission) (entities.Permission, error) {
+	res, err := s.BaseService.Add(ctx, p)
+	if err == nil {
+		s.rolePermissionsRepository.Add(ctx, entities.RolePermissions{
+			RoleID:       s.adminRoleID,
+			PermissionID: res.ID,
+		})
+	}
+	return res, err
+}
+
+func (s *permissionService) Seed(ctx context.Context) error {
+	adminRoleStr := envutil.GetStringFromENV("SUPER_ADMIN_ROLE")
+	if adminRoleStr == "" {
+		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+			fmt.Errorf("SUPER_ADMIN_ROLE not specified in the .env file"), logger.ServiceDataFetchFailed)
+	}
+
+	adminRole := s.roleRepository.FindByName(ctx, adminRoleStr)
+
+	if adminRole == nil {
+		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+			fmt.Errorf("failed to sind admin role: %s", adminRole), logger.ServiceDataFetchFailed)
+	}
+
+	s.adminRoleID = adminRole.ID
 	return nil
 }
 

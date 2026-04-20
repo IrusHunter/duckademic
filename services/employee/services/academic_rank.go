@@ -88,7 +88,7 @@ func (s *academicRankService) Delete(
 	deletedAR, err := s.BaseService.Delete(ctx, id)
 	if err == nil {
 		eventAR := events.AcademicRankRE{
-			Event: events.EntityCreated,
+			Event: events.EntityDeleted,
 			ID:    deletedAR.ID,
 			Title: deletedAR.Title,
 			Slug:  deletedAR.Slug,
@@ -104,7 +104,7 @@ func (s *academicRankService) Update(
 	updatedAR, err := s.BaseService.Update(ctx, id, academicRank)
 	if err == nil {
 		eventAR := events.AcademicRankRE{
-			Event: events.EntityCreated,
+			Event: events.EntityUpdated,
 			ID:    updatedAR.ID,
 			Title: updatedAR.Title,
 			Slug:  updatedAR.Slug,

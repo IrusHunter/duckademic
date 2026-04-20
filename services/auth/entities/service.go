@@ -37,7 +37,6 @@ func (s Service) String() string {
 func (Service) TableName() string {
 	return "services"
 }
-
 func (Service) EntityName() string {
 	return "service"
 }

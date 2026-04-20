@@ -20,6 +20,7 @@ func NewRESTAPI(
 	rph resthandlers.RolePermissionsHandler,
 	sh resthandlers.ServiceHandler,
 	sph resthandlers.ServicePermissionsHandler,
+	uh resthandlers.UserHandler,
 	dh resthandlers.DatabaseHandler,
 ) RESTAPI {
 	return &restapi{
@@ -29,6 +30,7 @@ func NewRESTAPI(
 		rolePermissionsHandler:   rph,
 		serviceHandler:           sh,
 		servicePermissionHandler: sph,
+		userHandler:              uh,
 		databaseHandler:          dh,
 	}
 }
@@ -40,6 +42,7 @@ type restapi struct {
 	rolePermissionsHandler   resthandlers.RolePermissionsHandler
 	serviceHandler           resthandlers.ServiceHandler
 	servicePermissionHandler resthandlers.ServicePermissionsHandler
+	userHandler              resthandlers.UserHandler
 	databaseHandler          resthandlers.DatabaseHandler
 }
 
@@ -90,6 +93,27 @@ func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/service-permission/{id}", map[string]platform.HandlerFunc{
 		http.MethodGet:    ra.NewDefaultHandler(ra.servicePermissionHandler.Find),
 		http.MethodDelete: ra.NewDefaultHandler(ra.servicePermissionHandler.Delete),
+	})
+
+	ra.NewRoute("/users", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.userHandler.GetAll),
+	})
+	ra.NewRoute("/user/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandler(ra.userHandler.Find),
+		http.MethodPut: ra.NewDefaultHandler(ra.userHandler.Update),
+	})
+
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.userHandler.Login)(r.Context(), w, r)
+	})
+	http.HandleFunc("/refresh", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.userHandler.Refresh)(r.Context(), w, r)
+	})
+	http.HandleFunc("/reset-password/{id}", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.userHandler.ResetPassword)(r.Context(), w, r)
+	})
+	http.HandleFunc("/change-password", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.userHandler.ChangePassword)(r.Context(), w, r)
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {

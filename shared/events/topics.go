@@ -4,7 +4,7 @@ type RedisTopic string
 
 const (
 	AcademicRankRT          RedisTopic = "academic:ranks"
-	TeacherRT               RedisTopic = "teachers"
+	TeacherRT               RedisTopic = "teachers" // 1 delay
 	StudentRT               RedisTopic = "students" // 1 delay
 	LessonTypeRT            RedisTopic = "lesson:types"
 	DisciplineRT            RedisTopic = "disciplines"
