@@ -64,7 +64,7 @@
 
 ```json
 {
-  "employee_id": "uuid (reference to employee)",
+  "id": "uuid (reference to employee)",
   "email": "string (teacher's email address)",
   "academic_rank_id": "uuid (reference to academic rank)",
   "created_at": "timestamp (record creation timestamp)",

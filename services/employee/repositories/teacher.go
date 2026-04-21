@@ -87,7 +87,7 @@ func (flat *TeacherFlat) ConvertToTeacher() entities.Teacher {
 	}
 
 	return entities.Teacher{
-		EmployeeID:       flat.EmployeeID,
+		ID:               flat.EmployeeID,
 		Email:            flat.Email,
 		AcademicDegreeID: flat.AcademicDegreeID,
 		AcademicRankID:   flat.AcademicRankID,

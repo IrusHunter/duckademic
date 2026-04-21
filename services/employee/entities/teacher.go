@@ -10,7 +10,8 @@ import (
 )
 
 type Teacher struct {
-	EmployeeID       uuid.UUID  `db:"employee_id" json:"employee_id"`
+	ID               uuid.UUID  `db:"employee_id" json:"id"`
+	EmployeeID       *uuid.UUID `db:"-" json:"employee_id,omitempty"`
 	Email            string     `db:"email" json:"email"`
 	AcademicDegreeID *uuid.UUID `db:"academic_degree_id" json:"academic_degree_id,omitempty"`
 	AcademicRankID   uuid.UUID  `db:"academic_rank_id" json:"academic_rank_id"`
@@ -25,8 +26,8 @@ type Teacher struct {
 
 func (t Teacher) String() string {
 	parts := make([]string, 0, 10)
-	if t.EmployeeID != uuid.Nil {
-		parts = append(parts, fmt.Sprintf("id: %s", t.EmployeeID))
+	if t.ID != uuid.Nil {
+		parts = append(parts, fmt.Sprintf("id: %s", t.ID))
 	}
 	parts = append(parts, fmt.Sprintf("email: %s", t.Email))
 	parts = append(parts, fmt.Sprintf("academic rank id: %s", t.AcademicRankID))
