@@ -54,6 +54,12 @@ func (h *proxyHandler) HandlePath(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for k, vv := range r.Header {
+		for _, v := range vv {
+			req.Header.Add(k, v)
+		}
+	}
+
 	resp, err := h.client.Do(req)
 	if err != nil {
 		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("request failed: %s", err.Error()))

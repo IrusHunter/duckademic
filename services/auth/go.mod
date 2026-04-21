@@ -3,7 +3,7 @@ module github.com/IrusHunter/duckademic/services/auth
 go 1.23.4
 
 require (
-	github.com/IrusHunter/duckademic/shared v0.0.0-20260420001452-e30331371253
+	github.com/IrusHunter/duckademic/shared v0.0.0-20260420195937-c1c32cf982e0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
