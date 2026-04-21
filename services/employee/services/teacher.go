@@ -71,10 +71,8 @@ func (s *teacherService) validateEntity(ctx context.Context, teacher *entities.T
 	return nil
 }
 func (s *teacherService) onAddPrepare(ctx context.Context, teacher *entities.Teacher) error {
+	teacher.ID = *teacher.EmployeeID
 	return nil
-}
-func (s *teacherService) hardDeleteCheck(ctx context.Context, teacher *entities.Teacher) error {
-	return fmt.Errorf("plug")
 }
 
 type seedTeacher struct {
@@ -103,7 +101,7 @@ func (s *teacherService) Seed(ctx context.Context) error {
 			)
 			continue
 		}
-		trueTeacher.EmployeeID = employee.ID
+		trueTeacher.ID = employee.ID
 
 		academicRank := s.academicRankRepository.FindByTitle(ctx, teacher.AcademicRankTitle)
 		if academicRank == nil {
@@ -168,7 +166,7 @@ func (s *teacherService) Update(
 	return updatedT, err
 }
 func (s *teacherService) sendChanges(ctx context.Context, teacher entities.Teacher, event events.EventType) {
-	filledT := s.repository.Fill(ctx, teacher.EmployeeID)
+	filledT := s.repository.Fill(ctx, teacher.ID)
 
 	if filledT == nil {
 		s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "SendChanges",
@@ -179,7 +177,7 @@ func (s *teacherService) sendChanges(ctx context.Context, teacher entities.Teach
 
 	eventT := events.TeacherRE{
 		Event:          events.EntityCreated,
-		ID:             filledT.EmployeeID,
+		ID:             filledT.ID,
 		Slug:           filledT.Employee.Slug,
 		Name:           filledT.Employee.GetShortFullName(),
 		Email:          filledT.Email,
