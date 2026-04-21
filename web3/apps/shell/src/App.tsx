@@ -59,7 +59,9 @@ function App() {
     <BrowserRouter>
       <div className={css.container}>
         <Header />
-        <Routes_ />
+        <main className={css.main}>
+          <Routes_ />
+        </main>
       </div>
     </BrowserRouter>
   )

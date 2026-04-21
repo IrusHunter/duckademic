@@ -9,7 +9,7 @@ export default defineConfig({
       name: 'adminApp',
       filename: 'remoteEntry.js',
       exposes: {
-        './AdminApp': './src/App.tsx'
+        './AdminApp': './src/components/App/App.tsx'
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.0.0' } as any,

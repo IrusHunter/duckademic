@@ -1,46 +1,41 @@
-*,
-*::before,
-*::after {
+/* App.module.css */
+
+/* Глобальні стилі через :global() — застосуються до всіх мікрофронтендів */
+:global(*),
+:global(*::before),
+:global(*::after) {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-body {
+:global(body) {
     font-family: 'Geist', sans-serif;
     font-size: 14px;
-    font-weight: 400;
     color: #09090b;
-    background: #fff;
-    letter-spacing: 0;
-    line-height: 24px;
-    height: 100%;
     scrollbar-width: none;
-    /* overflow-x: hidden; */
 }
 
-body::-webkit-scrollbar {
+:global(body::-webkit-scrollbar) {
     display: none;
-    /* Chrome, Safari */
 }
 
-#root {
-    min-height: 100%;
-}
-
-button {
+:global(button) {
     border: none;
     cursor: pointer;
 }
 
-ul,
-ol {
+:global(ul),
+:global(ol) {
     list-style: none;
 }
 
+/* Скоуповані стилі шелу */
 .container {
     max-width: 1728px;
     margin: 0 auto;
-    background-color: #ffffff;
+}
+
+.main {
     padding-top: 80px;
 }

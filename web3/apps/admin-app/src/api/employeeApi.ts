@@ -1,13 +1,14 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '/api/employee', // ← відносний шлях через proxy
+  baseURL: '/api/employee',
   withCredentials: true,
 })
 
-// Типи
 export type AcademicRank = { id: string; title: string }
+
 export type AcademicDegree = { id: string; title: string }
+
 export type Employee = {
   id: string
   first_name: string
@@ -15,6 +16,7 @@ export type Employee = {
   middle_name?: string
   phone_number?: string
 }
+
 export type Teacher = {
   id: string
   employee_id: string

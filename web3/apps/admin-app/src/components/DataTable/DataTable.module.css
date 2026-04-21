@@ -1,0 +1,38 @@
+.div {
+    margin-bottom: 24px; 
+    display: flex;
+    gap: 20px;
+    align-items: center;  
+}
+
+.span {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    line-height: 24px;
+}
+
+.select {
+    padding: 12px 8px;
+    width: 426px;
+    border-radius: 6px;
+    border: 1px solid #E4E4E7;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    background-color: #fff;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+        width: 426px;
+        border-radius: 6px;
+        border: 1px solid #E4E4E7;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 16px;
+        background-color: #fff;
+}

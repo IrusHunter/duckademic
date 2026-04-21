@@ -60,6 +60,14 @@
 
 .mainDiv {
     background-color: #F3F4F6;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.mainDiv::-webkit-scrollbar {
+    display: none;
 }
 
 .wrapper {
@@ -122,7 +130,7 @@
 .buttonBack {
     font-size: 14px;
     line-height: 16px;
-    display: flex; 
+    display: flex;
     gap: 4px;
     color: #909090;
     background-color: transparent;
