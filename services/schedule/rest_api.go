@@ -163,6 +163,9 @@ func (ra *restapi) Run(port int) error {
 	http.HandleFunc("/load-data-into-generator", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.LoadDataIntoGenerator)(r.Context(), w, r)
 	})
+	http.HandleFunc("/load-classrooms-into-generator", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.databaseHandler.LoadClassroomsIntoGenerator)(r.Context(), w, r)
+	})
 	http.HandleFunc("/extract-data-from-generator", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.ExtractDataFromGenerator)(r.Context(), w, r)
 	})

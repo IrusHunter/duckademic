@@ -24,6 +24,7 @@ type DatabaseHandler interface {
 	Clear(context.Context, http.ResponseWriter, *http.Request)
 	ExtractDataFromGenerator(context.Context, http.ResponseWriter, *http.Request)
 	LoadDataIntoGenerator(context.Context, http.ResponseWriter, *http.Request)
+	LoadClassroomsIntoGenerator(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewDatabaseHandler(
@@ -405,6 +406,51 @@ func (h *databaseHandler) LoadDataIntoGenerator(ctx context.Context, w http.Resp
 			contextutil.GetTraceID(ctx),
 			"LoadDataIntoGenerator",
 			fmt.Errorf("failed to load teacher loads to generator: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, http.StatusNoContent, nil)
+}
+func (h *databaseHandler) LoadClassroomsIntoGenerator(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	classroomIDs := []uuid.UUID{}
+
+	if err := json.NewDecoder(r.Body).Decode(&classroomIDs); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadClassroomsIntoGenerator",
+			fmt.Errorf("failed to decode classroom uuids: %w", err),
+			logger.HandlerBadRequest,
+		))
+		return
+	}
+
+	classrooms, err := h.classroomService.GetMultipleByIDs(ctx, classroomIDs)
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadClassroomsIntoGenerator",
+			fmt.Errorf("failed to fetch classrooms: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	url := h.scheduleGeneratorDomain + "/set-classrooms"
+	resp := map[string]any{}
+
+	generatorClassrooms := h.classroomService.ToGeneratorClassrooms(ctx, classrooms)
+
+	if status, err := h.doPostAndDecode(ctx, url, r, generatorClassrooms, &resp); err != nil {
+		if status == 400 {
+			err = fmt.Errorf(resp["error"].(string))
+		}
+
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadClassroomsIntoGenerator",
+			fmt.Errorf("failed to load classrooms to generator: %w", err),
 			logger.HandlerInternalError,
 		))
 		return

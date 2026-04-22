@@ -46,6 +46,7 @@
     - [/semester-disciplines](#schedule-semester-disciplines) !schedule.semester_discipline
   - Schedule Generator Integration
     - [/load-data-into-generator](#schedule-load-data-into-generator)
+    - [/load-classrooms-into-generator](#schedule-load-classrooms-into-generator)
     - [/extract-data-from-generator](#schedule-extract-data-from-generator)
     - [/study-loads](#schedule-study-loads) !schedule.study_load
     - [/lesson-slots](#schedule-lesson-slots) !schedule.lesson_slot
@@ -554,6 +555,20 @@
 
 ```json
 ["uuid (id of the curriculum semester)"]
+```
+
+204 NO CONTENT
+
+400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-load-classrooms-into-generator"></a>
+
+## /load-classrooms-into-generator
+
+### GET - loads selected classrooms into schedule generator service
+
+```json
+["uuid (id of the classroom)"]
 ```
 
 204 NO CONTENT
