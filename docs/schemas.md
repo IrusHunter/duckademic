@@ -370,7 +370,6 @@
 ```json
 {
   "id": "uuid (unique identifier of the lesson type)",
-  "slug": "string (unique slug used internally)",
   "name": "string (name of the lesson type)",
   "hours_value": "integer (number of hours per lesson)",
   "reserved_weeks": "string (comma-separated week numbers where only this lesson type is allowed)"
@@ -397,10 +396,7 @@
 ```json
 {
   "id": "uuid (unique identifier of the group cohort)",
-  "slug": "string (unique slug used internally)",
   "name": "string (name of the cohort)",
-  "created_at": "timestamp (record creation timestamp)",
-  "updated_at": "timestamp (record last update timestamp)",
   "groups": [
     {
       "id": "uuid (unique identifier of the student group)",

@@ -267,3 +267,21 @@ type AccessPermissionRE struct {
 func (a AccessPermissionRE) String() string {
 	return fmt.Sprintf("AccessPermission{%s}", a.Name)
 }
+
+type SemesterDisciplineRE struct {
+	Event        EventType
+	ID           uuid.UUID
+	SemesterID   uuid.UUID
+	DisciplineID uuid.UUID
+}
+
+func (s SemesterDisciplineRE) String() string {
+	parts := make([]string, 0, 4)
+
+	parts = append(parts, fmt.Sprintf("event: %s", s.Event))
+	parts = append(parts, fmt.Sprintf("id: %s", s.ID))
+	parts = append(parts, fmt.Sprintf("semester_id: %s", s.SemesterID))
+	parts = append(parts, fmt.Sprintf("discipline_id: %s", s.DisciplineID))
+
+	return fmt.Sprintf("SemesterDisciplineRE{%s}", strings.Join(parts, ", "))
+}
