@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
@@ -17,6 +18,8 @@ import (
 
 type TeacherService interface {
 	platform.BaseService[entities.Teacher]
+	GetFullTeachersByIDs(context.Context, []uuid.UUID) ([]entities.Teacher, error)
+	ToGeneratorTeachers(context.Context, []entities.Teacher) []GeneratorTeacher
 }
 
 func NewTeacherService(tr repositories.TeacherRepository, eb events.EventBus) TeacherService {
@@ -116,4 +119,65 @@ func (s *teacherService) ExternalUpdate(
 	s.logger.Log(contextutil.GetTraceID(ctx), "ExternalUpdate",
 		fmt.Sprintf("%s successfully updated", updatedT), logger.ServiceOperationSuccess)
 	return updatedT, nil
+}
+
+func (s *teacherService) GetFullTeachersByIDs(ctx context.Context, teacherIDs []uuid.UUID) ([]entities.Teacher, error) {
+	sem := make(chan struct{}, 5)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	var result []entities.Teacher
+	var lastError error
+
+	for _, teacherID := range teacherIDs {
+		wg.Add(1)
+		sem <- struct{}{}
+
+		go func(teacherID uuid.UUID) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			teacher := s.repository.Fill(ctx, teacherID)
+			if teacher == nil {
+				mu.Lock()
+				lastError = s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"GetTeachersByIDs",
+					fmt.Errorf("teacher with id %s not found", teacherID),
+					logger.ServiceRepositoryFailed,
+				)
+				mu.Unlock()
+				return
+			}
+
+			mu.Lock()
+			result = append(result, *teacher)
+			mu.Unlock()
+
+		}(teacherID)
+	}
+
+	wg.Wait()
+
+	return result, lastError
+}
+
+type GeneratorTeacher struct {
+	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
+	Priority int       `json:"priority"`
+}
+
+func (s *teacherService) ToGeneratorTeachers(ctx context.Context, t []entities.Teacher) []GeneratorTeacher {
+	res := make([]GeneratorTeacher, 0, len(t))
+
+	for _, teacher := range t {
+		res = append(res, GeneratorTeacher{
+			ID:       teacher.ID,
+			Name:     teacher.Name,
+			Priority: teacher.AcademicRank.Priority,
+		})
+	}
+
+	return res
 }

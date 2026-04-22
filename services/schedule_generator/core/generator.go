@@ -165,7 +165,8 @@ func (g *ScheduleGenerator) SetStudentGroups(
 
 			discipline := ds.Find(groupCohortAssignment.DisciplineID)
 			if discipline == nil {
-				return nil, fmt.Errorf("discipline with id %q not found", groupCohortAssignment.DisciplineID)
+				return nil, fmt.Errorf("at group cohort with id %q discipline with id %q not found",
+					groupCohortAssignment.GroupCohortID, groupCohortAssignment.DisciplineID)
 			}
 
 			groupCohort, ok := groupCohortsMap[groupCohortAssignment.GroupCohortID]

@@ -9,7 +9,6 @@ import (
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/events"
-	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -17,6 +16,8 @@ import (
 
 type DisciplineService interface {
 	platform.BaseService[entities.Discipline]
+	ToGeneratorDisciplines(context.Context, []entities.Discipline) []GeneratorDiscipline
+	ExtractIDs([]entities.Discipline) []uuid.UUID
 }
 
 func NewDisciplineService(dr repositories.DisciplineRepository, eb events.EventBus) DisciplineService {
@@ -69,38 +70,6 @@ func (s *disciplineService) eventHandler(ctx context.Context, b []byte) {
 	}
 }
 
-func (s *disciplineService) Seed(ctx context.Context) error {
-	disciplines := []entities.Discipline{}
-	if err := jsonutil.ReadFileTo(filepath.Join("data", "disciplines.json"), &disciplines); err != nil {
-		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-			fmt.Errorf("failed to load disciplines seed data: %w", err), logger.ServiceDataFetchFailed,
-		)
-	}
-
-	var lastError error
-	for _, discipline := range disciplines {
-		tdr := s.repository.FindFirstByName(ctx, discipline.Name)
-		if tdr == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("discipline with name %q not found", discipline.Name), logger.ServiceDataFetchFailed,
-			)
-			continue
-		}
-
-		_, err := s.Update(ctx, tdr.ID, discipline)
-		if err != nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("failed to update %s: %w", discipline, err), logger.ServiceRepositoryFailed,
-			)
-		}
-	}
-
-	s.logger.Log(contextutil.GetTraceID(ctx), "Seed",
-		fmt.Sprintf("%d disciplines updated successfully", len(disciplines)), logger.ServiceOperationSuccess,
-	)
-	return lastError
-}
-
 func (s *disciplineService) ExternalUpdate(
 	ctx context.Context,
 	id uuid.UUID,
@@ -116,4 +85,31 @@ func (s *disciplineService) ExternalUpdate(
 	s.logger.Log(contextutil.GetTraceID(ctx), "ExternalUpdate",
 		fmt.Sprintf("%s successfully updated", updatedDR), logger.ServiceOperationSuccess)
 	return updatedDR, nil
+}
+
+type GeneratorDiscipline struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
+func (s *disciplineService) ToGeneratorDisciplines(ctx context.Context, d []entities.Discipline) []GeneratorDiscipline {
+	res := make([]GeneratorDiscipline, 0, len(d))
+
+	for _, discipline := range d {
+		res = append(res, GeneratorDiscipline{
+			ID:   discipline.ID,
+			Name: discipline.Name,
+		})
+	}
+
+	return res
+}
+func (s *disciplineService) ExtractIDs(d []entities.Discipline) []uuid.UUID {
+	res := make([]uuid.UUID, 0, len(d))
+
+	for _, discipline := range d {
+		res = append(res, discipline.ID)
+	}
+
+	return res
 }

@@ -57,7 +57,7 @@ func main() {
 	lessonTypeAssignmentService := services.NewLessonTypeAssignmentService(lessonTypeAssignmentRepository,
 		lessonTypeRepository, disciplineRepository, eventBus)
 	semesterDisciplineService := services.NewSemesterDisciplineService(semesterDisciplineRepository, semesterRepository,
-		disciplineRepository, curriculumRepository)
+		disciplineRepository, curriculumRepository, eventBus)
 
 	curriculumHandler := resthandlers.NewCurriculumHandler(curriculumService)
 	semesterHandler := resthandlers.NewSemesterHandler(semesterService)

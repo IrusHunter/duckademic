@@ -8,6 +8,7 @@ import (
 	"github.com/IrusHunter/duckademic/services/curriculum/entities"
 	"github.com/IrusHunter/duckademic/services/curriculum/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
@@ -24,6 +25,7 @@ func NewSemesterDisciplineService(
 	sr repositories.SemesterRepository,
 	dr repositories.DisciplineRepository,
 	cr repositories.CurriculumRepository,
+	eb events.EventBus,
 ) SemesterDisciplineService {
 	sc := platform.NewServiceConfig(
 		"SemesterDisciplineService",
@@ -38,10 +40,11 @@ func NewSemesterDisciplineService(
 		curriculumRepository: cr,
 	}
 
-	res.BaseService = platform.NewBaseService(sc, sdr,
+	res.BaseService = platform.NewBaseServiceWithEventBus(sc, sdr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.SemesterDiscipline]{
 			platform.OnAddPrepare: res.onAddPrepare,
 		},
+		eb,
 	)
 
 	res.logger = res.GetLogger()
@@ -116,4 +119,49 @@ func (s *semesterDisciplineService) Seed(ctx context.Context) error {
 	)
 
 	return lastError
+}
+
+func (s *semesterDisciplineService) Add(
+	ctx context.Context, sd entities.SemesterDiscipline,
+) (entities.SemesterDiscipline, error) {
+	addedSD, err := s.BaseService.Add(ctx, sd)
+	if err == nil {
+		s.sendChanges(ctx, addedSD, events.EntityCreated)
+	}
+	return addedSD, err
+}
+
+func (s *semesterDisciplineService) Delete(
+	ctx context.Context, id uuid.UUID,
+) (entities.SemesterDiscipline, error) {
+	deletedSD, err := s.BaseService.Delete(ctx, id)
+	if err == nil {
+		s.sendChanges(ctx, deletedSD, events.EntityDeleted)
+	}
+	return deletedSD, err
+}
+
+func (s *semesterDisciplineService) Update(
+	ctx context.Context, id uuid.UUID, sd entities.SemesterDiscipline,
+) (entities.SemesterDiscipline, error) {
+	updatedSD, err := s.BaseService.Update(ctx, id, sd)
+	if err == nil {
+		s.sendChanges(ctx, updatedSD, events.EntityUpdated)
+	}
+	return updatedSD, err
+}
+
+func (s *semesterDisciplineService) sendChanges(
+	ctx context.Context,
+	sd entities.SemesterDiscipline,
+	event events.EventType,
+) {
+	eventSD := events.SemesterDisciplineRE{
+		Event:        event,
+		ID:           sd.ID,
+		SemesterID:   sd.SemesterID,
+		DisciplineID: sd.DisciplineID,
+	}
+
+	s.BaseService.SendChanges(ctx, eventSD, event, events.SemesterDisciplineRT)
 }

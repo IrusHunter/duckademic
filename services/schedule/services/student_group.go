@@ -9,7 +9,6 @@ import (
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/events"
-	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -68,38 +67,6 @@ func (s *studentGroupService) eventHandler(ctx context.Context, b []byte) {
 	case events.EntityDeleted:
 		s.Delete(ctx, groupEvent.ID)
 	}
-}
-
-func (s *studentGroupService) Seed(ctx context.Context) error {
-	groups := []entities.StudentGroup{}
-	if err := jsonutil.ReadFileTo(filepath.Join("data", "student_groups.json"), &groups); err != nil {
-		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-			fmt.Errorf("failed to load student groups seed data: %w", err), logger.ServiceDataFetchFailed,
-		)
-	}
-
-	var lastError error
-	for _, group := range groups {
-		trueG := s.repository.FindFirstByName(ctx, group.Name)
-		if trueG == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("student group with name %q not found", group.Name), logger.ServiceDataFetchFailed,
-			)
-			continue
-		}
-
-		_, err := s.Update(ctx, trueG.ID, group)
-		if err != nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("failed to update %s: %w", group, err), logger.ServiceRepositoryFailed,
-			)
-		}
-	}
-
-	s.logger.Log(contextutil.GetTraceID(ctx), "Seed",
-		fmt.Sprintf("%d student groups updated successfully", len(groups)), logger.ServiceOperationSuccess,
-	)
-	return lastError
 }
 
 func (s *studentGroupService) ExternalUpdate(

@@ -101,7 +101,7 @@ func (s *teacherService) Seed(ctx context.Context) error {
 			)
 			continue
 		}
-		trueTeacher.ID = employee.ID
+		trueTeacher.EmployeeID = &employee.ID
 
 		academicRank := s.academicRankRepository.FindByTitle(ctx, teacher.AcademicRankTitle)
 		if academicRank == nil {

@@ -229,6 +229,7 @@
   "id": "uuid (unique identifier of the group cohort)",
   "slug": "string (unique slug used internally)",
   "name": "string (name of the cohort)",
+  "semester_id": "uuid (identifier of the associated semester)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"
 }
@@ -259,6 +260,33 @@
   "slug": "string (unique slug used internally)",
   "number": "string (classroom number or label)",
   "capacity": "integer (maximum number of visitors in the classroom)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+### Semester
+
+```json
+{
+  "id": "uuid (unique identifier of the semester)",
+  "slug": "string (unique slug used internally)",
+  "curriculum_id": "uuid (identifier of the associated curriculum)",
+  "number": "integer (semester number within the curriculum)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="curriculum-semester-discipline"></a>
+
+### Semester Discipline Relation
+
+```json
+{
+  "id": "uuid (unique identifier of this semester discipline record)",
+  "semester_id": "uuid (identifier of the associated semester)",
+  "discipline_id": "uuid (identifier of the associated discipline)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"
 }

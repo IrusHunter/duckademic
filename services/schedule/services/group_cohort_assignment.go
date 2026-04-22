@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
@@ -16,6 +17,8 @@ import (
 
 type GroupCohortAssignmentService interface {
 	platform.BaseService[entities.GroupCohortAssignment]
+	GetByGroupCohortIDs(context.Context, []uuid.UUID) ([]entities.GroupCohortAssignment, error)
+	ToGeneratorGroupCohortAssignments(context.Context, []entities.GroupCohortAssignment) []GeneratorGroupCohortAssignment
 }
 
 func NewGroupCohortAssignmentService(
@@ -101,4 +104,71 @@ func (s *groupCohortAssignmentService) ExternalUpdate(
 	)
 
 	return updatedA, nil
+}
+
+func (s *groupCohortAssignmentService) GetByGroupCohortIDs(
+	ctx context.Context, cohortIDs []uuid.UUID,
+) ([]entities.GroupCohortAssignment, error) {
+	sem := make(chan struct{}, 5)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	var result []entities.GroupCohortAssignment
+	var lastError error
+
+	for _, cohortID := range cohortIDs {
+		wg.Add(1)
+		sem <- struct{}{}
+
+		go func(cohortID uuid.UUID) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			groupCohortAssignments, err := s.repository.GetByGroupCohortID(ctx, cohortID)
+			if err != nil {
+				mu.Lock()
+				lastError = s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"GetByGroupCohortIDs",
+					err,
+					logger.ServiceRepositoryFailed,
+				)
+				mu.Unlock()
+				return
+			}
+
+			mu.Lock()
+			result = append(result, groupCohortAssignments...)
+			mu.Unlock()
+
+		}(cohortID)
+	}
+
+	wg.Wait()
+
+	return result, lastError
+}
+
+type GeneratorGroupCohortAssignment struct {
+	ID            uuid.UUID `json:"id"`
+	GroupCohortID uuid.UUID `json:"group_cohort_id"`
+	DisciplineID  uuid.UUID `json:"discipline_id"`
+	LessonTypeID  uuid.UUID `json:"lesson_type_id"`
+}
+
+func (s *groupCohortAssignmentService) ToGeneratorGroupCohortAssignments(
+	ctx context.Context, gc []entities.GroupCohortAssignment,
+) []GeneratorGroupCohortAssignment {
+	res := make([]GeneratorGroupCohortAssignment, 0, len(gc))
+
+	for _, groupCohortAssignment := range gc {
+		res = append(res, GeneratorGroupCohortAssignment{
+			ID:            groupCohortAssignment.ID,
+			GroupCohortID: groupCohortAssignment.GroupCohortID,
+			DisciplineID:  groupCohortAssignment.DisciplineID,
+			LessonTypeID:  groupCohortAssignment.LessonTypeID,
+		})
+	}
+
+	return res
 }

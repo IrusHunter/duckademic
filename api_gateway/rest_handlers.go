@@ -132,7 +132,7 @@ func (h *databaseHandler) propagate(r *http.Request, path string) {
 	for _, upstream := range upstreams {
 		url := upstream.URL + path
 
-		req, err := http.NewRequest(r.Method, url, r.Body)
+		req, err := http.NewRequest(r.Method, url, nil)
 		if err != nil {
 			log.Printf("failed to create request %q: %s", url, err.Error())
 			continue

@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -12,7 +14,8 @@ import (
 
 type GroupCohortRepository interface {
 	platform.BaseRepository[entities.GroupCohort]
-	ExternalUpdate(ctx context.Context, id uuid.UUID, cohort entities.GroupCohort) (entities.GroupCohort, error)
+	ExternalUpdate(context.Context, uuid.UUID, entities.GroupCohort) (entities.GroupCohort, error)
+	GetBySemesterID(context.Context, uuid.UUID) ([]entities.GroupCohort, error)
 }
 
 func NewGroupCohortRepository(db *sqlx.DB) GroupCohortRepository {
@@ -20,7 +23,7 @@ func NewGroupCohortRepository(db *sqlx.DB) GroupCohortRepository {
 		"GroupCohortRepository",
 		entities.GroupCohort{}.TableName(),
 		"group cohort",
-		[]string{"id", "slug", "name"},
+		[]string{"id", "slug", "name", "semester_id"},
 		[]string{},
 		[]string{"created_at", "updated_at"},
 	)
@@ -45,5 +48,26 @@ func (r *groupCohortRepository) ExternalUpdate(
 	id uuid.UUID,
 	cohort entities.GroupCohort,
 ) (entities.GroupCohort, error) {
-	return r.UpdateFields(ctx, id, []string{"slug", "name"}, cohort)
+	return r.UpdateFields(ctx, id, []string{"slug", "name", "semester_id"}, cohort)
+}
+
+func (r *groupCohortRepository) GetBySemesterID(ctx context.Context, semesterID uuid.UUID) ([]entities.GroupCohort, error) {
+	query := fmt.Sprintf(`
+		SELECT id, slug, name, semester_id
+		FROM %s
+		WHERE semester_id = $1;
+	`, entities.GroupCohort{}.TableName())
+
+	var cohorts []entities.GroupCohort
+
+	if err := r.db.SelectContext(ctx, &cohorts, query, semesterID); err != nil {
+		return nil, r.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetBySemesterID",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	return cohorts, nil
 }

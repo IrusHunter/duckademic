@@ -10,11 +10,11 @@ import (
 )
 
 type GroupMember struct {
-	ID           uuid.UUID  `db:"id" json:"id"`
-	StudentID    uuid.UUID  `db:"student_id" json:"studentId"`
-	StudentGroup *uuid.UUID `db:"student_group_id" json:"student_group_id,omitempty"`
-	CreatedAt    time.Time  `db:"created_at" json:"createdAt"`
-	UpdatedAt    time.Time  `db:"updated_at" json:"updatedAt"`
+	ID             uuid.UUID  `db:"id" json:"id"`
+	StudentID      uuid.UUID  `db:"student_id" json:"studentId"`
+	StudentGroupID *uuid.UUID `db:"student_group_id" json:"student_group_id,omitempty"`
+	CreatedAt      time.Time  `db:"created_at" json:"createdAt"`
+	UpdatedAt      time.Time  `db:"updated_at" json:"updatedAt"`
 }
 
 func (g GroupMember) String() string {
@@ -26,8 +26,8 @@ func (g GroupMember) String() string {
 
 	parts = append(parts, fmt.Sprintf("student_id: %s", g.StudentID))
 
-	if g.StudentGroup != nil {
-		parts = append(parts, fmt.Sprintf("student_group_id: %s", *g.StudentGroup))
+	if g.StudentGroupID != nil {
+		parts = append(parts, fmt.Sprintf("student_group_id: %s", *g.StudentGroupID))
 	}
 
 	if !g.CreatedAt.IsZero() {

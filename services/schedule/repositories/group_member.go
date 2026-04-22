@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -12,7 +14,9 @@ import (
 
 type GroupMemberRepository interface {
 	platform.BaseRepository[entities.GroupMember]
-	ExternalUpdate(ctx context.Context, id uuid.UUID, member entities.GroupMember) (entities.GroupMember, error)
+	ExternalUpdate(context.Context, uuid.UUID, entities.GroupMember) (entities.GroupMember, error)
+	GetByGroupID(context.Context, uuid.UUID) ([]uuid.UUID, error)
+	GetByStudentIDs(context.Context, []uuid.UUID) ([]entities.GroupMember, error)
 }
 
 func NewGroupMemberRepository(db *sqlx.DB) GroupMemberRepository {
@@ -46,4 +50,53 @@ func (r *groupMemberRepository) ExternalUpdate(
 	member entities.GroupMember,
 ) (entities.GroupMember, error) {
 	return r.UpdateFields(ctx, id, []string{"student_id", "student_group_id"}, member)
+}
+
+func (r *groupMemberRepository) GetByGroupID(ctx context.Context, groupID uuid.UUID) ([]uuid.UUID, error) {
+	query := fmt.Sprintf(`
+		SELECT student_id
+		FROM %s
+		WHERE student_group_id = $1;
+	`, entities.GroupMember{}.TableName())
+
+	var ids []uuid.UUID
+
+	if err := r.db.SelectContext(ctx, &ids, query, groupID); err != nil {
+		return nil, r.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetByGroupID",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	return ids, nil
+}
+func (r *groupMemberRepository) GetByStudentIDs(ctx context.Context, studentIDs []uuid.UUID) ([]entities.GroupMember, error) {
+	if len(studentIDs) == 0 {
+		return []entities.GroupMember{}, nil
+	}
+
+	query, args, err := sqlx.In(fmt.Sprintf(`
+		SELECT id, student_id, student_group_id
+		FROM %s
+		WHERE student_id IN (?);
+	`, entities.GroupMember{}.TableName()), studentIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	query = r.db.Rebind(query)
+
+	var members []entities.GroupMember
+	if err := r.db.SelectContext(ctx, &members, query, args...); err != nil {
+		return nil, r.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetByStudentIDs",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	return members, nil
 }

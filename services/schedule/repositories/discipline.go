@@ -53,5 +53,5 @@ func (r *disciplineRepository) ExternalUpdate(
 	id uuid.UUID,
 	discipline entities.Discipline,
 ) (entities.Discipline, error) {
-	return r.UpdateFields(ctx, id, []string{"name"}, discipline)
+	return r.UpdateFields(ctx, id, []string{"slug", "name"}, discipline)
 }

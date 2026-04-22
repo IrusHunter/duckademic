@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -15,6 +17,7 @@ type StudentGroupRepository interface {
 	FindBySlug(context.Context, string) *entities.StudentGroup
 	FindFirstByName(ctx context.Context, name string) *entities.StudentGroup
 	ExternalUpdate(context.Context, uuid.UUID, entities.StudentGroup) (entities.StudentGroup, error)
+	GetByGroupCohortID(context.Context, uuid.UUID) ([]entities.StudentGroup, error)
 }
 
 func NewStudentGroupRepository(db *sqlx.DB) StudentGroupRepository {
@@ -52,4 +55,25 @@ func (r *studentGroupRepository) ExternalUpdate(
 	ctx context.Context, id uuid.UUID, group entities.StudentGroup,
 ) (entities.StudentGroup, error) {
 	return r.UpdateFields(ctx, id, []string{"slug", "name", "group_cohort_id"}, group)
+}
+
+func (r *studentGroupRepository) GetByGroupCohortID(ctx context.Context, cohortID uuid.UUID) ([]entities.StudentGroup, error) {
+	query := fmt.Sprintf(`
+		SELECT sg.id, sg.name
+		FROM %s sg
+		WHERE sg.group_cohort_id = $1;
+	`, entities.StudentGroup{}.TableName())
+
+	var studentGroups []entities.StudentGroup
+
+	if err := r.db.SelectContext(ctx, &studentGroups, query, cohortID); err != nil {
+		return nil, r.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetByGroupCohortID",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	return studentGroups, nil
 }
