@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
@@ -17,6 +18,8 @@ import (
 
 type ClassroomService interface {
 	platform.BaseService[entities.Classroom]
+	GetMultipleByIDs(context.Context, []uuid.UUID) ([]entities.Classroom, error)
+	ToGeneratorClassrooms(context.Context, []entities.Classroom) []GeneratorClassroom
 }
 
 func NewClassroomService(cr repositories.ClassroomRepository, eb events.EventBus) ClassroomService {
@@ -154,4 +157,65 @@ func (s *classroomService) ExternalUpdate(
 	)
 
 	return updatedCR, nil
+}
+
+func (s *classroomService) GetMultipleByIDs(ctx context.Context, classroomIDs []uuid.UUID) ([]entities.Classroom, error) {
+	sem := make(chan struct{}, 5)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	var result []entities.Classroom
+	var lastError error
+
+	for _, classroomID := range classroomIDs {
+		wg.Add(1)
+		sem <- struct{}{}
+
+		go func(classroomID uuid.UUID) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			classroom := s.repository.FindByID(ctx, classroomID)
+			if classroom == nil {
+				mu.Lock()
+				lastError = s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"GetByGroupCohortIDs",
+					fmt.Errorf("classroom with id %q not found", classroomID),
+					logger.ServiceRepositoryFailed,
+				)
+				mu.Unlock()
+				return
+			}
+
+			mu.Lock()
+			result = append(result, *classroom)
+			mu.Unlock()
+
+		}(classroomID)
+	}
+
+	wg.Wait()
+
+	return result, lastError
+}
+
+type GeneratorClassroom struct {
+	ID       uuid.UUID `json:"id"`
+	Number   string    `json:"number"`
+	Capacity int       `json:"capacity"`
+}
+
+func (s *classroomService) ToGeneratorClassrooms(ctx context.Context, c []entities.Classroom) []GeneratorClassroom {
+	res := make([]GeneratorClassroom, 0, len(c))
+
+	for _, classroom := range c {
+		res = append(res, GeneratorClassroom{
+			ID:       classroom.ID,
+			Number:   classroom.Number,
+			Capacity: classroom.Capacity,
+		})
+	}
+
+	return res
 }

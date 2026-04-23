@@ -10,26 +10,34 @@ import (
 )
 
 type StudyLoad struct {
-	ID             uuid.UUID `json:"id" db:"id"`
-	TeacherID      uuid.UUID `json:"teacher_id" db:"teacher_id"`
-	StudentGroupID uuid.UUID `json:"student_group_id" db:"student_group_id"`
-	DisciplineID   uuid.UUID `json:"discipline_id" db:"discipline_id"`
-	LessonTypeID   uuid.UUID `json:"lesson_type_id" db:"lesson_type_id"`
-	CreatedAt      time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
+	ID               uuid.UUID `json:"id" db:"id"`
+	TeacherID        uuid.UUID `json:"teacher_id" db:"teacher_id"`
+	TeacherName      string    `json:"teacher_name" db:"teacher_name"`
+	StudentGroupID   uuid.UUID `json:"student_group_id" db:"student_group_id"`
+	StudentGroupName string    `json:"student_group_name" db:"student_group_name"`
+	DisciplineID     uuid.UUID `json:"discipline_id" db:"discipline_id"`
+	DisciplineName   string    `json:"discipline_name" db:"discipline_name"`
+	LessonTypeID     uuid.UUID `json:"lesson_type_id" db:"lesson_type_id"`
+	LessonTypeName   string    `json:"lesson_type_name" db:"lesson_type_name"`
+	CreatedAt        time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at" db:"updated_at"`
 }
 
 func (s StudyLoad) String() string {
-	parts := make([]string, 0, 10)
+	parts := make([]string, 0, 16)
 
 	if s.ID != uuid.Nil {
 		parts = append(parts, fmt.Sprintf("id: %s", s.ID))
 	}
 
 	parts = append(parts, fmt.Sprintf("teacher_id: %s", s.TeacherID))
+	parts = append(parts, fmt.Sprintf("teacher_name: %s", s.TeacherName))
 	parts = append(parts, fmt.Sprintf("student_group_id: %s", s.StudentGroupID))
+	parts = append(parts, fmt.Sprintf("student_group_name: %s", s.StudentGroupName))
 	parts = append(parts, fmt.Sprintf("discipline_id: %s", s.DisciplineID))
+	parts = append(parts, fmt.Sprintf("discipline_name: %s", s.DisciplineName))
 	parts = append(parts, fmt.Sprintf("lesson_type_id: %s", s.LessonTypeID))
+	parts = append(parts, fmt.Sprintf("lesson_type_name: %s", s.LessonTypeName))
 
 	if !s.CreatedAt.IsZero() {
 		parts = append(parts, fmt.Sprintf("created_at: %s", s.CreatedAt.Format(db.TimeFormat)))
@@ -42,14 +50,6 @@ func (s StudyLoad) String() string {
 func (StudyLoad) TableName() string {
 	return "study_loads"
 }
-
-type CompactStudyLoad struct {
-	TeacherID        uuid.UUID
-	TeacherName      string
-	StudentGroupID   uuid.UUID
-	StudentGroupName string
-	DisciplineID     uuid.UUID
-	DisciplineName   string
-	LessonTypeID     uuid.UUID
-	LessonTypeName   string
+func (StudyLoad) EntityName() string {
+	return "study load"
 }

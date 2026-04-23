@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
@@ -16,6 +17,9 @@ import (
 
 type TeacherLoadService interface {
 	platform.BaseService[entities.TeacherLoad]
+	GetByLessonTypeAssignments(context.Context, []entities.LessonTypeAssignment) ([]entities.TeacherLoad, error)
+	GetUniqueTeacherIDs([]entities.TeacherLoad) []uuid.UUID
+	ToGeneratorTeacherLoads(context.Context, []entities.TeacherLoad) []GeneratorTeacherLoad
 }
 
 func NewTeacherLoadService(tr repositories.TeacherLoadRepository, eb events.EventBus) TeacherLoadService {
@@ -85,4 +89,87 @@ func (s *teacherLoadService) ExternalUpdate(
 	s.logger.Log(contextutil.GetTraceID(ctx), "ExternalUpdate",
 		fmt.Sprintf("%s successfully updated", updatedLoad), logger.ServiceOperationSuccess)
 	return updatedLoad, nil
+}
+
+func (s *teacherLoadService) GetByLessonTypeAssignments(
+	ctx context.Context,
+	lta []entities.LessonTypeAssignment,
+) ([]entities.TeacherLoad, error) {
+	sem := make(chan struct{}, 5)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	var result []entities.TeacherLoad
+	var lastError error
+
+	for _, lessonTypeAssignment := range lta {
+		wg.Add(1)
+		sem <- struct{}{}
+
+		go func(lessonTypeAssignment entities.LessonTypeAssignment) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			loads, err := s.repository.GetByDisciplineAndLessonTypeID(
+				ctx, lessonTypeAssignment.DisciplineID, lessonTypeAssignment.LessonTypeID)
+			if err != nil {
+				mu.Lock()
+				lastError = s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"GetByDisciplineIDs",
+					err,
+					logger.ServiceRepositoryFailed,
+				)
+				mu.Unlock()
+				return
+			}
+
+			mu.Lock()
+			result = append(result, loads...)
+			mu.Unlock()
+
+		}(lessonTypeAssignment)
+	}
+
+	wg.Wait()
+
+	return result, lastError
+}
+
+func (s *teacherLoadService) GetUniqueTeacherIDs(loads []entities.TeacherLoad) []uuid.UUID {
+	seen := make(map[uuid.UUID]struct{})
+	result := make([]uuid.UUID, 0)
+
+	for _, item := range loads {
+		if _, ok := seen[item.TeacherID]; !ok {
+			seen[item.TeacherID] = struct{}{}
+			result = append(result, item.TeacherID)
+		}
+	}
+
+	return result
+}
+
+type GeneratorTeacherLoad struct {
+	ID           uuid.UUID `db:"id" json:"id"`
+	TeacherID    uuid.UUID `db:"teacher_id" json:"teacher_id"`
+	DisciplineID uuid.UUID `db:"discipline_id" json:"discipline_id"`
+	LessonTypeID uuid.UUID `db:"lesson_type_id" json:"lesson_type_id"`
+	GroupCount   int       `db:"group_count" json:"group_count"`
+}
+
+func (s *teacherLoadService) ToGeneratorTeacherLoads(ctx context.Context, tl []entities.TeacherLoad) []GeneratorTeacherLoad {
+	res := make([]GeneratorTeacherLoad, 0, len(tl))
+
+	for _, teacherLoad := range tl {
+		res = append(res, GeneratorTeacherLoad{
+			ID:           teacherLoad.ID,
+			TeacherID:    teacherLoad.TeacherID,
+			DisciplineID: teacherLoad.DisciplineID,
+			LessonTypeID: teacherLoad.LessonTypeID,
+			GroupCount:   teacherLoad.GroupCount,
+		})
+	}
+
+	return res
 }

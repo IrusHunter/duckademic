@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -14,6 +16,7 @@ type LessonTypeAssignmentRepository interface {
 	platform.BaseRepository[entities.LessonTypeAssignment]
 	ExternalUpdate(context.Context, uuid.UUID, entities.LessonTypeAssignment) (entities.LessonTypeAssignment, error)
 	FindByLessonTypeAndDiscipline(ctx context.Context, lessonTypeID, disciplineID uuid.UUID) *entities.LessonTypeAssignment
+	GetByDisciplineID(context.Context, uuid.UUID) ([]entities.LessonTypeAssignment, error)
 }
 
 func NewLessonTypeAssignmentRepository(db *sqlx.DB) LessonTypeAssignmentRepository {
@@ -56,4 +59,27 @@ func (r *lessonTypeAssignmentRepository) ExternalUpdate(
 	assignment entities.LessonTypeAssignment,
 ) (entities.LessonTypeAssignment, error) {
 	return r.UpdateFields(ctx, id, []string{"required_hours"}, assignment)
+}
+func (r *lessonTypeAssignmentRepository) GetByDisciplineID(
+	ctx context.Context,
+	disciplineID uuid.UUID,
+) ([]entities.LessonTypeAssignment, error) {
+	query := fmt.Sprintf(`
+		SELECT id, lesson_type_id, discipline_id, required_hours
+		FROM %s
+		WHERE discipline_id = $1;
+	`, entities.LessonTypeAssignment{}.TableName())
+
+	var assignments []entities.LessonTypeAssignment
+
+	if err := r.db.SelectContext(ctx, &assignments, query, disciplineID); err != nil {
+		return nil, r.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetByDisciplineID",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	return assignments, nil
 }

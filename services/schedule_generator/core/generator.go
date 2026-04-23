@@ -165,7 +165,8 @@ func (g *ScheduleGenerator) SetStudentGroups(
 
 			discipline := ds.Find(groupCohortAssignment.DisciplineID)
 			if discipline == nil {
-				return nil, fmt.Errorf("discipline with id %q not found", groupCohortAssignment.DisciplineID)
+				return nil, fmt.Errorf("at group cohort with id %q discipline with id %q not found",
+					groupCohortAssignment.GroupCohortID, groupCohortAssignment.DisciplineID)
 			}
 
 			groupCohort, ok := groupCohortsMap[groupCohortAssignment.GroupCohortID]
@@ -716,11 +717,15 @@ func (g *ScheduleGenerator) ExtractStudyLoads() ([]responses.StudyLoad, error) {
 
 	for _, studyLoad := range studyLoads {
 		result = append(result, responses.StudyLoad{
-			ID:             studyLoad.ID,
-			TeacherID:      studyLoad.Teacher.ID,
-			StudentGroupID: studyLoad.StudentGroup.ID,
-			DisciplineID:   studyLoad.Discipline.ID,
-			LessonTypeID:   studyLoad.Type.ID,
+			ID:               studyLoad.ID,
+			TeacherID:        studyLoad.Teacher.ID,
+			TeacherName:      studyLoad.Teacher.UserName,
+			StudentGroupID:   studyLoad.StudentGroup.ID,
+			StudentGroupName: studyLoad.StudentGroup.Name,
+			DisciplineID:     studyLoad.Discipline.ID,
+			DisciplineName:   studyLoad.Discipline.Name,
+			LessonTypeID:     studyLoad.Type.ID,
+			LessonTypeName:   studyLoad.Type.Name,
 		})
 	}
 

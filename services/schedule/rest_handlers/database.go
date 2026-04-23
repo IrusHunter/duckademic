@@ -1,6 +1,7 @@
 package resthandlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
+	"github.com/google/uuid"
 )
 
 // DatabaseHandler represents a handler responsible for database-related HTTP operations.
@@ -21,6 +23,8 @@ type DatabaseHandler interface {
 	Seed(context.Context, http.ResponseWriter, *http.Request)
 	Clear(context.Context, http.ResponseWriter, *http.Request)
 	ExtractDataFromGenerator(context.Context, http.ResponseWriter, *http.Request)
+	LoadDataIntoGenerator(context.Context, http.ResponseWriter, *http.Request)
+	LoadClassroomsIntoGenerator(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewDatabaseHandler(
@@ -41,6 +45,8 @@ func NewDatabaseHandler(
 	sls services.StudyLoadService,
 	lsl services.LessonSlotService,
 	los services.LessonOccurrenceService,
+	semS services.SemesterService,
+	sds services.SemesterDisciplineService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		httpClient:                   httpC,
@@ -61,6 +67,8 @@ func NewDatabaseHandler(
 		studyLoadService:             sls,
 		lessonSlotService:            lsl,
 		lessonOccurrenceService:      los,
+		semesterService:              semS,
+		semesterDisciplineService:    sds,
 	}
 }
 
@@ -83,6 +91,8 @@ type databaseHandler struct {
 	studyLoadService             services.StudyLoadService
 	lessonSlotService            services.LessonSlotService
 	lessonOccurrenceService      services.LessonOccurrenceService
+	semesterService              services.SemesterService
+	semesterDisciplineService    services.SemesterDisciplineService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -102,6 +112,10 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.semesterDisciplineService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear semester disciplines: %w", err))
+		return
+	}
 	if err := h.classroomService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear classrooms: %w", err))
 		return
@@ -162,61 +176,355 @@ func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *h
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear lesson occurrences: %w", err))
 		return
 	}
+	if err := h.semesterService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear semesters: %w", err))
+		return
+	}
 
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) ExtractDataFromGenerator(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	url := "http://" + h.scheduleGeneratorDomain + "/get-study-loads"
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	var studyLoads []entities.StudyLoad
+	url := h.scheduleGeneratorDomain + "/get-study-loads"
+
+	if err := h.doGetAndDecode(ctx, url, r, &studyLoads); err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.studyLoadService.AddMultiple(ctx, studyLoads); err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	var externalL []entities.ExternalLesson
+	url = h.scheduleGeneratorDomain + "/get-lessons"
+
+	if err := h.doGetAndDecode(ctx, url, r, &externalL); err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.lessonOccurrenceService.AddFromExternal(ctx, externalL); err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, http.StatusOK, nil)
+}
+func (h *databaseHandler) LoadDataIntoGenerator(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	semesterIDs := []uuid.UUID{}
+
+	if err := json.NewDecoder(r.Body).Decode(&semesterIDs); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to decode semester uuids: %w", err),
+			logger.HandlerBadRequest,
+		))
+		return
+	}
+
+	disciplines, err := h.semesterDisciplineService.GetBySemesterIDs(ctx, semesterIDs)
 	if err != nil {
-		jsonutil.ResponseWithError(w, http.StatusInternalServerError,
-			fmt.Errorf("failed to create request %q: %w", url, err),
-		)
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to form disciplines: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	lessonTypeAssignments, err := h.lessonTypeAssignmentService.GetByDisciplineIDs(
+		ctx, h.disciplineService.ExtractIDs(disciplines))
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to form lesson type assignments: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	lessonTypes, err := h.lessonTypeService.GetMultipleByIDs(
+		ctx, h.lessonTypeAssignmentService.GetUniqueLessonTypeIDs(lessonTypeAssignments))
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to form lesson types: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	groupCohorts, err := h.groupCohortService.GetBySemesterIDs(ctx, semesterIDs)
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to form group cohorts: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	groupCohortAssignments, err := h.groupCohortAssignmentService.GetByGroupCohortIDs(
+		ctx, h.groupCohortService.GetUniqueGroupCohortIDs(groupCohorts))
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to form group cohort assignments: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	teacherLoads, err := h.teacherLoadService.GetByLessonTypeAssignments(ctx, lessonTypeAssignments)
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to form teacher loads: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	teachers, err := h.teacherService.GetFullTeachersByIDs(ctx, h.teacherLoadService.GetUniqueTeacherIDs(teacherLoads))
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to form teachers: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	url := h.scheduleGeneratorDomain + "/set-disciplines"
+	resp := map[string]any{}
+
+	generatorDisciplines := h.disciplineService.ToGeneratorDisciplines(ctx, disciplines)
+	if status, err := h.doPostAndDecode(ctx, url, r, generatorDisciplines, &resp); err != nil {
+		if status == 400 {
+			err = fmt.Errorf(resp["error"].(string))
+		}
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to load disciplines to generator: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	url = h.scheduleGeneratorDomain + "/set-lesson-types"
+	resp = map[string]any{}
+
+	generatorLessonTypes := h.lessonTypeService.ToGeneratorLessonType(ctx, lessonTypes)
+	if status, err := h.doPostAndDecode(ctx, url, r, generatorLessonTypes, &resp); err != nil {
+		if status == 400 {
+			err = fmt.Errorf(resp["error"].(string))
+		}
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to load lesson types to generator: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	url = h.scheduleGeneratorDomain + "/set-lesson-type-assignments"
+	resp = map[string]any{}
+
+	generatorLessonTypeAssignments := h.lessonTypeAssignmentService.ToGeneratorLessonTypeAssignments(ctx, lessonTypeAssignments)
+	if status, err := h.doPostAndDecode(ctx, url, r, generatorLessonTypeAssignments, &resp); err != nil {
+		if status == 400 {
+			err = fmt.Errorf(resp["error"].(string))
+		}
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to load lesson type assignments to generator: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	url = h.scheduleGeneratorDomain + "/set-student-groups"
+	resp = map[string]any{}
+	body := struct {
+		GroupCohorts           []services.GeneratorGroupCohort           `json:"group_cohorts"`
+		GroupCohortAssignments []services.GeneratorGroupCohortAssignment `json:"group_cohort_assignments"`
+	}{}
+	body.GroupCohorts = h.groupCohortService.ToGeneratorGroupCohorts(ctx, groupCohorts)
+	body.GroupCohortAssignments = h.groupCohortAssignmentService.ToGeneratorGroupCohortAssignments(ctx, groupCohortAssignments)
+	if status, err := h.doPostAndDecode(ctx, url, r, body, &resp); err != nil {
+		if status == 400 {
+			err = fmt.Errorf(resp["error"].(string))
+		}
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to load student groups to generator: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	url = h.scheduleGeneratorDomain + "/set-teachers"
+	resp = map[string]any{}
+
+	generatorTeachers := h.teacherService.ToGeneratorTeachers(ctx, teachers)
+	if status, err := h.doPostAndDecode(ctx, url, r, generatorTeachers, &resp); err != nil {
+		if status == 400 {
+			err = fmt.Errorf(resp["error"].(string))
+		}
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to load lesson type assignments to generator: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	url = h.scheduleGeneratorDomain + "/set-study-loads"
+	resp = map[string]any{}
+
+	generatorTeacherLoads := h.teacherLoadService.ToGeneratorTeacherLoads(ctx, teacherLoads)
+	if status, err := h.doPostAndDecode(ctx, url, r, generatorTeacherLoads, &resp); err != nil {
+		if status == 400 {
+			err = fmt.Errorf(resp["error"].(string))
+		}
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadDataIntoGenerator",
+			fmt.Errorf("failed to load teacher loads to generator: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, http.StatusNoContent, nil)
+}
+func (h *databaseHandler) LoadClassroomsIntoGenerator(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	classroomIDs := []uuid.UUID{}
+
+	if err := json.NewDecoder(r.Body).Decode(&classroomIDs); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadClassroomsIntoGenerator",
+			fmt.Errorf("failed to decode classroom uuids: %w", err),
+			logger.HandlerBadRequest,
+		))
+		return
+	}
+
+	classrooms, err := h.classroomService.GetMultipleByIDs(ctx, classroomIDs)
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadClassroomsIntoGenerator",
+			fmt.Errorf("failed to fetch classrooms: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	url := h.scheduleGeneratorDomain + "/set-classrooms"
+	resp := map[string]any{}
+
+	generatorClassrooms := h.classroomService.ToGeneratorClassrooms(ctx, classrooms)
+
+	if status, err := h.doPostAndDecode(ctx, url, r, generatorClassrooms, &resp); err != nil {
+		if status == 400 {
+			err = fmt.Errorf(resp["error"].(string))
+		}
+
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LoadClassroomsIntoGenerator",
+			fmt.Errorf("failed to load classrooms to generator: %w", err),
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, http.StatusNoContent, nil)
+}
+
+func (h *databaseHandler) doGetAndDecode(ctx context.Context, url string, r *http.Request, target any) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request %q: %w", url, err)
+	}
+
+	for k, vv := range r.Header {
+		for _, v := range vv {
+			req.Header.Add(k, v)
+		}
 	}
 
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
-		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("request failed: %w", err))
-		return
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	studyLoads := []entities.StudyLoad{}
-	if err := json.NewDecoder(resp.Body).Decode(&studyLoads); err != nil {
-		jsonutil.ResponseWithError(w, 500, err)
-		return
-	}
-	resp.Body.Close()
-
-	if err := h.studyLoadService.AddMultiple(ctx, studyLoads); err != nil {
-		jsonutil.ResponseWithError(w, 500, err)
-		return
+	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
+		return fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	url = "http://" + h.scheduleGeneratorDomain + "/get-lessons"
-	req, err = http.NewRequest(http.MethodGet, url, nil)
+	return nil
+}
+func (h *databaseHandler) doPostAndDecode(
+	ctx context.Context,
+	url string,
+	r *http.Request,
+	body any,
+	target any,
+) (int, error) {
+	bodyBytes, err := json.Marshal(body)
 	if err != nil {
-		jsonutil.ResponseWithError(w, http.StatusInternalServerError,
-			fmt.Errorf("failed to create request %q: %w", url, err),
-		)
+		return 0, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	resp, err = h.httpClient.Do(req)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(bodyBytes))
 	if err != nil {
-		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("request failed: %w", err))
-		return
+		return 0, fmt.Errorf("failed to create request %q: %w", url, err)
 	}
 
-	externalL := []entities.ExternalLesson{}
-	if err := json.NewDecoder(resp.Body).Decode(&externalL); err != nil {
-		jsonutil.ResponseWithError(w, 500, err)
-		return
-	}
-	resp.Body.Close()
+	req.Header.Set("Content-Type", "application/json")
 
-	if err := h.lessonOccurrenceService.AddFromExternal(ctx, externalL); err != nil {
-		jsonutil.ResponseWithError(w, 500, err)
-		return
+	for k, vv := range r.Header {
+		for _, v := range vv {
+			req.Header.Add(k, v)
+		}
 	}
 
-	jsonutil.ResponseWithJSON(w, 200, nil)
+	resp, err := h.httpClient.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode > 400 {
+		return 0, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
+		return resp.StatusCode, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return resp.StatusCode, nil
 }

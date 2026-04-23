@@ -1,7 +1,7 @@
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
-github.com/IrusHunter/duckademic/shared v0.0.0-20260420195937-c1c32cf982e0 h1:zjrekXVol2AGWxZysbP19rTeZ9BPYPTStNTK+oX0YRM=
-github.com/IrusHunter/duckademic/shared v0.0.0-20260420195937-c1c32cf982e0/go.mod h1:VGL7YFqvNDoxGtuN8rxKU7OYmCLByZS9xuNlkwHgW10=
+github.com/IrusHunter/duckademic/shared v0.0.0-20260422083820-9fb290d6e7d1 h1:Y4+rYI6JmOL7v815XQQWKU48lU0mZwCsMJp0x0HCGj0=
+github.com/IrusHunter/duckademic/shared v0.0.0-20260422083820-9fb290d6e7d1/go.mod h1:VGL7YFqvNDoxGtuN8rxKU7OYmCLByZS9xuNlkwHgW10=
 github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
 github.com/cespare/xxhash/v2 v2.1.2/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
@@ -17,6 +18,8 @@ import (
 
 type LessonTypeService interface {
 	platform.BaseService[entities.LessonType]
+	GetMultipleByIDs(context.Context, []uuid.UUID) ([]entities.LessonType, error)
+	ToGeneratorLessonType(context.Context, []entities.LessonType) []GeneratorLessonType
 }
 
 func NewLessonTypeService(ltr repositories.LessonTypeRepository, eb events.EventBus) LessonTypeService {
@@ -126,4 +129,69 @@ func (s *lessonTypeService) ExternalUpdate(
 	s.logger.Log(contextutil.GetTraceID(ctx), "ExternalUpdate",
 		fmt.Sprintf("%s successfully updated", updatedLT), logger.ServiceOperationSuccess)
 	return updatedLT, nil
+}
+
+func (s *lessonTypeService) GetMultipleByIDs(ctx context.Context, ids []uuid.UUID) ([]entities.LessonType, error) {
+	sem := make(chan struct{}, 10)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	var (
+		results   = make([]entities.LessonType, 0, len(ids))
+		lastError error
+	)
+
+	for i, id := range ids {
+		wg.Add(1)
+		sem <- struct{}{}
+
+		go func(i int, id uuid.UUID) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			lessonType := s.repository.FindByID(ctx, id)
+
+			if lessonType == nil {
+				mu.Lock()
+				lastError = s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"GetMultipleByIDs",
+					fmt.Errorf("lesson type not found at index [%d], id [%s]", i, id.String()),
+					logger.ServiceValidationFailed,
+				)
+				mu.Unlock()
+				return
+			}
+
+			mu.Lock()
+			results = append(results, *lessonType)
+			mu.Unlock()
+
+		}(i, id)
+	}
+
+	wg.Wait()
+	return results, lastError
+}
+
+type GeneratorLessonType struct {
+	ID            uuid.UUID `json:"id"`
+	Name          string    `json:"name"`
+	HoursValue    int       `json:"hours_value"`
+	ReservedWeeks string    `json:"reserved_weeks"`
+}
+
+func (s *lessonTypeService) ToGeneratorLessonType(ctx context.Context, lt []entities.LessonType) []GeneratorLessonType {
+	res := make([]GeneratorLessonType, 0, len(lt))
+
+	for _, lessonType := range lt {
+		res = append(res, GeneratorLessonType{
+			ID:            lessonType.ID,
+			Name:          lessonType.Name,
+			HoursValue:    lessonType.HoursValue,
+			ReservedWeeks: lessonType.ReservedWeeks,
+		})
+	}
+
+	return res
 }

@@ -8,6 +8,7 @@ const (
 	StudentRT               RedisTopic = "students" // 1 delay
 	LessonTypeRT            RedisTopic = "lesson:types"
 	DisciplineRT            RedisTopic = "disciplines"
+	SemesterDisciplineRT    RedisTopic = "semester:disciplines"
 	LessonTypeAssignmentRT  RedisTopic = "lesson:type:assignments"
 	SemesterRT              RedisTopic = "semesters"
 	StudentGroupRT          RedisTopic = "student:groups"          // 1 delay

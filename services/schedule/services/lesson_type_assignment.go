@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/events"
-	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -17,6 +17,9 @@ import (
 
 type LessonTypeAssignmentService interface {
 	platform.BaseService[entities.LessonTypeAssignment]
+	GetByDisciplineIDs(context.Context, []uuid.UUID) ([]entities.LessonTypeAssignment, error)
+	GetUniqueLessonTypeIDs([]entities.LessonTypeAssignment) []uuid.UUID
+	ToGeneratorLessonTypeAssignments(context.Context, []entities.LessonTypeAssignment) []GeneratorLessonTypeAssignment
 }
 
 func NewLessonTypeAssignmentService(
@@ -83,62 +86,6 @@ func (s *lessonTypeAssignmentService) eventHandler(ctx context.Context, b []byte
 	}
 }
 
-func (s *lessonTypeAssignmentService) Seed(ctx context.Context) error {
-	assignments := []struct {
-		LessonTypeName string `json:"lesson_type_name"`
-		DisciplineName string `json:"discipline_name"`
-	}{}
-
-	if err := jsonutil.ReadFileTo(filepath.Join("data", "lesson_type_assignments.json"), &assignments); err != nil {
-		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-			fmt.Errorf("failed to load lesson type assignments seed data: %w", err), logger.ServiceValidationFailed,
-		)
-	}
-
-	var lastError error
-	for _, item := range assignments {
-		lessonType := s.lessonTypeRepository.FindFirstByName(ctx, item.LessonTypeName)
-		if lessonType == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("lesson type %q not found", item.LessonTypeName), logger.ServiceValidationFailed,
-			)
-			continue
-		}
-
-		discipline := s.disciplineRepository.FindFirstByName(ctx, item.DisciplineName)
-		if discipline == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("discipline %q not found", item.DisciplineName), logger.ServiceValidationFailed,
-			)
-			continue
-		}
-
-		lta := s.repository.FindByLessonTypeAndDiscipline(ctx, lessonType.ID, discipline.ID)
-		if lta == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("lta for %s and %s not found", discipline, lessonType), logger.ServiceValidationFailed,
-			)
-			continue
-		}
-
-		trueLta := entities.LessonTypeAssignment{}
-
-		_, err := s.Update(ctx, lta.ID, trueLta)
-		if err != nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
-				fmt.Errorf("failed to update %s: %w", lta, err), logger.ServiceValidationFailed,
-			)
-			continue
-		}
-	}
-
-	s.logger.Log(contextutil.GetTraceID(ctx), "Seed",
-		fmt.Sprintf("%d lesson type assignments processed from seed", len(assignments)), logger.ServiceOperationSuccess,
-	)
-
-	return lastError
-}
-
 func (s *lessonTypeAssignmentService) ExternalUpdate(
 	ctx context.Context,
 	id uuid.UUID,
@@ -154,4 +101,86 @@ func (s *lessonTypeAssignmentService) ExternalUpdate(
 	s.logger.Log(contextutil.GetTraceID(ctx), "ExternalUpdate",
 		fmt.Sprintf("%v successfully updated", updated), logger.ServiceOperationSuccess)
 	return updated, nil
+}
+
+func (s *lessonTypeAssignmentService) GetByDisciplineIDs(
+	ctx context.Context,
+	disciplineIDs []uuid.UUID,
+) ([]entities.LessonTypeAssignment, error) {
+	sem := make(chan struct{}, 5)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	var result []entities.LessonTypeAssignment
+	var lastError error
+
+	for _, disciplineID := range disciplineIDs {
+		wg.Add(1)
+		sem <- struct{}{}
+
+		go func(disciplineID uuid.UUID) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			assignments, err := s.repository.GetByDisciplineID(ctx, disciplineID)
+			if err != nil {
+				mu.Lock()
+				lastError = s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"GetByDisciplineIDs",
+					err,
+					logger.ServiceRepositoryFailed,
+				)
+				mu.Unlock()
+				return
+			}
+
+			mu.Lock()
+			result = append(result, assignments...)
+			mu.Unlock()
+
+		}(disciplineID)
+	}
+
+	wg.Wait()
+
+	return result, lastError
+}
+func (s *lessonTypeAssignmentService) GetUniqueLessonTypeIDs(lta []entities.LessonTypeAssignment) []uuid.UUID {
+	seen := make(map[uuid.UUID]struct{})
+	result := make([]uuid.UUID, 0)
+
+	for _, item := range lta {
+		if _, ok := seen[item.LessonTypeID]; !ok {
+			seen[item.LessonTypeID] = struct{}{}
+			result = append(result, item.LessonTypeID)
+		}
+	}
+
+	return result
+}
+
+type GeneratorLessonTypeAssignment struct {
+	ID            uuid.UUID `json:"id"`
+	LessonTypeID  uuid.UUID `json:"lesson_type_id"`
+	DisciplineID  uuid.UUID `json:"discipline_id"`
+	RequiredHours int       `json:"required_hours"`
+}
+
+func (s *lessonTypeAssignmentService) ToGeneratorLessonTypeAssignments(
+	ctx context.Context,
+	lta []entities.LessonTypeAssignment,
+) []GeneratorLessonTypeAssignment {
+	res := make([]GeneratorLessonTypeAssignment, 0, len(lta))
+
+	for _, lessonTypeAssignment := range lta {
+		res = append(res, GeneratorLessonTypeAssignment{
+			ID:            lessonTypeAssignment.ID,
+			LessonTypeID:  lessonTypeAssignment.LessonTypeID,
+			DisciplineID:  lessonTypeAssignment.DisciplineID,
+			RequiredHours: lessonTypeAssignment.RequiredHours,
+		})
+	}
+
+	return res
 }

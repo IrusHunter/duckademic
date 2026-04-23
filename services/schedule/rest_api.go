@@ -31,6 +31,8 @@ func NewRESTAPI(
 	slh resthandlers.StudyLoadHandler,
 	lsh resthandlers.LessonSlotHandler,
 	loh resthandlers.LessonOccurrenceHandler,
+	semH resthandlers.SemesterHandler,
+	sdh resthandlers.SemesterDisciplineHandler,
 	dh resthandlers.DatabaseHandler,
 	jwtSecrete []byte,
 ) RESTAPI {
@@ -52,6 +54,8 @@ func NewRESTAPI(
 		studyLoadHandler:             slh,
 		lessonSlotHandler:            lsh,
 		lessonOccurrenceHandler:      loh,
+		semesterHandler:              semH,
+		semesterDisciplineHandler:    sdh,
 	}
 }
 
@@ -73,6 +77,8 @@ type restapi struct {
 	studyLoadHandler             resthandlers.StudyLoadHandler
 	lessonSlotHandler            resthandlers.LessonSlotHandler
 	lessonOccurrenceHandler      resthandlers.LessonOccurrenceHandler
+	semesterHandler              resthandlers.SemesterHandler
+	semesterDisciplineHandler    resthandlers.SemesterDisciplineHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -146,8 +152,25 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.lessonOccurrenceHandler.GetAll, []string{"schedule.lesson_occurrence"}),
 	})
 
+	ra.NewRoute("/semesters", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.semesterHandler.GetAll, []string{"schedule.semester"}),
+	})
+
+	ra.NewRoute("/semester-disciplines", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.semesterHandler.GetAll, []string{"schedule.semester-discipline"}),
+	})
+
+	http.HandleFunc("/load-data-into-generator", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.databaseHandler.LoadDataIntoGenerator)(r.Context(), w, r)
+	})
+	http.HandleFunc("/load-classrooms-into-generator", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandler(ra.databaseHandler.LoadClassroomsIntoGenerator)(r.Context(), w, r)
+	})
 	http.HandleFunc("/extract-data-from-generator", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.ExtractDataFromGenerator)(r.Context(), w, r)
+	})
+	http.HandleFunc("/get-personal-schedule", func(w http.ResponseWriter, r *http.Request) {
+		ra.NewDefaultHandlerWithAuth(ra.lessonOccurrenceHandler.GetPersonalSchedule, []string{})(r.Context(), w, r)
 	})
 
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
@@ -179,5 +202,7 @@ func BuildAccessPermissions() []events.AccessPermissionRE {
 		{Name: "schedule.study_load"},
 		{Name: "schedule.lesson_slot"},
 		{Name: "schedule.lesson_occurrence"},
+		{Name: "schedule.semester"},
+		{Name: "schedule.semester-discipline"},
 	}
 }

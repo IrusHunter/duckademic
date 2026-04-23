@@ -42,11 +42,16 @@
     - [/group-cohorts](#schedule-group-cohorts) !schedule.group_cohort
     - [/group-cohort-assignments](#schedule-group-cohort-assignments) !schedule.group_cohort_assignment
     - [/classrooms](#schedule-classrooms) !schedule.classroom
+    - [/semesters](#schedule-semesters) !schedule.semester
+    - [/semester-disciplines](#schedule-semester-disciplines) !schedule.semester_discipline
   - Schedule Generator Integration
+    - [/load-data-into-generator](#schedule-load-data-into-generator)
+    - [/load-classrooms-into-generator](#schedule-load-classrooms-into-generator)
     - [/extract-data-from-generator](#schedule-extract-data-from-generator)
     - [/study-loads](#schedule-study-loads) !schedule.study_load
     - [/lesson-slots](#schedule-lesson-slots) !schedule.lesson_slot
     - [/lesson-occurrences](#schedule-lesson-occurrences) !schedule.lesson_occurrence
+    - [/get-personal-schedule](#schedule-get-personal-schedule) !
 
 - Schedule Generator Service (/schedule-generator)
   - Source of Truth
@@ -503,6 +508,22 @@
 
 200 OK [=> Classroom[]](schemas.md#schedule-classroom)
 
+<a id="schedule-semesters"></a>
+
+## /semesters
+
+### GET (schedule.semester) - gets all semesters from the database
+
+200 OK [=> Semester[]](schemas.md#schedule-semester)
+
+<a id="schedule-semester-discipline"></a>
+
+## /semester-disciplines
+
+### GET (schedule.semester_discipline) - gets all semester-discipline relations from the database
+
+200 OK [=> SemesterDiscipline[]](schemas.md#schedule-semester-discipline)
+
 <a id="schedule-study-loads"></a>
 
 ## /study-loads
@@ -527,6 +548,34 @@
 
 200 OK [=> LessonOccurrence[]](schemas.md#schedule-lesson-occurrence)
 
+<a id="schedule-load-data-into-generator"></a>
+
+## /load-data-into-generator
+
+### GET - loads all required generating data to schedule generator service
+
+```json
+["uuid (id of the curriculum semester)"]
+```
+
+204 NO CONTENT
+
+400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-load-classrooms-into-generator"></a>
+
+## /load-classrooms-into-generator
+
+### GET - loads selected classrooms into schedule generator service
+
+```json
+["uuid (id of the classroom)"]
+```
+
+204 NO CONTENT
+
+400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
+
 <a id="schedule-extract-data-from-generator"></a>
 
 ## /extract-data-from-generator
@@ -536,6 +585,23 @@
 200 OK
 
 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-get-personal-schedule"></a>
+
+## /get-personal-schedule
+
+### ANY () - returns schedule for authorize user
+
+```json
+{
+  "start_time": "time (start of the requested schedule period)",
+  "end_time": "time (end of the requested schedule period)"
+}
+```
+
+200 OK [=> []LessonOccurrence (full)](schemas.md#schedule-lesson-occurrence)
+
+400 BAD REQUEST or 401 UNAUTHORIZE or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Schedule Generator Service
 
