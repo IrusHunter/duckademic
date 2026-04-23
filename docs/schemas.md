@@ -300,9 +300,13 @@
 {
   "id": "uuid (unique identifier of the study load)",
   "teacher_id": "uuid (unique identifier of the teacher)",
+  "teacher_name": "string (short full name of the teacher)",
   "student_group_id": "uuid (unique identifier of the student group)",
+  "student_group_name": "string (name of the student group)",
   "discipline_id": "uuid (unique identifier of the discipline)",
+  "discipline_name": "string (name of the discipline)",
   "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "lesson_type_name": "string (name of the lesson type)",
   "created_at": "timestamp (record creation timestamp)",
   "updated_at": "timestamp (record last update timestamp)"
 }
@@ -332,8 +336,6 @@
 {
   "id": "uuid (unique identifier of the lesson occurrence)",
   "study_load_id": "uuid (reference to study load)",
-  "teacher_id": "uuid (unique identifier of the teacher)",
-  "student_group_id": "uuid (unique identifier of the student group)",
   "lesson_slot_id": "uuid (unique identifier of the lesson slot)",
   "date": "timestamp (date and time of the lesson occurrence)",
   "status": "string (lesson status: scheduled, canceled, completed)",
@@ -343,7 +345,22 @@
   // Optional fields
   "classroom_id": "uuid | null (optional classroom assignment)",
   "moved_to_id": "uuid | null (reference to rescheduled occurrence, if moved)",
-  "moved_from_id": "uuid | null (reference to original occurrence if moved)"
+  "moved_from_id": "uuid | null (reference to original occurrence if moved)",
+
+  // For full model
+  "study_load": {
+    "id": "uuid (unique identifier of the study load)",
+    "teacher_id": "uuid (unique identifier of the teacher)",
+    "teacher_name": "string (short full name of the teacher)",
+    "student_group_id": "uuid (unique identifier of the student group)",
+    "student_group_name": "string (name of the student group)",
+    "discipline_id": "uuid (unique identifier of the discipline)",
+    "discipline_name": "string (name of the discipline)",
+    "lesson_type_id": "uuid (unique identifier of the lesson type)",
+    "lesson_type_name": "string (name of the lesson type)",
+    "created_at": "timestamp (record creation timestamp)",
+    "updated_at": "timestamp (record last update timestamp)"
+  }
 }
 ```
 
@@ -742,9 +759,13 @@
 {
   "id": "uuid (unique identifier of the study load)",
   "teacher_id": "uuid (unique identifier of the teacher)",
+  "teacher_name": "string (short full name of the teacher)",
   "student_group_id": "uuid (unique identifier of the student group)",
+  "student_group_name": "string (name of the student group)",
   "discipline_id": "uuid (unique identifier of the discipline)",
-  "lesson_type_id": "uuid (unique identifier of the lesson type)"
+  "discipline_name": "string (name of the discipline)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+  "lesson_type_name": "string (name of the lesson type)"
 }
 ```
 

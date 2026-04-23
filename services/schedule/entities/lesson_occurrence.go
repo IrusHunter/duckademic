@@ -20,8 +20,8 @@ const (
 type LessonOccurrence struct {
 	ID             uuid.UUID              `json:"id" db:"id"`
 	StudyLoadID    uuid.UUID              `json:"study_load_id" db:"study_load_id"`
-	TeacherID      uuid.UUID              `json:"teacher_id" db:"teacher_id"`
-	StudentGroupID uuid.UUID              `json:"student_group_id" db:"student_group_id"`
+	TeacherID      *uuid.UUID             `json:"teacher_id,omitempty" db:"teacher_id"`
+	StudentGroupID *uuid.UUID             `json:"student_group_id,omitempty" db:"student_group_id"`
 	LessonSlotID   uuid.UUID              `json:"lesson_slot_id" db:"lesson_slot_id"`
 	Date           time.Time              `json:"date" db:"date"`
 	ClassroomID    *uuid.UUID             `json:"classroom_id,omitempty" db:"classroom_id"`
@@ -30,6 +30,8 @@ type LessonOccurrence struct {
 	MovedFromID    *uuid.UUID             `json:"moved_from_id,omitempty" db:"moved_from_id"`
 	CreatedAt      time.Time              `json:"created_at" db:"created_at"`
 	UpdatedAt      time.Time              `json:"updated_at" db:"updated_at"`
+
+	StudyLoad *StudyLoad `json:"study_load,omitempty" db:"study_load"`
 }
 
 func (l LessonOccurrence) String() string {
@@ -78,13 +80,4 @@ type ExternalLesson struct {
 	Slot           int        `json:"slot"`
 	Day            int        `json:"day"`
 	ClassroomID    *uuid.UUID `json:"classroom_id,omitempty"`
-}
-
-type ScheduledLesson struct {
-	ID          uuid.UUID              `json:"id"`
-	StudyLoad   CompactStudyLoad       `json:"study_load"`
-	Date        time.Time              `json:"date"`
-	ClassroomID *uuid.UUID             `json:"classroom_id,omitempty"`
-	Status      LessonOccurrenceStatus `json:"status"`
-	MovedToID   *uuid.UUID             `json:"moved_to_id,omitempty"`
 }

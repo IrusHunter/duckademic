@@ -16,11 +16,9 @@ import (
 type LessonOccurrenceRepository interface {
 	platform.BaseRepository[entities.LessonOccurrence]
 	GetLessonsForTeacher(
-		ctx context.Context,
-		teacherID uuid.UUID,
-		startTime,
-		endTime time.Time,
-	) []entities.ScheduledLesson
+		ctx context.Context, teacherID uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
+	GetLessonsForStudentGroups(
+		ctx context.Context, sgIDs []uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
 }
 
 func NewLessonOccurrenceRepository(db *sqlx.DB) LessonOccurrenceRepository {
@@ -53,12 +51,17 @@ type lessonOccurrenceRepository struct {
 	db *sqlx.DB
 }
 
-type ScheduledLessonFlat struct {
-	ID          uuid.UUID  `db:"id"`
-	Date        time.Time  `db:"date"`
-	ClassroomID *uuid.UUID `db:"classroom_id"`
-	Status      string     `db:"status"`
-	MovedToID   *uuid.UUID `db:"moved_to_id"`
+type LessonOccurrenceFlat struct {
+	ID           uuid.UUID  `db:"id"`
+	Date         time.Time  `db:"date"`
+	ClassroomID  *uuid.UUID `db:"classroom_id"`
+	Status       string     `db:"status"`
+	MovedToID    *uuid.UUID `db:"moved_to_id"`
+	MovedFromID  *uuid.UUID `db:"moved_from_id"`
+	StudyLoadID  uuid.UUID  `db:"study_load_id"`
+	LessonSlotID uuid.UUID  `db:"lesson_slot_id"`
+	CreatedAt    time.Time  `db:"created_at"`
+	UpdatedAt    time.Time  `db:"updated_at"`
 
 	TeacherID        uuid.UUID `db:"teacher_id"`
 	TeacherName      string    `db:"teacher_name"`
@@ -70,14 +73,20 @@ type ScheduledLessonFlat struct {
 	LessonTypeName   string    `db:"lesson_type_name"`
 }
 
-func (f *ScheduledLessonFlat) Convert() entities.ScheduledLesson {
-	return entities.ScheduledLesson{
-		ID:          f.ID,
-		Date:        f.Date,
-		ClassroomID: f.ClassroomID,
-		Status:      entities.LessonOccurrenceStatus(f.Status),
-		MovedToID:   f.MovedToID,
-		StudyLoad: entities.CompactStudyLoad{
+func (f *LessonOccurrenceFlat) Convert() entities.LessonOccurrence {
+	return entities.LessonOccurrence{
+		ID:           f.ID,
+		Date:         f.Date,
+		ClassroomID:  f.ClassroomID,
+		Status:       entities.LessonOccurrenceStatus(f.Status),
+		MovedToID:    f.MovedToID,
+		StudyLoadID:  f.StudyLoadID,
+		LessonSlotID: f.LessonSlotID,
+		MovedFromID:  f.MovedFromID,
+		CreatedAt:    f.CreatedAt,
+		UpdatedAt:    f.UpdatedAt,
+		StudyLoad: &entities.StudyLoad{
+			ID:               f.StudyLoadID,
 			TeacherID:        f.TeacherID,
 			TeacherName:      f.TeacherName,
 			StudentGroupID:   f.StudentGroupID,
@@ -94,8 +103,7 @@ func (r *lessonOccurrenceRepository) GetLessonsForTeacher(
 	ctx context.Context,
 	teacherID uuid.UUID,
 	startTime, endTime time.Time,
-) []entities.ScheduledLesson {
-
+) ([]entities.LessonOccurrence, error) {
 	query := fmt.Sprintf(`
 		SELECT 
 			lo.id,
@@ -103,47 +111,118 @@ func (r *lessonOccurrenceRepository) GetLessonsForTeacher(
 			lo.classroom_id,
 			lo.status,
 			lo.moved_to_id,
+			lo.study_load_id,
+			lo.lesson_slot_id,
+			lo.moved_from_id,
+			lo.created_at,
+			lo.updated_at,
 
 			sl.teacher_id,
-			t.name AS teacher_name,
-
+			sl.teacher_name,
 			sl.student_group_id,
-			sg.name AS student_group_name,
-
+			sl.student_group_name,
 			sl.discipline_id,
-			d.name AS discipline_name,
-
+			sl.discipline_name,
 			sl.lesson_type_id,
-			lt.name AS lesson_type_name
+			sl.lesson_type_name
 
 		FROM %s lo
 		JOIN %s sl ON lo.study_load_id = sl.id
-		LEFT JOIN %s t ON sl.teacher_id = t.id
-		LEFT JOIN %s sg ON sl.student_group_id = sg.id
-		LEFT JOIN %s d ON sl.discipline_id = d.id
-		LEFT JOIN %s lt ON sl.lesson_type_id = lt.id
 
 		WHERE sl.teacher_id = $1
 		  AND lo.date BETWEEN $2 AND $3
 		ORDER BY lo.date;
-	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName(), entities.Teacher{}.TableName(),
-		entities.StudentGroup{}.TableName(), entities.Discipline{}.TableName(), entities.LessonType{}.TableName())
+	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName())
 
-	var flats []ScheduledLessonFlat
+	var flats []LessonOccurrenceFlat
 	if err := r.db.SelectContext(ctx, &flats, query, teacherID, startTime, endTime); err != nil {
-		r.GetLogger().LogAndReturnError(
+		return nil, r.GetLogger().LogAndReturnError(
 			contextutil.GetTraceID(ctx),
 			"GetLessonsForTeacher",
 			err,
 			logger.RepositoryScanFailed,
 		)
-		return nil
 	}
 
-	result := make([]entities.ScheduledLesson, 0, len(flats))
+	result := make([]entities.LessonOccurrence, 0, len(flats))
 	for i := range flats {
 		result = append(result, flats[i].Convert())
 	}
 
-	return result
+	return result, nil
+}
+func (r *lessonOccurrenceRepository) GetLessonsForStudentGroups(
+	ctx context.Context,
+	studentGroupIDs []uuid.UUID,
+	startTime, endTime time.Time,
+) ([]entities.LessonOccurrence, error) {
+	if len(studentGroupIDs) == 0 {
+		return []entities.LessonOccurrence{}, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetLessonsForStudentGroups",
+			fmt.Errorf("given slice of student group ids is empty"),
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	query, args, err := sqlx.In(fmt.Sprintf(`
+		SELECT 
+			lo.id,
+			lo.date,
+			lo.classroom_id,
+			lo.status,
+			lo.moved_to_id,
+			lo.study_load_id,
+			lo.lesson_slot_id,
+			lo.moved_from_id,
+			lo.created_at,
+			lo.updated_at,
+
+			sl.teacher_id,
+			sl.teacher_name,
+			sl.student_group_id,
+			sl.student_group_name,
+			sl.discipline_id,
+			sl.discipline_name,
+			sl.lesson_type_id,
+			sl.lesson_type_name
+
+		FROM %s lo
+		JOIN %s sl ON lo.study_load_id = sl.id
+
+		WHERE sl.student_group_id IN (?)
+		  AND lo.date BETWEEN ? AND ?
+		ORDER BY lo.date;
+	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName()),
+		studentGroupIDs,
+		startTime,
+		endTime,
+	)
+	if err != nil {
+		return nil, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetLessonsForStudentGroups",
+			err,
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	query = r.db.Rebind(query)
+
+	var flats []LessonOccurrenceFlat
+	if err := r.db.SelectContext(ctx, &flats, query, args...); err != nil {
+		return nil, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetLessonsForStudentGroups",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	result := make([]entities.LessonOccurrence, 0, len(flats))
+	for i := range flats {
+		result = append(result, flats[i].Convert())
+	}
+
+	return result, nil
 }

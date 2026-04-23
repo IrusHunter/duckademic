@@ -17,6 +17,7 @@ type GroupMemberRepository interface {
 	ExternalUpdate(context.Context, uuid.UUID, entities.GroupMember) (entities.GroupMember, error)
 	GetByGroupID(context.Context, uuid.UUID) ([]uuid.UUID, error)
 	GetByStudentIDs(context.Context, []uuid.UUID) ([]entities.GroupMember, error)
+	GetByStudentID(ctx context.Context, studentID uuid.UUID) ([]uuid.UUID, error)
 }
 
 func NewGroupMemberRepository(db *sqlx.DB) GroupMemberRepository {
@@ -99,4 +100,24 @@ func (r *groupMemberRepository) GetByStudentIDs(ctx context.Context, studentIDs 
 	}
 
 	return members, nil
+}
+func (r *groupMemberRepository) GetByStudentID(ctx context.Context, studentID uuid.UUID) ([]uuid.UUID, error) {
+	query := fmt.Sprintf(`
+		SELECT student_group_id
+		FROM %s
+		WHERE student_id = $1 AND student_group_id IS NOT NULL;
+	`, entities.GroupMember{}.TableName())
+
+	var ids []uuid.UUID
+
+	if err := r.db.SelectContext(ctx, &ids, query, studentID); err != nil {
+		return nil, r.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetByStudentID",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	return ids, nil
 }

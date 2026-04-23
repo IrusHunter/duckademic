@@ -51,6 +51,7 @@
     - [/study-loads](#schedule-study-loads) !schedule.study_load
     - [/lesson-slots](#schedule-lesson-slots) !schedule.lesson_slot
     - [/lesson-occurrences](#schedule-lesson-occurrences) !schedule.lesson_occurrence
+    - [/get-personal-schedule](#schedule-get-personal-schedule) !
 
 - Schedule Generator Service (/schedule-generator)
   - Source of Truth
@@ -584,6 +585,23 @@
 200 OK
 
 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-get-personal-schedule"></a>
+
+## /get-personal-schedule
+
+### ANY () - returns schedule for authorize user
+
+```json
+{
+  "start_time": "time (start of the requested schedule period)",
+  "end_time": "time (end of the requested schedule period)"
+}
+```
+
+200 OK [=> []LessonOccurrence (full)](schemas.md#schedule-lesson-occurrence)
+
+400 BAD REQUEST or 401 UNAUTHORIZE or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 # Schedule Generator Service
 

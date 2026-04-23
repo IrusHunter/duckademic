@@ -83,7 +83,8 @@ func main() {
 	classroomService := services.NewClassroomService(classroomRepository, eventBus)
 	studyLoadService := services.NewStudyLoadService(studyLoadRepository)
 	lessonSlotService := services.NewLessonSlotService(lessonSlotRepository)
-	lessonOccurrenceService := services.NewLessonOccurrenceService(lessonOccurrenceRepository, lessonSlotRepository)
+	lessonOccurrenceService := services.NewLessonOccurrenceService(lessonOccurrenceRepository, lessonSlotRepository,
+		groupMemberRepository)
 	semesterService := services.NewSemesterService(semesterRepository, eventBus)
 	semesterDisciplineService := services.NewSemesterDisciplineService(semesterDisciplineRepository, eventBus)
 

@@ -513,6 +513,38 @@ func studyLoadMigrations(tx *sqlx.Tx) error {
 		return fmt.Errorf("failed to create on update trigger for study_loads: %w", err)
 	}
 
+	addTeacherName := `
+	ALTER TABLE study_loads
+	ADD COLUMN IF NOT EXISTS teacher_name TEXT NOT NULL DEFAULT '';
+	`
+	if _, err := tx.Exec(addTeacherName); err != nil {
+		return fmt.Errorf("failed to add teacher_name column: %w", err)
+	}
+
+	addStudentGroupName := `
+	ALTER TABLE study_loads
+	ADD COLUMN IF NOT EXISTS student_group_name TEXT NOT NULL DEFAULT '';
+	`
+	if _, err := tx.Exec(addStudentGroupName); err != nil {
+		return fmt.Errorf("failed to add student_group_name column: %w", err)
+	}
+
+	addDisciplineName := `
+	ALTER TABLE study_loads
+	ADD COLUMN IF NOT EXISTS discipline_name TEXT NOT NULL DEFAULT '';
+	`
+	if _, err := tx.Exec(addDisciplineName); err != nil {
+		return fmt.Errorf("failed to add discipline_name column: %w", err)
+	}
+
+	addLessonTypeName := `
+	ALTER TABLE study_loads
+	ADD COLUMN IF NOT EXISTS lesson_type_name TEXT NOT NULL DEFAULT '';
+	`
+	if _, err := tx.Exec(addLessonTypeName); err != nil {
+		return fmt.Errorf("failed to add lesson_type_name column: %w", err)
+	}
+
 	return nil
 }
 func lessonSlotMigrations(tx *sqlx.Tx) error {
