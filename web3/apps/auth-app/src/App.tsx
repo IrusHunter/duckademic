@@ -1,68 +1,97 @@
 import { useState } from 'react'
+import axios from 'axios'
 
 type User = {
   id: string
-  email: string
+  login: string
   role: 'admin' | 'student' | 'teacher'
+  is_default_password: boolean
 }
 
 type Props = {
   onLoginSuccess?: (user: User) => void
 }
 
-const MOCK_USERS: Record<string, User> = {
-  'admin@gmail.com': { id: '1', email: 'admin@gmail.com', role: 'admin' },
-  'student@gmail.com': { id: '2', email: 'student@gmail.com', role: 'student' },
-  'teacher@gmail.com': { id: '3', email: 'teacher@gmail.com', role: 'teacher' },
+// Зберігаємо токени і юзера в cookie
+const setAuthCookies = (user: User, accessToken: string, refreshToken: string) => {
+  const maxAge = 900
+  document.cookie = `access_token=${accessToken}; path=/; Max-Age=900; SameSite=Strict`  // 15 хв
+  document.cookie = `refresh_token=${refreshToken}; path=/; Max-Age=${86400 * 30}; SameSite=Strict`
+  const userValue = encodeURIComponent(JSON.stringify({
+    id: user.id,
+    email: user.login, // бекенд повертає login, а не email
+    role: mapRole(user.role),
+  }))
+  document.cookie = `auth_user=${userValue}; path=/; Max-Age=${maxAge}; SameSite=Strict`
+
+  localStorage.setItem('access_token', accessToken)
+  localStorage.setItem('refresh_token', refreshToken)
 }
 
-const MOCK_PASSWORDS: Record<string, string> = {
-  'admin@gmail.com': 'admin',
-  'student@gmail.com': 'student',
-  'teacher@gmail.com': 'teacher',
-}
-
-// Зберігаємо user в cookie
-const setUserCookie = (user: User) => {
-  const value = encodeURIComponent(JSON.stringify(user))
-  // Max-Age=86400 — cookie живе 1 день
-  document.cookie = `auth_user=${value}; path=/; Max-Age=86400; SameSite=Strict`
+// Маппінг ролей з бекенду на фронтенд
+const mapRole = (role: string): 'admin' | 'student' | 'teacher' => {
+  const roleMap: Record<string, 'admin' | 'student' | 'teacher'> = {
+    admin: 'admin',
+    student: 'student',
+    teacher: 'teacher',
+    // якщо бекенд повертає інші назви — додай тут
+  }
+  return roleMap[role.toLowerCase()] ?? 'student'
 }
 
 export default function App({ onLoginSuccess }: Props) {
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = new FormData(e.currentTarget)
+    setIsLoading(true)
+    setError('')
 
-    const email = form.get('email') as string
+    const form = new FormData(e.currentTarget)
+    const login = form.get('login') as string
     const password = form.get('password') as string
 
-    const user = MOCK_USERS[email]
-    const correctPassword = MOCK_PASSWORDS[email]
+    try {
+      const res = await axios.post('/api/auth/login', { login, password })
+      const data = res.data
 
-    if (user && password === correctPassword) {
-      setUserCookie(user) // ← зберігаємо в cookie
-      onLoginSuccess?.(user)
-    } else {
-      setError('Невірний email або пароль')
+      // Бекенд повертає: id, login, role, is_default_password, access_token, refresh_token
+      const user: User = {
+        id: data.id,
+        login: data.login,
+        role: mapRole(data.role),
+        is_default_password: data.is_default_password,
+      }
+
+      setAuthCookies(user, data.access_token, data.refresh_token)
+
+      onLoginSuccess?.({
+        id: user.id,
+        login: user.login,
+        role: user.role,
+        is_default_password: user.is_default_password,
+      })
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.error ?? err.response?.data?.message ?? 'Невірний логін або пароль')
+      } else {
+        setError('Помилка сервера')
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <form onSubmit={handleSubmit}>
       <h1>Вхід</h1>
-      <input name="email" type="email" placeholder="Email" required />
+      <input name="login" type="text" placeholder="Логін" required />
       <input name="password" type="password" placeholder="Пароль" required />
-      <button type="submit">Увійти</button>
-      {error && <p>{error}</p>}
-      <div style={{ marginTop: '20px', fontSize: '12px', color: '#888' }}>
-        <p>Тестові акаунти:</p>
-        <p>admin@gmail.com / admin</p>
-        <p>student@gmail.com / student</p>
-        <p>teacher@gmail.com / teacher</p>
-      </div>
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Завантаження...' : 'Увійти'}
+      </button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </form>
   )
 }

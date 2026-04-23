@@ -1,0 +1,140 @@
+.wrapper {
+    margin-bottom: 24px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.label {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    line-height: 24px;
+    white-space: nowrap;
+}
+
+/* ── dropdown wrap ── */
+
+.dropdownWrap {
+    position: relative;
+    width: 426px;
+}
+
+/* ── trigger button ── */
+
+.trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 6px;
+    border: 1px solid #E4E4E7;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 16px;
+}
+
+.open .trigger {
+    border-radius: 6px 6px 0 0;
+}
+
+.triggerValue {
+    flex: 1;
+    padding: 12px 8px;
+    border-right: 1px solid #E4E4E7;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    color: #111827;
+    text-align: center;
+}
+
+.caret {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.open .caret {
+    transform: scaleY(-1);
+    transform-origin: center;
+}
+
+/* ── dropdown menu ── */
+
+.menu {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #E4E4E7;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    box-shadow: 0 16px 24px rgba(15, 23, 42, 0.08);
+    z-index: 50;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: transform 0.25s ease, opacity 0.2s ease, visibility 0s linear 0.25s;
+}
+
+.open .menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition: transform 0.25s ease, opacity 0.2s ease, visibility 0s;
+}
+
+/* ── menu items ── */
+
+.menuItem {
+    width: 100%;
+    text-align: left;
+    padding: 12px 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 20px;
+    color: #111827;
+    transition: all 0.1s ease;
+}
+
+.menuItem:not(.menuItemActive):hover {
+    background: #f4f4f8;
+    color: #4f4f5c;
+}
+
+.menuItemActive {
+    background: #EFF6FF;
+    border: 1px solid #DBEAFE;
+}
+
+/* ── go button ── */
+
+.goBtn {
+    width: 92px;
+    padding: 12px 8px;
+    border-radius: 6px;
+    border: 1px solid #18181B;
+    background-color: #18181B;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    color: #FAFAFA;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.goBtn:hover {
+    background-color: #61708C;
+    border: 1px solid #61708C;
+}

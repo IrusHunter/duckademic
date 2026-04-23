@@ -2,8 +2,9 @@ import { create } from 'zustand'
 
 export type User = {
   id: string
-  email: string
+  email: string        // зберігаємо login як email для сумісності з хедером
   role: 'admin' | 'student' | 'teacher'
+  is_default_password?: boolean
 }
 
 type AuthStore = {

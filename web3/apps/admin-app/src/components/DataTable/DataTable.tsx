@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { FieldDef } from '../../types/admin'
 import { formatCell } from '../../utils/formatters'
-import css from "./DataTable.module.css"
+import { ActionSelect } from '../ActionSelect/ActionSelect'
+import css from './DataTable.module.css'
 
 type Props = {
   data: Record<string, unknown>[]
@@ -29,22 +30,25 @@ export function DataTable({ data, columns, editFields, onDelete, onEditClick, re
 
   const showActions = !readOnly && (editFields.length > 0 || canDelete)
 
+  const ACTION_OPTIONS = [
+    { value: '', label: '---' },
+    { value: 'delete', label: 'Delete selected' },
+  ]
+
   return (
     <div>
       {canDelete && (
-        <div className={css.div}>
-          <span className={css.span}>Action:</span>
-          <select value={action} onChange={e => setAction(e.target.value)} className={css.select}>
-            <option value="">---</option>
-            <option value="delete">Delete selected</option>
-          </select>
-          <button onClick={handleGo} style={{ padding: '4px 12px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}>Go</button>
-        </div>
+        <ActionSelect
+          value={action}
+          options={ACTION_OPTIONS}
+          onChange={setAction}
+          onGo={handleGo}
+        />
       )}
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
           <thead>
-            <tr style={{ background: '#f5f5f5' }}>
+            <tr className={css.tr}>
               {canDelete && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', width: 40 }} />}
               {columns.map(col => (
                 <th key={col.key} style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '2px solid #e0e0e0', color: '#555', whiteSpace: 'nowrap' }}>
