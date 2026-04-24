@@ -149,6 +149,10 @@
     - [/refresh](#auth-refresh)
     - [/reset-password/{id}](#auth-reset-password-id) !auth.user.reset_password
     - [/change-password](#auth-change-password)
+- Course Service (/course)
+  - Mirror
+    - [/teachers](#course-teachers) !course.teacher
+    - [/students](#course-students) !course.student
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -1950,3 +1954,21 @@
 204 NO CONTENT
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+# Course Service
+
+<a id="course-teachers"></a>
+
+## /teachers
+
+### GET (course.teacher) - gets all teachers from the database
+
+**200 OK** [=> Teacher[]](schemas.md#course-teacher)
+
+<a id="course-students"></a>
+
+## /students
+
+### GET (course.student) - gets all students from the database
+
+200 OK [=> Student[]](schemas.md#course-student)

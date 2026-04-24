@@ -1217,3 +1217,33 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+## Course Service
+
+<a id="course-teacher"></a>
+
+### Teacher
+
+```json
+{
+  "id": "uuid (identifier of the teacher)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (short full name of the teacher)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-student"></a>
+
+### Student
+
+```json
+{
+  "id": "uuid (unique identifier of the student)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (student's short full name)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

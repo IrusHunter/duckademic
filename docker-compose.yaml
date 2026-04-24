@@ -16,6 +16,7 @@ services:
       - schedule-generator-service
       - asset-service
       - auth-service
+      - course-service
     env_file:
       - ./api_gateway/.env.docker
     environment:
@@ -99,5 +100,14 @@ services:
       - "10009"
     env_file:
       - ./services/auth/.env.docker
+    environment:
+      - DOCKER_ENV=true
+
+  course-service:
+    build: ./services/course
+    expose:
+      - "10010"
+    env_file:
+      - ./services/course/.env.docker
     environment:
       - DOCKER_ENV=true

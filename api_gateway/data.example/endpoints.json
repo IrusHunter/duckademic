@@ -34,5 +34,9 @@
   {
     "path": "auth",
     "upstream_name": "auth-service"
+  },
+  {
+    "path": "course",
+    "upstream_name": "course-service"
   }
 ]
