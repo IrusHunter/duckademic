@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/IrusHunter/duckademic/services/course/services"
+	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/events"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
 )
 
@@ -17,22 +20,53 @@ type DatabaseHandler interface {
 func NewDatabaseHandler(
 	ss services.StudentService,
 	ts services.TeacherService,
+	cs services.CourseService,
+	scs services.StudentCourseService,
+	tcs services.TeacherCourseService,
 ) DatabaseHandler {
 	return &databaseHandler{
-		studentService: ss,
-		teacherService: ts,
+		studentService:       ss,
+		teacherService:       ts,
+		courseService:        cs,
+		studentCourseService: scs,
+		teacherCourseService: tcs,
 	}
 }
 
 type databaseHandler struct {
-	studentService services.StudentService
-	teacherService services.TeacherService
+	studentService       services.StudentService
+	teacherService       services.TeacherService
+	courseService        services.CourseService
+	studentCourseService services.StudentCourseService
+	teacherCourseService services.TeacherCourseService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	go func() {
+		time.Sleep(events.ExternalSeedCooldown * 2)
+		ctx := contextutil.SetTraceID(context.Background())
+		h.courseService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.teacherCourseService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.studentCourseService.Seed(ctx)
+	}()
+
 	jsonutil.ResponseWithJSON(w, http.StatusNoContent, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.studentCourseService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear student courses: %w", err))
+		return
+	}
+	if err := h.teacherCourseService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear teacher courses: %w", err))
+		return
+	}
+	if err := h.courseService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear courses: %w", err))
+		return
+	}
 	if err := h.studentService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear students: %w", err))
 		return

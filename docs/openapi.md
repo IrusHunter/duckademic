@@ -153,6 +153,14 @@
   - Mirror
     - [/teachers](#course-teachers) !course.teacher
     - [/students](#course-students) !course.student
+  - Projection
+    - [/courses](#course-courses) !course.course
+    - [/course/{id}](#course-course-id) !course.course
+  - Source of Truth
+    - [/student-courses](#course-student-courses) !course.student_course
+    - [/student-course/{id}](#course-user-id) !course.student_course
+    - [/teacher-courses](#course-teacher-courses) !course.teacher_course
+    - [/teacher-course/{id}](#course-teacher-course-id) !course.teacher_course
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -1972,3 +1980,125 @@
 ### GET (course.student) - gets all students from the database
 
 200 OK [=> Student[]](schemas.md#course-student)
+
+<a id="course-courses"></a>
+
+## /courses
+
+### GET (course.course) - gets all courses from the database
+
+200 OK [=> Course[]](schemas.md#course-course)
+
+### POST (course.course) - adds a new course
+
+```json
+{
+  "manager_id": "uuid | null (identifier of the course manager/teacher)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the course)",
+  "description": "string (detailed course description)"
+}
+```
+
+200 OK [=> Course](schemas.md#course-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-course-id"></a>
+
+## /course/{id}
+
+### GET (course.course) - finds a course by ID
+
+200 OK [=> Course](schemas.md#course-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT (course.course) - updates a course by ID
+
+```json
+{
+  "manager_id": "uuid | null (identifier of the course manager/teacher)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the course)",
+  "description": "string (detailed course description)"
+}
+```
+
+200 OK [=> Course](schemas.md#course-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-student-courses"></a>
+
+## /student-courses
+
+### GET (course.student_course) - gets all student-course relations
+
+200 OK [=> StudentCourse[]](schemas.md#course-student-course)
+
+### POST (course.student_course) - adds a student to a course
+
+```json
+{
+  "student_id": "uuid (identifier of the student)",
+  "course_id": "uuid (identifier of the course)"
+}
+```
+
+200 OK [=> StudentCourse](schemas.md#course-student-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-student-course-id"></a>
+
+## /student-course/{id}
+
+### GET (course.student_course) - finds a student-course relation by ID
+
+200 OK [=> StudentCourse](schemas.md#course-student-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (course.student_course) - deletes a student-course relation by ID
+
+200 OK [=> StudentCourse](schemas.md#course-student-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-teacher-courses"></a>
+
+## /teacher-courses
+
+### GET (course.teacher_course) - gets all teacher-course relations
+
+200 OK [=> TeacherCourse[]](schemas.md#course-teacher-course)
+
+### POST (course.teacher_course) - assigns a teacher to a course
+
+```json
+{
+  "teacher_id": "uuid (identifier of the teacher)",
+  "course_id": "uuid (identifier of the course)"
+}
+```
+
+200 OK [=> TeacherCourse](schemas.md#course-teacher-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-teacher-course-id"></a>
+
+## /teacher-course/{id}
+
+### GET (course.teacher_course) - finds a teacher-course relation by ID
+
+200 OK [=> TeacherCourse](schemas.md#course-teacher-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (course.teacher_course) - deletes a teacher-course relation by ID
+
+200 OK [=> TeacherCourse](schemas.md#course-teacher-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

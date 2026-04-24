@@ -1247,3 +1247,47 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+<a id="course-course"></a>
+
+### Course
+
+```json
+{
+  "id": "uuid (identifier of the course)",
+  "manager_id": "uuid | null (identifier of the course manager/teacher)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the course)",
+  "description": "string (detailed course description)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-student-course"></a>
+
+### StudentCourse
+
+```json
+{
+  "id": "uuid (identifier of the student-course relation)",
+  "course_id": "uuid (identifier of the course)",
+  "student_id": "uuid (identifier of the student)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-teacher-course"></a>
+
+### TeacherCourse
+
+```json
+{
+  "id": "uuid (identifier of the teacher-course relation)",
+  "course_id": "uuid (identifier of the course)",
+  "teacher_id": "uuid (identifier of the teacher)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

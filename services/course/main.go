@@ -45,19 +45,30 @@ func main() {
 
 	studentRepository := repositories.NewStudentRepository(database)
 	teacherRepository := repositories.NewTeacherRepository(database)
+	courseRepository := repositories.NewCourseRepository(database)
+	studentCourseRepository := repositories.NewStudentCourseRepository(database)
+	teacherCourseRepository := repositories.NewTeacherCourseRepository(database)
 
 	studentService := services.NewStudentService(studentRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
+	courseService := services.NewCourseService(courseRepository, teacherRepository, eventBus)
+	studentCourseService := services.NewStudentCourseService(studentCourseRepository, studentRepository, courseRepository)
+	teacherCourseService := services.NewTeacherCourseService(teacherCourseRepository, teacherRepository, courseRepository)
 
 	studentHandler := resthandlers.NewStudentHandler(studentService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
-	databaseHandler := resthandlers.NewDatabaseHandler(studentService, teacherService)
+	courseHandler := resthandlers.NewCourseHandler(courseService)
+	studentCourseHandler := resthandlers.NewStudentCourseHandler(studentCourseService)
+	teacherCourseHandler := resthandlers.NewTeacherCourseHandler(teacherCourseService)
+	databaseHandler := resthandlers.NewDatabaseHandler(studentService, teacherService, courseService, studentCourseService,
+		teacherCourseService)
 
 	jwtSecret := envutil.GetStringFromENV("JWT_SECRET")
 	if jwtSecret == "" {
 		log.Fatalf("JWT_SECRET not specified in the .env file")
 	}
-	restapi := NewRESTAPI(studentHandler, teacherHandler, databaseHandler, []byte(jwtSecret))
+	restapi := NewRESTAPI(studentHandler, teacherHandler, courseHandler, studentCourseHandler, teacherCourseHandler,
+		databaseHandler, []byte(jwtSecret))
 
 	go func() {
 		time.Sleep(events.ExternalSeedCooldown)
