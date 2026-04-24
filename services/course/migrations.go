@@ -15,6 +15,8 @@ func Migrate(database *sqlx.DB) error {
 		courseMigrations,
 		studentCourseMigrations,
 		teacherCourseMigrations,
+		taskMigrations,
+		taskStudentMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -101,6 +103,14 @@ func courseMigrations(tx *sqlx.Tx) error {
 
 	if _, err := tx.Exec(schema); err != nil {
 		return fmt.Errorf("failed to create courses table: %w", err)
+	}
+
+	indexSlug := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_slug
+	ON courses (slug);
+	`
+	if _, err := tx.Exec(indexSlug); err != nil {
+		return fmt.Errorf("failed to create courses slug index: %w", err)
 	}
 
 	indexManager := `
@@ -231,6 +241,114 @@ func teacherCourseMigrations(tx *sqlx.Tx) error {
 
 	if err := db.EnsureUpdatedAtTriggerTx(context.Background(), tx, "teacher_courses"); err != nil {
 		return fmt.Errorf("failed to create updated_at trigger for teacher_courses: %w", err)
+	}
+
+	return nil
+}
+func taskMigrations(tx *sqlx.Tx) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS tasks (
+		id UUID PRIMARY KEY,
+		course_id UUID NOT NULL,
+		slug TEXT NOT NULL,
+		title TEXT NOT NULL,
+		description TEXT NOT NULL,
+		max_mark DOUBLE PRECISION NOT NULL,
+		deadline TIMESTAMP WITH TIME ZONE NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := tx.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create tasks table: %w", err)
+	}
+
+	indexSlug := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_slug
+	ON tasks (slug);
+	`
+	if _, err := tx.Exec(indexSlug); err != nil {
+		return fmt.Errorf("failed to create tasks slug index: %w", err)
+	}
+
+	indexCourse := `
+	CREATE INDEX IF NOT EXISTS idx_tasks_course_id
+	ON tasks (course_id);
+	`
+	if _, err := tx.Exec(indexCourse); err != nil {
+		return fmt.Errorf("failed to create tasks course_id index: %w", err)
+	}
+
+	if err := db.EnsureForeignKeyTx(
+		context.Background(),
+		tx,
+		"fk_tasks_course",
+		"tasks",
+		"course_id",
+		"courses",
+		"id",
+	); err != nil {
+		return fmt.Errorf("failed to create course_id foreign key: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTriggerTx(context.Background(), tx, "tasks"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for tasks: %w", err)
+	}
+
+	return nil
+}
+func taskStudentMigrations(tx *sqlx.Tx) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS task_students (
+		id UUID PRIMARY KEY,
+		task_id UUID NOT NULL,
+		student_id UUID NOT NULL,
+		mark DOUBLE PRECISION,
+		submission_time TIMESTAMP WITH TIME ZONE,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := tx.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create task_students table: %w", err)
+	}
+
+	indexUnique := `
+	CREATE UNIQUE INDEX IF NOT EXISTS uq_task_students_task_student
+	ON task_students (task_id, student_id);
+	`
+	if _, err := tx.Exec(indexUnique); err != nil {
+		return fmt.Errorf("failed to create task_students unique index: %w", err)
+	}
+
+	if err := db.EnsureForeignKeyTx(
+		context.Background(),
+		tx,
+		"fk_task_students_task",
+		"task_students",
+		"task_id",
+		"tasks",
+		"id",
+	); err != nil {
+		return fmt.Errorf("failed to create task_id foreign key: %w", err)
+	}
+
+	if err := db.EnsureForeignKeyTx(
+		context.Background(),
+		tx,
+		"fk_task_students_student",
+		"task_students",
+		"student_id",
+		"students",
+		"id",
+	); err != nil {
+		return fmt.Errorf("failed to create student_id foreign key: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTriggerTx(context.Background(), tx, "task_students"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for task_students: %w", err)
 	}
 
 	return nil

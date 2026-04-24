@@ -161,6 +161,10 @@
     - [/student-course/{id}](#course-user-id) !course.student_course
     - [/teacher-courses](#course-teacher-courses) !course.teacher_course
     - [/teacher-course/{id}](#course-teacher-course-id) !course.teacher_course
+    - [/tasks](#course-tasks) !course.task
+    - [/task/{id}](#course-task-id) !course.task
+    - [/task-students](#course-task-students) !course.task-student
+    - [/task-student/{id}](#course-task-student-id) !course.task-student
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -2100,5 +2104,102 @@
 ### DELETE (course.teacher_course) - deletes a teacher-course relation by ID
 
 200 OK [=> TeacherCourse](schemas.md#course-teacher-course)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-tasks"></a>
+
+## /tasks
+
+### GET (course.task) - gets all tasks from the database
+
+200 OK [=> Task[]](schemas.md#course-task)
+
+### POST (course.task) - adds a new task
+
+```json id="task_post_01"
+{
+  "course_id": "uuid (identifier of the course)",
+  "slug": "string (unique slug used internally)",
+  "title": "string (title of the task)",
+  "description": "string (detailed description of the task)",
+  "max_mark": "float (maximum achievable mark)",
+  "deadline": "timestamp (deadline for submission)"
+}
+```
+
+200 OK [=> Task](schemas.md#course-task)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-task-id"></a>
+
+## /task/{id}
+
+### GET (course.task) - finds a task by ID
+
+200 OK [=> Task](schemas.md#course-task)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (course.task) - deletes a task by ID
+
+200 OK [=> Task](schemas.md#course-task)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT (course.task) - updates a task by ID
+
+```json id="task_put_01"
+{
+  "course_id": "uuid (identifier of the course)",
+  "slug": "string (unique slug used internally)",
+  "title": "string (title of the task)",
+  "description": "string (detailed description of the task)",
+  "max_mark": "float (maximum achievable mark)",
+  "deadline": "timestamp (deadline for submission)"
+}
+```
+
+200 OK [=> Task](schemas.md#course-task)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-task-students"></a>
+
+## /task-students
+
+### GET (course.task_student) - gets all task-student relations
+
+200 OK [=> TaskStudent[]](schemas.md#course-task-student)
+
+### POST (course.task_student) - assigns a task to a student / submits a task
+
+```json id="task_student_post_01"
+{
+  "task_id": "uuid (identifier of the task)",
+  "student_id": "uuid (identifier of the student)",
+  "mark": "float | null (assigned mark)",
+  "submission_time": "timestamp | null (submission time)"
+}
+```
+
+200 OK [=> TaskStudent](schemas.md#course-task-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-task-student-id"></a>
+
+## /task-student/{id}
+
+### GET (course.task_student) - finds a task-student relation by ID
+
+200 OK [=> TaskStudent](schemas.md#course-task-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (course.task_student) - deletes a task-student relation by ID
+
+200 OK [=> TaskStudent](schemas.md#course-task-student)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

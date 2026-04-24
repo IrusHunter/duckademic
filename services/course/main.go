@@ -48,27 +48,33 @@ func main() {
 	courseRepository := repositories.NewCourseRepository(database)
 	studentCourseRepository := repositories.NewStudentCourseRepository(database)
 	teacherCourseRepository := repositories.NewTeacherCourseRepository(database)
+	taskRepository := repositories.NewTaskRepository(database)
+	taskStudentRepository := repositories.NewTaskStudentRepository(database)
 
 	studentService := services.NewStudentService(studentRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
 	courseService := services.NewCourseService(courseRepository, teacherRepository, eventBus)
 	studentCourseService := services.NewStudentCourseService(studentCourseRepository, studentRepository, courseRepository)
 	teacherCourseService := services.NewTeacherCourseService(teacherCourseRepository, teacherRepository, courseRepository)
+	taskService := services.NewTaskService(taskRepository, courseRepository)
+	taskStudentService := services.NewTaskStudentService(taskStudentRepository, taskRepository, studentRepository)
 
 	studentHandler := resthandlers.NewStudentHandler(studentService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
 	courseHandler := resthandlers.NewCourseHandler(courseService)
 	studentCourseHandler := resthandlers.NewStudentCourseHandler(studentCourseService)
 	teacherCourseHandler := resthandlers.NewTeacherCourseHandler(teacherCourseService)
+	taskHandler := resthandlers.NewTaskHandler(taskService)
+	taskStudentHandler := resthandlers.NewTaskStudentHandler(taskStudentService)
 	databaseHandler := resthandlers.NewDatabaseHandler(studentService, teacherService, courseService, studentCourseService,
-		teacherCourseService)
+		teacherCourseService, taskService, taskStudentService)
 
 	jwtSecret := envutil.GetStringFromENV("JWT_SECRET")
 	if jwtSecret == "" {
 		log.Fatalf("JWT_SECRET not specified in the .env file")
 	}
 	restapi := NewRESTAPI(studentHandler, teacherHandler, courseHandler, studentCourseHandler, teacherCourseHandler,
-		databaseHandler, []byte(jwtSecret))
+		taskHandler, taskStudentHandler, databaseHandler, []byte(jwtSecret))
 
 	go func() {
 		time.Sleep(events.ExternalSeedCooldown)

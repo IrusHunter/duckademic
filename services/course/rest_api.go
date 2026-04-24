@@ -20,7 +20,9 @@ func NewRESTAPI(
 	th resthandlers.TeacherHandler,
 	ch resthandlers.CourseHandler,
 	sch resthandlers.StudentCourseHandler,
-	tsh resthandlers.TeacherCourseHandler,
+	tch resthandlers.TeacherCourseHandler,
+	taskH resthandlers.TaskHandler,
+	tsh resthandlers.TaskStudentHandler,
 	dh resthandlers.DatabaseHandler,
 	jwtSecret []byte,
 ) RESTAPI {
@@ -30,7 +32,9 @@ func NewRESTAPI(
 		teacherHandler:       th,
 		courseHandler:        ch,
 		studentCourseHandler: sch,
-		teacherCourseHandler: tsh,
+		teacherCourseHandler: tch,
+		taskHandler:          taskH,
+		taskStudentHandler:   tsh,
 		databaseHandler:      dh,
 	}
 }
@@ -42,6 +46,8 @@ type restapi struct {
 	courseHandler        resthandlers.CourseHandler
 	studentCourseHandler resthandlers.StudentCourseHandler
 	teacherCourseHandler resthandlers.TeacherCourseHandler
+	taskHandler          resthandlers.TaskHandler
+	taskStudentHandler   resthandlers.TaskStudentHandler
 	databaseHandler      resthandlers.DatabaseHandler
 }
 
@@ -80,6 +86,25 @@ func (ra *restapi) Run(port int) error {
 		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.teacherCourseHandler.Delete, []string{"course.teacher_course"}),
 	})
 
+	ra.NewRoute("/tasks", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskHandler.GetAll, []string{"course.task"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.taskHandler.Add, []string{"course.task"}),
+	})
+	ra.NewRoute("/task/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.taskHandler.Find, []string{"course.task"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskHandler.Delete, []string{"course.task"}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.taskHandler.Update, []string{"course.task"}),
+	})
+
+	ra.NewRoute("/task-students", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.GetAll, []string{"course.task_student"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Add, []string{"course.task_student"}),
+	})
+	ra.NewRoute("/task-student/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Find, []string{"course.task_student"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Delete, []string{"course.task_student"}),
+	})
+
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.Seed)(r.Context(), w, r)
 	})
@@ -99,5 +124,7 @@ func BuildAccessPermissions() []events.AccessPermissionRE {
 		{Name: "course.course"},
 		{Name: "course.student_course"},
 		{Name: "course.teacher_course"},
+		{Name: "course.task"},
+		{Name: "course.task_student"},
 	}
 }

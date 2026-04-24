@@ -1291,3 +1291,37 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+<a id="course-task"></a>
+
+### Task
+
+```json id="task_json_spec_01"
+{
+  "id": "uuid (identifier of the task)",
+  "course_id": "uuid (identifier of the course)",
+  "slug": "string (unique slug used internally)",
+  "title": "string (title of the task)",
+  "description": "string (detailed description of the task)",
+  "max_mark": "float (maximum achievable mark for the task)",
+  "deadline": "timestamp (deadline for task submission)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-task-student"></a>
+
+### Task Student
+
+```json id="task_student_json_spec_01"
+{
+  "id": "uuid (identifier of the task-student relation)",
+  "task_id": "uuid (identifier of the task)",
+  "student_id": "uuid (identifier of the student)",
+  "mark": "float | null (assigned mark for the task)",
+  "submission_time": "timestamp | null (time when the task was submitted)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```

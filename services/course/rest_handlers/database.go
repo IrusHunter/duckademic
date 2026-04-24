@@ -23,6 +23,8 @@ func NewDatabaseHandler(
 	cs services.CourseService,
 	scs services.StudentCourseService,
 	tcs services.TeacherCourseService,
+	taskS services.TaskService,
+	tss services.TaskStudentService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		studentService:       ss,
@@ -30,6 +32,8 @@ func NewDatabaseHandler(
 		courseService:        cs,
 		studentCourseService: scs,
 		teacherCourseService: tcs,
+		taskService:          taskS,
+		taskStudentService:   tss,
 	}
 }
 
@@ -39,6 +43,8 @@ type databaseHandler struct {
 	courseService        services.CourseService
 	studentCourseService services.StudentCourseService
 	teacherCourseService services.TeacherCourseService
+	taskService          services.TaskService
+	taskStudentService   services.TaskStudentService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -50,11 +56,23 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 		h.teacherCourseService.Seed(ctx)
 		ctx = contextutil.SetTraceID(context.Background())
 		h.studentCourseService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.taskService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.taskStudentService.Seed(ctx)
 	}()
 
 	jsonutil.ResponseWithJSON(w, http.StatusNoContent, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.taskStudentService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear task students: %w", err))
+		return
+	}
+	if err := h.taskService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear tasks: %w", err))
+		return
+	}
 	if err := h.studentCourseService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear student courses: %w", err))
 		return
