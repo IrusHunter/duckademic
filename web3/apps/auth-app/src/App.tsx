@@ -14,16 +14,14 @@ type Props = {
 
 // Зберігаємо токени і юзера в cookie
 const setAuthCookies = (user: User, accessToken: string, refreshToken: string) => {
-  const maxAge = 900
-  document.cookie = `access_token=${accessToken}; path=/; Max-Age=900; SameSite=Strict`  // 15 хв
+  document.cookie = `access_token=${accessToken}; path=/; Max-Age=30; SameSite=Strict`
   document.cookie = `refresh_token=${refreshToken}; path=/; Max-Age=${86400 * 30}; SameSite=Strict`
   const userValue = encodeURIComponent(JSON.stringify({
     id: user.id,
-    email: user.login, // бекенд повертає login, а не email
+    email: user.login,
     role: mapRole(user.role),
   }))
-  document.cookie = `auth_user=${userValue}; path=/; Max-Age=${maxAge}; SameSite=Strict`
-
+  document.cookie = `auth_user=${userValue}; path=/; Max-Age=86400; SameSite=Strict`
   localStorage.setItem('access_token', accessToken)
   localStorage.setItem('refresh_token', refreshToken)
 }

@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -6,6 +6,10 @@ import RoleBasedRedirect from './components/RoleBasedRedirect'
 import Header from './components/header/Header'
 import { initAuth } from './utils/initAuth'
 import css from './App.module.css'
+import { setupAxiosInterceptor } from './auth/axiosInterceptor'
+import { tokenManager } from './auth/tokenManager'
+
+setupAxiosInterceptor();
 
 const AuthApp = lazy(() => import('authApp/AuthApp'))
 const ClassroomApp = lazy(() => import('classroomApp/ClassroomApp'))
@@ -72,6 +76,25 @@ function Routes_() {
 }
 
 function App() {
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        tokenManager.refresh().catch(() => {});
+      }
+    };
+
+    const handleOnline = () => {
+      tokenManager.refresh().catch(() => {});
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
   return (
     <BrowserRouter>
       <div className={css.container}>

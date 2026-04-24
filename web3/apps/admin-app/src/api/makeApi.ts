@@ -13,7 +13,10 @@ const processQueue = (error: unknown, token: string | null) => {
   failedQueue = []
 }
 
-const getTokenFromCookie = (name: string): string | null => {
+const getToken = (name: string): string | null => {
+  // Спочатку localStorage, потім cookie як fallback
+  const fromStorage = localStorage.getItem(name)
+  if (fromStorage) return fromStorage
   const cookie = document.cookie.split(';').find(c => c.trim().startsWith(`${name}=`))
   return cookie ? cookie.split('=')[1]?.trim() ?? null : null
 }
@@ -21,18 +24,12 @@ const getTokenFromCookie = (name: string): string | null => {
 const setTokens = (access: string, refresh: string) => {
   localStorage.setItem('access_token', access)
   localStorage.setItem('refresh_token', refresh)
-  
-  // Коротке життя для access token cookie — 15 хв
   document.cookie = `access_token=${access}; path=/; Max-Age=900; SameSite=Strict`
-  // Refresh token — 30 днів
   document.cookie = `refresh_token=${refresh}; path=/; Max-Age=${86400 * 30}; SameSite=Strict`
-  
-  // Зберігаємо auth_user щоб initAuth не скидав стан після рефрешу
-  const existingUserCookie = document.cookie
-    .split(';')
-    .find(c => c.trim().startsWith('auth_user='))
-  if (existingUserCookie) {
-    const value = existingUserCookie.split('=').slice(1).join('=').trim()
+  // Оновлюємо auth_user куку щоб initAuth не скидав стан
+  const existingUser = document.cookie.split(';').find(c => c.trim().startsWith('auth_user='))
+  if (existingUser) {
+    const value = existingUser.split('=').slice(1).join('=').trim()
     document.cookie = `auth_user=${value}; path=/; Max-Age=86400; SameSite=Strict`
   }
 }
@@ -48,14 +45,16 @@ const clearTokens = () => {
 export function makeApi(baseURL: string) {
   const api = axios.create({ baseURL })
 
+  // Додаємо access_token до кожного запиту
   api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('access_token') ?? getTokenFromCookie('access_token')
+    const token = getToken('access_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   })
 
+  // При 401 — оновлюємо токени через /refresh і повторюємо запит
   api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -67,8 +66,8 @@ export function makeApi(baseURL: string) {
 
       originalRequest._retry = true
 
+      // Якщо вже рефрешимо — ставимо в чергу
       if (isRefreshing) {
-        // Чекаємо поки інший запит зрефрешить токен
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
         }).then(token => {
@@ -80,23 +79,18 @@ export function makeApi(baseURL: string) {
       isRefreshing = true
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token') ?? getTokenFromCookie('refresh_token')
-        
-        if (!refreshToken) {
-          throw new Error('No refresh token')
-        }
+        const accessToken = getToken('access_token')
+        const refreshToken = getToken('refresh_token')
 
-        const res = await axios.post(
-          '/api/auth/refresh',
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${refreshToken}`
-            }
-          }
-        )
+        if (!refreshToken) throw new Error('No refresh token')
+
+        // Згідно з документацією: POST /refresh з body { access_token, refresh_token }
+        const res = await axios.post('/api/auth/refresh', {
+          access_token: accessToken ?? '',
+          refresh_token: refreshToken,
+        })
+
         const { access_token, refresh_token } = res.data
-
         setTokens(access_token, refresh_token)
         processQueue(null, access_token)
 

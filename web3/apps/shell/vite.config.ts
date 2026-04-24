@@ -17,6 +17,7 @@ export default defineConfig({
         react: { singleton: true, requiredVersion: '^19.0.0' } as any,
         'react-dom': { singleton: true, requiredVersion: '^19.0.0' } as any,
         'react-router-dom': { singleton: true, requiredVersion: '^7.0.0' } as any,
+        axios: { singleton: true } as any,
       }
     })
   ],
