@@ -6,8 +6,15 @@ type Props = {
   requiredRoles?: Array<'admin' | 'student' | 'teacher'>
 }
 
+// ✅ FIX #1: перевіряємо isInitialized перед будь-яким redirect.
+// Без цього після hard reload юзер миттєво летить на /login,
+// поки initAuth ще виконує refresh у фоні.
 export default function ProtectedRoute({ children, requiredRoles }: Props) {
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated, isInitialized, user } = useAuthStore()
+
+  if (!isInitialized) {
+    return null // або <Spinner /> — чекаємо завершення initAuth
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />

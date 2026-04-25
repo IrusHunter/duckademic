@@ -1,9 +1,8 @@
-// shell/src/auth/axios.d.ts
-
-import 'axios';
+// Розширення типів axios для shell
+import 'axios'
 
 declare module 'axios' {
-  interface AxiosRequestConfig {
-    skipAuthInterceptor?: boolean;
+  interface InternalAxiosRequestConfig {
+    _retry?: boolean  // прапор що цей запит вже ретраївся після 401
   }
 }

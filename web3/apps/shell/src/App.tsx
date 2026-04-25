@@ -5,20 +5,19 @@ import ProtectedRoute from './components/ProtectedRoute'
 import RoleBasedRedirect from './components/RoleBasedRedirect'
 import Header from './components/header/Header'
 import { initAuth } from './utils/initAuth'
+import { tokenManager } from './auth/tokenManager'
+import { isTokenExpired, setAuthCookies } from './utils/cookies'
 import css from './App.module.css'
 import { setupAxiosInterceptor } from './auth/axiosInterceptor'
-import { tokenManager } from './auth/tokenManager'
 import axios from 'axios'
 
-axios.defaults.withCredentials = true;
-setupAxiosInterceptor();
+axios.defaults.withCredentials = true
+setupAxiosInterceptor()
 
 const AuthApp = lazy(() => import('authApp/AuthApp'))
 const ClassroomApp = lazy(() => import('classroomApp/ClassroomApp'))
 const HomeApp = lazy(() => import('homeApp/HomeApp'))
 const AdminApp = lazy(() => import('adminApp/AdminApp'))
-
-initAuth()
 
 function Routes_() {
   const navigate = useNavigate()
@@ -32,13 +31,27 @@ function Routes_() {
           path="/login"
           element={
             <AuthApp
-              onLoginSuccess={(user) => {
+              onLoginSuccess={(data) => {
+                // Shell — єдиний власник токенів.
+                // authApp повернув сирі дані з /api/auth/login,
+                // shell зберігає токени і оновлює стор.
+                console.log('access_token from login:', data.access_token)
+                tokenManager.set(data.access_token)
+                setAuthCookies({
+                  id: data.id,
+                  email: data.login,
+                  role: data.role,
+                  is_default_password: data.is_default_password,
+                }, data.refresh_token)
+
                 useAuthStore.getState().setUser({
-                  id: user.id,
-                  email: user.login,
-                  role: user.role,
+                  id: data.id,
+                  email: data.login,
+                  role: data.role,
+                  is_default_password: data.is_default_password,
                 })
-                navigate(user.role === 'admin' ? '/admin' : '/home')
+
+                navigate(data.role === 'admin' ? '/admin' : '/home')
               }}
             />
           }
@@ -78,25 +91,37 @@ function Routes_() {
 }
 
 function App() {
-  // useEffect(() => {
-  //   const handleVisibility = () => {
-  //     if (document.visibilityState === 'visible') {
-  //       tokenManager.refresh().catch(() => {});
-  //     }
-  //   };
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        const token = tokenManager.get()
+        if (isTokenExpired(token)) {
+          tokenManager.refresh().catch(() => { })
+        }
+      }
+    }
+    const handleOnline = () => {
+  const token = tokenManager.get()
+  if (isTokenExpired(token)) {
+    tokenManager.refresh().catch(() => {})
+  }
+}
+    const handleLogout = () => { tokenManager.logout() }
 
-  //   const handleOnline = () => {
-  //     tokenManager.refresh().catch(() => {});
-  //   };
+    initAuth().finally(() => {
+      document.addEventListener('visibilitychange', handleVisibility)
+      window.addEventListener('online', handleOnline)
+    })
 
-  //   document.addEventListener('visibilitychange', handleVisibility);
-  //   window.addEventListener('online', handleOnline);
+    window.addEventListener('auth:logout', handleLogout)
 
-  //   return () => {
-  //     document.removeEventListener('visibilitychange', handleVisibility);
-  //     window.removeEventListener('online', handleOnline);
-  //   };
-  // }, []);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('auth:logout', handleLogout)
+    }
+  }, [])
+
   return (
     <BrowserRouter>
       <div className={css.container}>

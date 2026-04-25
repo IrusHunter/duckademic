@@ -24,7 +24,7 @@ const getToken = (name: string): string | null => {
 const setTokens = (access: string, refresh: string) => {
   localStorage.setItem('access_token', access)
   localStorage.setItem('refresh_token', refresh)
-  document.cookie = `access_token=${access}; path=/; Max-Age=900; SameSite=Strict`
+  document.cookie = `access_token=${access}; path=/; Max-Age=890; SameSite=Strict`
   document.cookie = `refresh_token=${refresh}; path=/; Max-Age=${86400 * 30}; SameSite=Strict`
   // Оновлюємо auth_user куку щоб initAuth не скидав стан
   const existingUser = document.cookie.split(';').find(c => c.trim().startsWith('auth_user='))

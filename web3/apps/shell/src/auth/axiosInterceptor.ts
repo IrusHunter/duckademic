@@ -1,45 +1,52 @@
-// shell/src/auth/axiosInterceptor.ts
+import axios from 'axios'
+import { tokenManager } from './tokenManager'
 
-import axios from 'axios';
-import { tokenManager } from './tokenManager';
+let interceptorSetup = false
+
+// URL які не потребують access_token і не повинні тригерити refresh при 401.
+// Shell визначає цей список сам — жоден MFE не повинен про нього знати.
+const PUBLIC_URLS = ['/api/auth/login', '/api/auth/refresh', '/api/auth/logout']
+
+const isPublic = (url?: string): boolean =>
+  PUBLIC_URLS.some((pub) => url?.includes(pub))
 
 export function setupAxiosInterceptor() {
+  if (interceptorSetup) return
+  interceptorSetup = true
 
-  // ── Request: додаємо токен ──────────────────────────────────────
+  // ── Request: додаємо токен лише до захищених запитів ───────────
   axios.interceptors.request.use((config) => {
-    if (config.skipAuthInterceptor) return config;
+    if (isPublic(config.url)) return config
 
-    const token = tokenManager.get();
+    const token = tokenManager.get()
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`
     }
-    return config;
-  });
+    return config
+  })
 
   // ── Response: 401 → refresh → retry ────────────────────────────
   axios.interceptors.response.use(
     (response) => response,
     async (error) => {
-      const original = error.config;
+      const original = error.config
+      const is401 = error.response?.status === 401
+      const alreadyRetried = original._retry
 
-      const is401 = error.response?.status === 401;
-      const alreadyRetried = original._retry;
-      const isRefreshCall = original.skipAuthInterceptor;
-
-      if (is401 && !alreadyRetried && !isRefreshCall) {
-        original._retry = true;
-
+      // Публічні URL не ретраємо — якщо /api/auth/refresh повернув 401,
+      // значить refresh_token протух, треба логін, а не нескінченний цикл
+      if (is401 && !alreadyRetried && !isPublic(original.url)) {
+        original._retry = true
         try {
-          const newToken = await tokenManager.refresh();
-          original.headers.Authorization = `Bearer ${newToken}`;
-          return axios(original); // повторний запит — MFE нічого не знає
+          const newToken = await tokenManager.refresh()
+          original.headers.Authorization = `Bearer ${newToken}`
+          return axios(original)
         } catch {
-          // refresh провалився — logout вже задиспатчений у tokenManager
-          return Promise.reject(error);
+          return Promise.reject(error)
         }
       }
 
-      return Promise.reject(error);
+      return Promise.reject(error)
     }
-  );
+  )
 }
