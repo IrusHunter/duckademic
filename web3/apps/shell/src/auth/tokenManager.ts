@@ -27,6 +27,7 @@ export const tokenManager = {
       })
       .then(({ data }) => {
         accessToken = data.access_token;
+        console.log(accessToken);
         return data.access_token;
       })
       .catch((err) => {

@@ -8,7 +8,9 @@ import { initAuth } from './utils/initAuth'
 import css from './App.module.css'
 import { setupAxiosInterceptor } from './auth/axiosInterceptor'
 import { tokenManager } from './auth/tokenManager'
+import axios from 'axios'
 
+axios.defaults.withCredentials = true;
 setupAxiosInterceptor();
 
 const AuthApp = lazy(() => import('authApp/AuthApp'))
@@ -76,25 +78,25 @@ function Routes_() {
 }
 
 function App() {
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        tokenManager.refresh().catch(() => {});
-      }
-    };
+  // useEffect(() => {
+  //   const handleVisibility = () => {
+  //     if (document.visibilityState === 'visible') {
+  //       tokenManager.refresh().catch(() => {});
+  //     }
+  //   };
 
-    const handleOnline = () => {
-      tokenManager.refresh().catch(() => {});
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('online', handleOnline);
+  //   const handleOnline = () => {
+  //     tokenManager.refresh().catch(() => {});
+  //   };
 
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('online', handleOnline);
-    };
-  }, []);
+  //   document.addEventListener('visibilitychange', handleVisibility);
+  //   window.addEventListener('online', handleOnline);
+
+  //   return () => {
+  //     document.removeEventListener('visibilitychange', handleVisibility);
+  //     window.removeEventListener('online', handleOnline);
+  //   };
+  // }, []);
   return (
     <BrowserRouter>
       <div className={css.container}>
