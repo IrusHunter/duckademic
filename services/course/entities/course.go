@@ -14,7 +14,7 @@ type Course struct {
 	ManagerID   *uuid.UUID `db:"manager_id" json:"manager_id"`
 	Slug        string     `db:"slug" json:"slug"`
 	Name        string     `db:"name" json:"name"`
-	Description string     `db:"description" json:"description"`
+	Description *string    `db:"description" json:"description"`
 	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time  `db:"updated_at" json:"updated_at"`
 }
@@ -31,8 +31,8 @@ func (c Course) String() string {
 	parts = append(parts, fmt.Sprintf("slug: %s", c.Slug))
 	parts = append(parts, fmt.Sprintf("name: %s", c.Name))
 
-	if c.Description != "" {
-		parts = append(parts, fmt.Sprintf("description: %s", c.Description))
+	if c.Description != nil {
+		parts = append(parts, fmt.Sprintf("description: %s", *c.Description))
 	}
 
 	if !c.CreatedAt.IsZero() {

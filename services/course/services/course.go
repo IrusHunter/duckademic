@@ -109,7 +109,7 @@ func (s *courseService) Seed(ctx context.Context) error {
 
 		updated := entities.Course{
 			Name:        course.Name,
-			Description: course.Description,
+			Description: &course.Description,
 			ManagerID:   &manager.ID,
 		}
 

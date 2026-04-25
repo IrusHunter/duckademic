@@ -95,7 +95,7 @@ func courseMigrations(tx *sqlx.Tx) error {
 		manager_id UUID,
 		slug TEXT NOT NULL UNIQUE,
 		name TEXT NOT NULL,
-		description TEXT NOT NULL,
+		description TEXT,
 		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 	);
@@ -264,12 +264,19 @@ func taskMigrations(tx *sqlx.Tx) error {
 		return fmt.Errorf("failed to create tasks table: %w", err)
 	}
 
-	indexSlug := `
-	CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_slug
-	ON tasks (slug);
+	// indexSlug := `
+	// CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_slug
+	// ON tasks (slug);
+	// `
+	// if _, err := tx.Exec(indexSlug); err != nil {
+	// 	return fmt.Errorf("failed to create tasks slug index: %w", err)
+	// }
+
+	dropIndexSlug := `
+	DROP INDEX IF EXISTS idx_tasks_slug;
 	`
-	if _, err := tx.Exec(indexSlug); err != nil {
-		return fmt.Errorf("failed to create tasks slug index: %w", err)
+	if _, err := tx.Exec(dropIndexSlug); err != nil {
+		return fmt.Errorf("failed to drop tasks slug index: %w", err)
 	}
 
 	indexCourse := `

@@ -13,8 +13,8 @@ type TaskStudent struct {
 	ID             uuid.UUID  `db:"id" json:"id"`
 	TaskID         uuid.UUID  `db:"task_id" json:"task_id"`
 	StudentID      uuid.UUID  `db:"student_id" json:"student_id"`
-	Mark           *float64   `db:"mark" json:"mark"`
-	SubmissionTime *time.Time `db:"submission_time" json:"submission_time"`
+	Mark           *float64   `db:"mark" json:"mark,omitempty"`
+	SubmissionTime *time.Time `db:"submission_time" json:"submission_time,omitempty"`
 	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
 }

@@ -12,6 +12,6 @@ WORKDIR /root/
 COPY --from=builder /app/course .
 COPY --from=builder /app/data ./data
 
-EXPOSE 100010
+EXPOSE 10010
 
 CMD ["./course"]
