@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
+	"time"
 
 	"github.com/IrusHunter/duckademic/shared/contextutil"
 	"github.com/IrusHunter/duckademic/shared/jsonutil"
@@ -41,9 +44,12 @@ type BaseHandler[T fmt.Stringer] interface {
 	Find(context.Context, http.ResponseWriter, *http.Request)
 
 	// ParseID extracts and validates an entity ID from the request path.
-	ParseID(ctx context.Context, w http.ResponseWriter, r *http.Request, method string) (uuid.UUID, bool)
+	ParseID(context.Context, http.ResponseWriter, *http.Request, string) (uuid.UUID, bool)
 	// DecodeEntity extracts and decodes an entity from the request body.
-	DecodeEntity(ctx context.Context, w http.ResponseWriter, r *http.Request, method string) (T, bool)
+	DecodeEntity(context.Context, http.ResponseWriter, *http.Request, string) (T, bool)
+	GetUserIDFromContext(context.Context, http.ResponseWriter, string) (uuid.UUID, bool)
+	ParseIntQueryParam(ctx context.Context, w http.ResponseWriter, q url.Values, param string, method string) (int, bool)
+	ParseTimeQueryParam(ctx context.Context, w http.ResponseWriter, q url.Values, param string, method string) (time.Time, bool)
 	GetLogger() logger.Logger
 }
 
@@ -54,14 +60,14 @@ func NewBaseHandler[T fmt.Stringer](hc HandlerConfig, bs BaseService[T]) BaseHan
 	return &baseHandler[T]{
 		HandlerConfig: hc,
 		service:       bs,
-		logger:        logger.NewLogger(hc.ClassName+".txt", hc.ClassName),
+		handlerHelper: newHandlerHelper[T](hc),
 	}
 }
 
 type baseHandler[T fmt.Stringer] struct {
 	HandlerConfig
 	service BaseService[T]
-	logger  logger.Logger
+	*handlerHelper[T]
 }
 
 func (h *baseHandler[T]) GetAll(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -148,11 +154,30 @@ func (h *baseHandler[T]) Find(ctx context.Context, w http.ResponseWriter, r *htt
 	jsonutil.ResponseWithJSON(w, 200, entity)
 }
 
-func (h *baseHandler[T]) ParseID(ctx context.Context, w http.ResponseWriter, r *http.Request, method string) (uuid.UUID, bool) {
+type handlerHelper[T any] struct {
+	config HandlerConfig
+	logger logger.Logger
+}
+
+func newHandlerHelper[T any](hc HandlerConfig) *handlerHelper[T] {
+	return &handlerHelper[T]{
+		config: hc,
+		logger: logger.NewLogger(hc.ClassName+".txt", hc.ClassName),
+	}
+}
+
+func (h *handlerHelper[T]) ParseID(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	method string,
+) (uuid.UUID, bool) {
+
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
-			contextutil.GetTraceID(ctx), method,
+			contextutil.GetTraceID(ctx),
+			method,
 			fmt.Errorf("invalid id %q in the url path: %w", r.PathValue("id"), err),
 			logger.HandlerBadRequest,
 		))
@@ -160,7 +185,13 @@ func (h *baseHandler[T]) ParseID(ctx context.Context, w http.ResponseWriter, r *
 	}
 	return id, true
 }
-func (h *baseHandler[T]) DecodeEntity(ctx context.Context, w http.ResponseWriter, r *http.Request, method string) (T, bool) {
+func (h *handlerHelper[T]) DecodeEntity(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	method string,
+) (T, bool) {
+
 	var entity T
 	err := json.NewDecoder(r.Body).Decode(&entity)
 	defer r.Body.Close()
@@ -169,7 +200,7 @@ func (h *baseHandler[T]) DecodeEntity(ctx context.Context, w http.ResponseWriter
 		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
 			contextutil.GetTraceID(ctx),
 			method,
-			fmt.Errorf("failed to extract %s from request body: %w", h.EntityName, err),
+			fmt.Errorf("failed to extract %s from request body: %w", h.config.EntityName, err),
 			logger.HandlerBadRequest,
 		))
 		return entity, false
@@ -177,6 +208,86 @@ func (h *baseHandler[T]) DecodeEntity(ctx context.Context, w http.ResponseWriter
 
 	return entity, true
 }
-func (h *baseHandler[T]) GetLogger() logger.Logger {
+func (h *handlerHelper[T]) GetLogger() logger.Logger {
 	return h.logger
+}
+func (h *handlerHelper[T]) GetUserIDFromContext(
+	ctx context.Context,
+	w http.ResponseWriter,
+	method string,
+) (uuid.UUID, bool) {
+
+	claims := contextutil.GetAccessClaims(ctx)
+	if claims == nil {
+		jsonutil.ResponseWithError(w, http.StatusUnauthorized, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			method,
+			fmt.Errorf("failed to get user claims"),
+			logger.HandlerBadRequest,
+		))
+		return uuid.Nil, false
+	}
+
+	userID, err := uuid.Parse(claims.ID)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusUnauthorized, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			method,
+			fmt.Errorf("failed to parse user id: %w", err),
+			logger.HandlerBadRequest,
+		))
+		return uuid.Nil, false
+	}
+
+	return userID, true
+}
+func (h *handlerHelper[T]) ParseIntQueryParam(
+	ctx context.Context,
+	w http.ResponseWriter,
+	q url.Values,
+	param string,
+	method string,
+) (int, bool) {
+	valStr := q.Get(param)
+	if valStr == "" {
+		return 0, true
+	}
+
+	val, err := strconv.Atoi(valStr)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusBadRequest, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			method,
+			fmt.Errorf("invalid %s: %w", param, err),
+			logger.HandlerBadRequest,
+		))
+		return 0, false
+	}
+
+	return val, true
+}
+func (h *handlerHelper[T]) ParseTimeQueryParam(
+	ctx context.Context,
+	w http.ResponseWriter,
+	q url.Values,
+	param string,
+	method string,
+) (time.Time, bool) {
+	valStr := q.Get(param)
+	if valStr == "" {
+		return time.Time{}, true
+	}
+
+	t, err := time.Parse(time.RFC3339, valStr)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusBadRequest, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			method,
+			fmt.Errorf("invalid %s: %w", param, err),
+			logger.HandlerBadRequest,
+		))
+		return time.Time{}, false
+	}
+
+	return t, true
 }
