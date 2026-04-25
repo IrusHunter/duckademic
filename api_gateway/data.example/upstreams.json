@@ -43,5 +43,10 @@
     "name": "auth-service",
     "url": "http://auth-service:10009",
     "enabled": true
+  },
+  {
+    "name": "course-service",
+    "url": "http://course-service:10010",
+    "enabled": true
   }
 ]

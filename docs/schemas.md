@@ -1217,3 +1217,111 @@
   "updated_at": "timestamp (record last update timestamp)"
 }
 ```
+
+## Course Service
+
+<a id="course-teacher"></a>
+
+### Teacher
+
+```json
+{
+  "id": "uuid (identifier of the teacher)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (short full name of the teacher)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-student"></a>
+
+### Student
+
+```json
+{
+  "id": "uuid (unique identifier of the student)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (student's short full name)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-course"></a>
+
+### Course
+
+```json
+{
+  "id": "uuid (identifier of the course)",
+  "manager_id": "uuid | null (identifier of the course manager/teacher)",
+  "slug": "string (unique slug used internally)",
+  "name": "string (name of the course)",
+  "description": "string (detailed course description)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-student-course"></a>
+
+### StudentCourse
+
+```json
+{
+  "id": "uuid (identifier of the student-course relation)",
+  "course_id": "uuid (identifier of the course)",
+  "student_id": "uuid (identifier of the student)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-teacher-course"></a>
+
+### TeacherCourse
+
+```json
+{
+  "id": "uuid (identifier of the teacher-course relation)",
+  "course_id": "uuid (identifier of the course)",
+  "teacher_id": "uuid (identifier of the teacher)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-task"></a>
+
+### Task
+
+```json id="task_json_spec_01"
+{
+  "id": "uuid (identifier of the task)",
+  "course_id": "uuid (identifier of the course)",
+  "slug": "string (unique slug used internally)",
+  "title": "string (title of the task)",
+  "description": "string (detailed description of the task)",
+  "max_mark": "float (maximum achievable mark for the task)",
+  "deadline": "timestamp (deadline for task submission)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
+<a id="course-task-student"></a>
+
+### Task Student
+
+```json id="task_student_json_spec_01"
+{
+  "id": "uuid (identifier of the task-student relation)",
+  "task_id": "uuid (identifier of the task)",
+  "student_id": "uuid (identifier of the student)",
+  "mark": "float | null (assigned mark for the task)",
+  "submission_time": "timestamp | null (time when the task was submitted)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
