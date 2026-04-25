@@ -432,7 +432,7 @@ func (s *userService) Refresh(ctx context.Context, accessTokenStr, refreshTokenS
 		return "", "", fmt.Errorf("invalid user id in token")
 	}
 
-	user := s.repository.FindByID(ctx, userUUID)
+	user := s.repository.Fill(ctx, userUUID)
 	if user == nil {
 		return "", "", fmt.Errorf("user not found")
 	}
