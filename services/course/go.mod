@@ -3,7 +3,7 @@ module github.com/IrusHunter/duckademic/services/course
 go 1.23.4
 
 require (
-	github.com/IrusHunter/duckademic/shared v0.0.0-20260425003525-1cc1c0501f6e
+	github.com/IrusHunter/duckademic/shared v0.0.0-20260425190113-efc1575a36ba
 	github.com/google/uuid v1.6.0
 	github.com/gosimple/slug v1.15.0
 	github.com/jmoiron/sqlx v1.4.0

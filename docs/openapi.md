@@ -165,6 +165,9 @@
     - [/task/{id}](#course-task-id) !course.task
     - [/task-students](#course-task-students) !course.task-student
     - [/task-student/{id}](#course-task-student-id) !course.task-student
+  - Statistic
+    - [/get-upcoming-events](#course-get-upcoming-events) !
+    - [/get-courses-progress](#course-get-courses-progress) !
 
 400 BAD REQUEST or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
@@ -2201,5 +2204,41 @@
 ### DELETE (course.task_student) - deletes a task-student relation by ID
 
 200 OK [=> TaskStudent](schemas.md#course-task-student)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-get-upcoming-events"></a>
+
+## /get-upcoming-events
+
+### GET () - retrieves a list of upcoming user events
+
+Required query parameters:
+
+- count (int) - maximum number of upcoming events to return
+- start-time (time) - starting point in time to filter events from
+
+200 OK [=> Tasks](schemas.md#course-task)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="course-get-courses-progress"></a>
+
+## /get-courses-progress
+
+### GET () - retrieves progress information for all courses
+
+200 OK =>
+
+```json
+[
+  {
+    "id": "uuid (unique identifier of the course progress)",
+    "name": "string (name of the course)",
+    "complete_rate": "float (fraction of course completion, value between 0 and 1)",
+    "complete_accuracy": "float (fraction of correctly completed tasks, value between 0 and 1)"
+  }
+]
+```
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)

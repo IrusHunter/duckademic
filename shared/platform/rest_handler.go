@@ -216,7 +216,6 @@ func (h *handlerHelper[T]) GetUserIDFromContext(
 	w http.ResponseWriter,
 	method string,
 ) (uuid.UUID, bool) {
-
 	claims := contextutil.GetAccessClaims(ctx)
 	if claims == nil {
 		jsonutil.ResponseWithError(w, http.StatusUnauthorized, h.logger.LogAndReturnError(
@@ -228,7 +227,7 @@ func (h *handlerHelper[T]) GetUserIDFromContext(
 		return uuid.Nil, false
 	}
 
-	userID, err := uuid.Parse(claims.ID)
+	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
 		jsonutil.ResponseWithError(w, http.StatusUnauthorized, h.logger.LogAndReturnError(
 			contextutil.GetTraceID(ctx),

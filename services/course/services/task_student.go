@@ -17,6 +17,7 @@ import (
 
 type TaskStudentService interface {
 	platform.BaseService[entities.TaskStudent]
+	GetUpcomingTasksFor(context.Context, uuid.UUID, time.Time, int) ([]entities.Task, error)
 }
 
 func NewTaskStudentService(
@@ -41,8 +42,6 @@ func NewTaskStudentService(
 			platform.OnAddPrepare: res.onAddPrepare,
 		},
 	)
-
-	res.logger = res.GetLogger()
 	return res
 }
 
@@ -51,7 +50,6 @@ type taskStudentService struct {
 	repository        repositories.TaskStudentRepository
 	taskRepository    repositories.TaskRepository
 	studentRepository repositories.StudentRepository
-	logger            logger.Logger
 }
 
 func (s *taskStudentService) onAddPrepare(
@@ -71,7 +69,7 @@ func (s *taskStudentService) Seed(ctx context.Context) error {
 
 	var items []seedItem
 	if err := jsonutil.ReadFileTo(filepath.Join("data", "task_students.json"), &items); err != nil {
-		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+		return s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
 			fmt.Errorf("failed to load task student seed data: %w", err),
 			logger.ServiceValidationFailed,
 		)
@@ -82,7 +80,7 @@ func (s *taskStudentService) Seed(ctx context.Context) error {
 	for _, item := range items {
 		task := s.taskRepository.FindFirstByTitle(ctx, item.TaskTitle)
 		if task == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+			lastError = s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
 				fmt.Errorf("task %q not found", item.TaskTitle),
 				logger.ServiceValidationFailed,
 			)
@@ -91,7 +89,7 @@ func (s *taskStudentService) Seed(ctx context.Context) error {
 
 		student := s.studentRepository.FindFirstByName(ctx, item.StudentName)
 		if student == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+			lastError = s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
 				fmt.Errorf("student %q not found", item.StudentName),
 				logger.ServiceValidationFailed,
 			)
@@ -111,7 +109,7 @@ func (s *taskStudentService) Seed(ctx context.Context) error {
 
 		_, err := s.Add(ctx, tsEntity)
 		if err != nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+			lastError = s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
 				fmt.Errorf("failed to add %s: %w", tsEntity, err),
 				logger.ServiceValidationFailed,
 			)
@@ -119,10 +117,24 @@ func (s *taskStudentService) Seed(ctx context.Context) error {
 		}
 	}
 
-	s.logger.Log(contextutil.GetTraceID(ctx), "Seed",
+	s.GetLogger().Log(contextutil.GetTraceID(ctx), "Seed",
 		fmt.Sprintf("%d task student mappings processed from seed", len(items)),
 		logger.ServiceOperationSuccess,
 	)
 
 	return lastError
+}
+
+func (s *taskStudentService) GetUpcomingTasksFor(
+	ctx context.Context,
+	studentID uuid.UUID,
+	startTime time.Time,
+	count int,
+) ([]entities.Task, error) {
+	if count <= 0 {
+		return nil, s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "GetUpcomingTasksFor",
+			fmt.Errorf("count can't be negative (get %d)", count), logger.ServiceValidationFailed)
+	}
+
+	return s.repository.GetUpcomingTasksFor(ctx, studentID, startTime, count)
 }

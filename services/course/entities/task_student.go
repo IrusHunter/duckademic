@@ -17,6 +17,8 @@ type TaskStudent struct {
 	SubmissionTime *time.Time `db:"submission_time" json:"submission_time,omitempty"`
 	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
+
+	Task *Task `db:"-" json:"task,omitempty"`
 }
 
 func (ts TaskStudent) String() string {

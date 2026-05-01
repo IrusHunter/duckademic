@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/IrusHunter/duckademic/services/course/entities"
 	"github.com/IrusHunter/duckademic/services/course/repositories"
@@ -16,12 +17,14 @@ import (
 
 type StudentCourseService interface {
 	platform.BaseService[entities.StudentCourse]
+	GetCourseProgress(context.Context, uuid.UUID) ([]CourseProgress, error)
 }
 
 func NewStudentCourseService(
 	scr repositories.StudentCourseRepository,
 	sr repositories.StudentRepository,
 	cr repositories.CourseRepository,
+	tsr repositories.TaskStudentRepository,
 ) StudentCourseService {
 	sc := platform.NewServiceConfig(
 		"StudentCourseService",
@@ -30,9 +33,10 @@ func NewStudentCourseService(
 	)
 
 	res := &studentCourseService{
-		repository:        scr,
-		studentRepository: sr,
-		courseRepository:  cr,
+		repository:            scr,
+		studentRepository:     sr,
+		courseRepository:      cr,
+		taskStudentRepository: tsr,
 	}
 
 	res.BaseService = platform.NewBaseService(sc, scr,
@@ -47,10 +51,11 @@ func NewStudentCourseService(
 
 type studentCourseService struct {
 	platform.BaseService[entities.StudentCourse]
-	repository        repositories.StudentCourseRepository
-	studentRepository repositories.StudentRepository
-	courseRepository  repositories.CourseRepository
-	logger            logger.Logger
+	repository            repositories.StudentCourseRepository
+	studentRepository     repositories.StudentRepository
+	courseRepository      repositories.CourseRepository
+	taskStudentRepository repositories.TaskStudentRepository
+	logger                logger.Logger
 }
 
 func (s *studentCourseService) onAddPrepare(
@@ -111,4 +116,100 @@ func (s *studentCourseService) Seed(ctx context.Context) error {
 	)
 
 	return lastError
+}
+
+type CourseProgress struct {
+	ID               uuid.UUID `json:"id"`
+	Name             string    `json:"name"`
+	CompleteRate     float32   `json:"complete_rate"`
+	CompleteAccuracy float32   `json:"complete_accuracy"`
+}
+
+func (s *studentCourseService) GetCourseProgress(ctx context.Context, studentID uuid.UUID) ([]CourseProgress, error) {
+	sem := make(chan struct{}, 5)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	var result []CourseProgress
+	var lastError error
+
+	courses, err := s.repository.GetCoursesForStudent(ctx, studentID)
+	if err != nil {
+		return nil, s.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetCourseProgress",
+			err,
+			logger.ServiceRepositoryFailed,
+		)
+	}
+
+	for _, course := range courses {
+		wg.Add(1)
+		sem <- struct{}{}
+
+		go func(course entities.Course) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			taskStudents, err := s.taskStudentRepository.GetTasksForStudentInCourse(
+				ctx,
+				studentID,
+				course.ID,
+			)
+			if err != nil {
+				mu.Lock()
+				lastError = s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"GetCourseProgress",
+					err,
+					logger.ServiceRepositoryFailed,
+				)
+				mu.Unlock()
+				return
+			}
+
+			totalTasks := len(taskStudents)
+			if totalTasks == 0 {
+				return
+			}
+
+			var completed int
+			var accuracy float32
+			var graded int
+
+			taskMap := make(map[uuid.UUID]entities.TaskStudent)
+			for _, ts := range taskStudents {
+				taskMap[ts.TaskID] = ts
+
+				if ts.SubmissionTime != nil {
+					completed++
+				}
+
+				if ts.Mark != nil {
+					accuracy = (accuracy*float32(graded) + float32(*ts.Mark)/float32(ts.Task.MaxMark)) / float32(graded+1)
+					graded++
+				}
+			}
+
+			progress := CourseProgress{
+				ID:               course.ID,
+				Name:             course.Name,
+				CompleteRate:     float32(completed) / float32(totalTasks),
+				CompleteAccuracy: accuracy,
+			}
+
+			mu.Lock()
+			result = append(result, progress)
+			mu.Unlock()
+
+		}(course)
+	}
+
+	wg.Wait()
+
+	if lastError != nil {
+		return result, lastError
+	}
+
+	return result, nil
 }

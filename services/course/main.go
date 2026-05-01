@@ -54,7 +54,8 @@ func main() {
 	studentService := services.NewStudentService(studentRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
 	courseService := services.NewCourseService(courseRepository, teacherRepository, eventBus)
-	studentCourseService := services.NewStudentCourseService(studentCourseRepository, studentRepository, courseRepository)
+	studentCourseService := services.NewStudentCourseService(studentCourseRepository, studentRepository, courseRepository,
+		taskStudentRepository)
 	teacherCourseService := services.NewTeacherCourseService(teacherCourseRepository, teacherRepository, courseRepository)
 	taskService := services.NewTaskService(taskRepository, courseRepository)
 	taskStudentService := services.NewTaskStudentService(taskStudentRepository, taskRepository, studentRepository)

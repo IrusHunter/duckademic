@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/IrusHunter/duckademic/services/course/entities"
 	"github.com/IrusHunter/duckademic/services/course/repositories"
@@ -59,11 +60,11 @@ func (s *taskService) onAddPrepare(ctx context.Context, t *entities.Task) error 
 
 func (s *taskService) Seed(ctx context.Context) error {
 	type seedItem struct {
-		CourseName  string  `json:"course_name"`
-		Title       string  `json:"title"`
-		Description string  `json:"description"`
-		MaxMark     float64 `json:"max_mark"`
-		Deadline    string  `json:"deadline"`
+		CourseName  string    `json:"course_name"`
+		Title       string    `json:"title"`
+		Description string    `json:"description"`
+		MaxMark     float64   `json:"max_mark"`
+		Deadline    time.Time `json:"deadline"`
 	}
 
 	var items []seedItem
@@ -91,6 +92,7 @@ func (s *taskService) Seed(ctx context.Context) error {
 			Title:       item.Title,
 			Description: item.Description,
 			MaxMark:     item.MaxMark,
+			Deadline:    item.Deadline,
 		}
 
 		_, err := s.Add(ctx, task)

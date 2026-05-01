@@ -105,6 +105,13 @@ func (ra *restapi) Run(port int) error {
 		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Delete, []string{"course.task_student"}),
 	})
 
+	ra.NewRoute("/get-upcoming-events", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.GetUpcomingEvents, []string{}),
+	})
+	ra.NewRoute("/get-courses-progress", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.studentCourseHandler.GetCourseProgress, []string{}),
+	})
+
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.Seed)(r.Context(), w, r)
 	})
