@@ -59,12 +59,7 @@
   - Generation Pipeline
     - [/init](#schedule-generator-init)
     - [/submit-and-go](#schedule-generator-submit-and-go)
-    - [/generate-days-for-lesson-types](#schedule-generator-generate-days-for-lesson-types)
-    - [/generate-bone-lessons](#schedule-generator-generate-bone-lessons)
-    - [/assign-classrooms-to-bone-lessons](#schedule-generator-assign-classrooms-to-bone-lessons)
-    - [/build-schedule-skeleton](#schedule-generator-build-schedule-skeleton)
-    - [/add-floating-lessons](#schedule-generator-add-floating-lessons)
-    - [/assign-classrooms-to-floating-lessons](#schedule-generator-assign-classrooms-to-floating-lessons)
+    - [/process-step](#schedule-generator-process-step)
     - [/get-study-loads](#schedule-generator-get-study-loads)
     - [/get-lessons](#schedule-generator-get-lessons)
     - [/get-fault](#schedule-generator-get-fault)
@@ -769,67 +764,29 @@
 
 ### ANY – submit changes and go to the next generating step
 
-200 OK
+```json
+{
+  "ignore_warnings": "bool (set to true to skip incomplete steps)"
+}
+```
+
+204 NO CONTENT
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
-<a id="schedule-generator-generate-days-for-lesson-types"></a>
+<a id="schedule-generator-process-step"></a>
 
-## /generate-days-for-lesson-types
+## /process-step
 
-### ANY – generate day binding in student group for lesson types
+### POST – process the step using selected method (algorithm)
 
-200 OK [=> DaysForLessonTypes](schemas.md#schedule-generator-days-for-lesson-types)
+```json
+{
+  "method": "string (name of the algorithm used to process this step)"
+}
+```
 
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-<a id="schedule-generator-generate-bone-lessons"></a>
-
-## /generate-bone-lesson
-
-### ANY – generate lessons for all study loads, but within the week
-
-200 OK [=> BoneLessons](schemas.md#schedule-generator-bone-lessons)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-<a id="schedule-generator-assign-classrooms-to-bone-lessons"></a>
-
-## /assign-classrooms-to-bone-lessons
-
-### ANY – assign all available classrooms to bone lessons
-
-200 OK [=> BoneLessonsWithC](schemas.md#schedule-generator-bone-lessons-with-c)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-<a id="schedule-generator-build-schedule-skeleton"></a>
-
-## /build-schedule-skeleton
-
-### ANY – distribute all bone lessons across the full schedule
-
-200 OK [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-<a id="schedule-generator-add-floating-lessons"></a>
-
-## /add-floating-lessons
-
-### ANY – adds missing lessons from all study loads as floating lessons
-
-200 OK [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
-
-400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
-
-<a id="schedule-generator-assign-classrooms-to-floating-lessons"></a>
-
-## /assign-classrooms-to-floating-lessons
-
-### ANY – assign all available classrooms to floating lessons
-
-200 OK [=> GeneratedLessonsWithC](schemas.md#schedule-generator-generated-lessons-with-c)
+200 OK => one of the responses (see [schedule_generator_pipeline.mg](schedule_generator_pipeline.mg) for details)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

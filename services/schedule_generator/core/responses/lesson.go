@@ -1,6 +1,7 @@
 package responses
 
 import (
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/google/uuid"
 )
 
@@ -12,4 +13,27 @@ type Lesson struct {
 	Slot           int        `json:"slot"`
 	Day            int        `json:"day"`
 	ClassroomID    *uuid.UUID `json:"classroom_id,omitempty"`
+}
+
+func FormLessons(lessons []*entities.Lesson) []Lesson {
+	result := make([]Lesson, 0, len(lessons))
+
+	for _, lesson := range lessons {
+		result = append(result, Lesson{
+			ID:             lesson.ID,
+			StudyLoadID:    lesson.StudyLoad.ID,
+			TeacherID:      lesson.Teacher.ID,
+			StudentGroupID: lesson.StudentGroup.ID,
+			Slot:           lesson.Slot,
+			Day:            lesson.Day,
+			ClassroomID: func(c *entities.Classroom) *uuid.UUID {
+				if c == nil {
+					return nil
+				}
+				return &c.ID
+			}(lesson.Classroom),
+		})
+	}
+
+	return result
 }

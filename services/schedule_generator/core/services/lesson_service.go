@@ -19,15 +19,15 @@ type LessonService interface {
 	// TODO: collect bone lessons in another structure.
 	GetWeekLessons(int) []*entities.Lesson
 	// Returns the number of lessons that do not have an assigned classroom.
-	CountLessonsWithoutClassroom([]*entities.Lesson) int
+	CountLessonsWithoutClassroom() int
 	Select() *LessonSelector
 }
 
 // NewLessonService creates a new LessonService basic instance.
 //
 // Returns an error if the lesson value is below or equal to zero.
-func NewLessonService() (LessonService, error) {
-	return &lessonService{}, nil
+func NewLessonService(lessons []*entities.Lesson) LessonService {
+	return &lessonService{lessons: lessons}
 }
 
 // lessonService is the basic implementation of the LessonService interface.
@@ -96,8 +96,8 @@ func (ls *lessonService) MoveLessonTo(lesson *entities.Lesson, to entities.Lesso
 	lesson.MoveLessonTo(to)
 	return nil
 }
-func (ls *lessonService) CountLessonsWithoutClassroom(l []*entities.Lesson) (result int) {
-	for _, lesson := range l {
+func (ls *lessonService) CountLessonsWithoutClassroom() (result int) {
+	for _, lesson := range ls.lessons {
 		if lesson.Classroom == nil {
 			result++
 		}

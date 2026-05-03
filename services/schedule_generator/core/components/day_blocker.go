@@ -8,27 +8,14 @@ import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 )
 
-// DayBlocker selects days for student groups
-type DayBlocker interface {
-	// Basic interface for generator component
-	GeneratorComponent[responses.LessonTypeDayDebt, *SetDayTypeError]
-	// Add a SetDayTypeError to ErrorService if at not enough days per group
-	SetDayTypes()
-}
-
 // NewDayBlocker creates a DayBlocker instance.
-// It requires an ErrorService and a list of student groups.
-func NewDayBlocker(
-	sg []*entities.StudentGroup,
-	es ErrorService[responses.LessonTypeDayDebt, *SetDayTypeError],
-	w int, lfr float64,
-) DayBlocker {
+// It requires week count and lesson fill rate that defines how much space has slot for one lesson.
+func NewDayBlocker(w int, lfr float64) WeekdayAllocator {
 	db := dayBlocker{
-		errorService:   es,
+		errorService:   NewErrorService[responses.LessonTypeDayDebt, *SetDayTypeError](),
 		weekCount:      w,
 		lessonFillRate: lfr,
 	}
-	db.setGroupExtensions(sg)
 
 	return &db
 }
@@ -66,7 +53,9 @@ type dayBlocker struct {
 	lessonFillRate  float64
 }
 
-func (db *dayBlocker) SetDayTypes() {
+func (db *dayBlocker) Run(sg []*entities.StudentGroup) []responses.LessonTypeDayDebt {
+	db.setGroupExtensions(sg)
+
 	mainDayBlocked := make([]int, 7)
 
 	for len(db.groupExtensions) != 0 {
@@ -128,13 +117,11 @@ func (db *dayBlocker) SetDayTypes() {
 			}
 		}
 	}
-}
 
-func (db *dayBlocker) GetErrorService() ErrorService[responses.LessonTypeDayDebt, *SetDayTypeError] {
-	return db.errorService
+	return db.errorService.GetGeneratorResponseErrors()
 }
-func (db *dayBlocker) Run() {
-	db.SetDayTypes()
+func (db *dayBlocker) GetComponentIdentifier() ComponentIdentifier {
+	return EvenWeekdayAllocatorID
 }
 
 func (db *dayBlocker) setGroupExtensions(studentGroups []*entities.StudentGroup) {

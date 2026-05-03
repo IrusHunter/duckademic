@@ -5,34 +5,19 @@ import (
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 )
 
-// MissingLessonsAdder adds missing lessons to the first available day
-// in both the teacher's and the student group's schedules.
-type MissingLessonsAdder interface {
-	GeneratorComponent[responses.UnassignedLesson, *MissingLessonsAdderError] // Basic interface for generator component
-	AddMissingLessons()                                                       // Add a MissingLessonsAdderError to ErrorService
-}
-
 // NewMissingLessonAdder creates a MissingLessonsAdder instance.
-// It requires an ErrorService, a list of study loads and a LessonService.
-func NewMissingLessonAdder(
-	es ErrorService[responses.UnassignedLesson, *MissingLessonsAdderError],
-	l []*entities.StudyLoad,
-	ls services.LessonService,
-) MissingLessonsAdder {
-	return &missingLessonsAdder{errorService: es, loads: l, lessonService: ls}
+func NewMissingLessonAdder() TimeSlotAssigner {
+	return &missingLessonsAdder{errorService: NewErrorService[responses.UnassignedLesson, *MissingLessonsAdderError]()}
 }
 
 type missingLessonsAdder struct {
-	errorService  ErrorService[responses.UnassignedLesson, *MissingLessonsAdderError]
-	loads         []*entities.StudyLoad
-	lessonService services.LessonService
+	errorService ErrorService[responses.UnassignedLesson, *MissingLessonsAdderError]
 }
 
-func (ma *missingLessonsAdder) AddMissingLessons() {
-	for _, load := range ma.loads {
+func (ma *missingLessonsAdder) Run(input TimeSlotAssignerInput) []responses.UnassignedLesson {
+	for _, load := range input.StudyLoads {
 		teacher := load.Teacher
 		studentGroup := load.StudentGroup
 		lessonType := load.Type
@@ -53,7 +38,7 @@ func (ma *missingLessonsAdder) AddMissingLessons() {
 					Day:  currentDay,
 					Slot: i,
 				}
-				err := ma.lessonService.AssignLesson(load, slot)
+				err := input.LessonService.AssignLesson(load, slot)
 				if err == nil {
 					currentDay -= currentDay%7 - 6
 					break
@@ -75,15 +60,10 @@ func (ma *missingLessonsAdder) AddMissingLessons() {
 		}
 	}
 
+	return ma.errorService.GetGeneratorResponseErrors()
 }
-
-// Redirect to AddMissingLessons function
-func (ma *missingLessonsAdder) Run() {
-	ma.AddMissingLessons()
-}
-
-func (ma *missingLessonsAdder) GetErrorService() ErrorService[responses.UnassignedLesson, *MissingLessonsAdderError] {
-	return ma.errorService
+func (ma *missingLessonsAdder) GetComponentIdentifier() ComponentIdentifier {
+	return BruteTimeSlotAssignerID
 }
 
 // MissingLessonsAdderError indicates that the MissingLessonsAdder failed to

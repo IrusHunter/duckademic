@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/components"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/services"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
@@ -25,12 +26,7 @@ type ScheduleGeneratorHandler interface {
 	SetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
 	SetClassrooms(context.Context, http.ResponseWriter, *http.Request)
 	SubmitAndGoToTheNextStep(context.Context, http.ResponseWriter, *http.Request)
-	SetDaysForLessonTypes(context.Context, http.ResponseWriter, *http.Request)
-	GenerateBoneLessons(context.Context, http.ResponseWriter, *http.Request)
-	AssignClassroomsToBoneLessons(context.Context, http.ResponseWriter, *http.Request)
-	BuildScheduleSkeleton(context.Context, http.ResponseWriter, *http.Request)
-	AddFloatingLessons(context.Context, http.ResponseWriter, *http.Request)
-	AssignClassroomsToFloatingLessons(context.Context, http.ResponseWriter, *http.Request)
+	ProcessStep(context.Context, http.ResponseWriter, *http.Request)
 	GetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
 	GetLessons(context.Context, http.ResponseWriter, *http.Request)
 	GetFault(context.Context, http.ResponseWriter, *http.Request)
@@ -90,7 +86,6 @@ func (h *scheduleGeneratorHandler) CreateGenerator(ctx context.Context, w http.R
 
 	jsonutil.ResponseWithJSON(w, 201, nil)
 }
-
 func (h *scheduleGeneratorHandler) GetDefaultConfig(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	cfg, err := h.generatorConfigService.GetDefaultGeneratorConfig(ctx)
 	if err != nil {
@@ -409,83 +404,97 @@ func (h *scheduleGeneratorHandler) SetClassrooms(ctx context.Context, w http.Res
 		map[string]any{"message": fmt.Sprintf("%d classrooms assigned", len(classrooms))},
 	)
 }
+
 func (h *scheduleGeneratorHandler) SubmitAndGoToTheNextStep(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	h.execute(
-		ctx,
-		w,
-		"submit_and_go_to_the_next_step",
-		func() (any, error) {
-			return h.generator.SubmitAndGoToTheNextStep()
-		},
-		"SetDaysForLessonTypes",
-	)
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"SubmitAndGoToTheNextStep",
+				fmt.Errorf("generator wasn't initialized"),
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	body := struct {
+		IgnoreWarnings bool `json:"ignore_warnings"`
+	}{}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"SubmitAndGoToTheNextStep",
+				fmt.Errorf("failed to decode body: %w", err),
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	err := h.generator.SubmitAndGoToTheNextStep(body.IgnoreWarnings)
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"SubmitAndGoToTheNextStep",
+				err,
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 204, nil)
+
 }
-func (h *scheduleGeneratorHandler) SetDaysForLessonTypes(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	h.execute(
-		ctx,
-		w,
-		"set_days_for_lesson_types",
-		func() (any, error) {
-			return h.generator.SetDaysForLessonTypes()
-		},
-		"SetDaysForLessonTypes",
-	)
+func (h *scheduleGeneratorHandler) ProcessStep(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"ProcessStep",
+				fmt.Errorf("generator wasn't initialized"),
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	body := struct {
+		Method string `json:"method"`
+	}{}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"ProcessStep",
+				fmt.Errorf("failed to decode body: %w", err),
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	resp, err := h.generator.ProcessStep(components.ComponentIdentifier(body.Method), nil)
+	if err != nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"ProcessStep",
+				err,
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 200, resp)
 }
-func (h *scheduleGeneratorHandler) GenerateBoneLessons(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	h.execute(
-		ctx,
-		w,
-		"generate_bone_lessons",
-		func() (any, error) {
-			return h.generator.GenerateBoneLessons()
-		},
-		"SetDaysForLessonTypes",
-	)
-}
-func (h *scheduleGeneratorHandler) AssignClassroomsToBoneLessons(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	h.execute(
-		ctx,
-		w,
-		"assign_classrooms_to_bone_lessons",
-		func() (any, error) {
-			return h.generator.AssignClassroomsToBoneLessons()
-		},
-		"AssignClassroomsToBoneLessons",
-	)
-}
-func (h *scheduleGeneratorHandler) BuildScheduleSkeleton(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	h.execute(
-		ctx,
-		w,
-		"build_lesson_skeleton",
-		func() (any, error) {
-			return h.generator.BuildScheduleSkeleton()
-		},
-		"BuildLessonSkeleton",
-	)
-}
-func (h *scheduleGeneratorHandler) AddFloatingLessons(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	h.execute(
-		ctx,
-		w,
-		"add_floating_lessons",
-		func() (any, error) {
-			return h.generator.AddFloatingLessons()
-		},
-		"AddFloatingLessons",
-	)
-}
-func (h *scheduleGeneratorHandler) AssignClassroomsToFloatingLessons(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	h.execute(
-		ctx,
-		w,
-		"assign_classrooms_to_floating_lessons",
-		func() (any, error) {
-			return h.generator.AssignClassroomsToFloatingLessons()
-		},
-		"AssignClassroomsToFloatingLessons",
-	)
-}
+
 func (h *scheduleGeneratorHandler) GetStudyLoads(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	h.execute(
 		ctx,

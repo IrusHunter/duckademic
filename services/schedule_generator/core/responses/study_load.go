@@ -1,6 +1,9 @@
 package responses
 
-import "github.com/google/uuid"
+import (
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/google/uuid"
+)
 
 type StudyLoad struct {
 	ID               uuid.UUID `json:"id"`
@@ -12,4 +15,24 @@ type StudyLoad struct {
 	DisciplineName   string    `json:"discipline_name"`
 	LessonTypeID     uuid.UUID `json:"lesson_type_id"`
 	LessonTypeName   string    `json:"lesson_type_name"`
+}
+
+func FormStudyLoads(studyLoads []*entities.StudyLoad) []StudyLoad {
+	result := make([]StudyLoad, 0, len(studyLoads))
+
+	for _, studyLoad := range studyLoads {
+		result = append(result, StudyLoad{
+			ID:               studyLoad.ID,
+			TeacherID:        studyLoad.Teacher.ID,
+			TeacherName:      studyLoad.Teacher.UserName,
+			StudentGroupID:   studyLoad.StudentGroup.ID,
+			StudentGroupName: studyLoad.StudentGroup.Name,
+			DisciplineID:     studyLoad.Discipline.ID,
+			DisciplineName:   studyLoad.Discipline.Name,
+			LessonTypeID:     studyLoad.Type.ID,
+			LessonTypeName:   studyLoad.Type.Name,
+		})
+	}
+
+	return result
 }

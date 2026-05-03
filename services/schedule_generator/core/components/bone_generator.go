@@ -5,38 +5,21 @@ import (
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 )
 
-// BoneGenerator creates the initial weekly lesson structure (“bone week”)
-// by allocating lesson slots for groups and teachers in the first week.
-type BoneGenerator interface {
-	GeneratorComponent[responses.UnassignedLesson, *BoneWeekError] // Basic interface for generator component
-	GenerateBoneLessons()                                          // Add a BoneWeekError to ErrorService if at not enough space at bone week
-}
-
-// NewBoneGenerator creates a BoneGenerator instance.
-//
-// It requires the ErrorService, the list of study loads, and the LessonService.
-func NewBoneGenerator(
-	es ErrorService[responses.UnassignedLesson, *BoneWeekError],
-	l []*entities.StudyLoad,
-	ls services.LessonService,
-) BoneGenerator {
-	return &boneGenerator{errorService: es, loads: l, lessonService: ls}
+func NewBoneGenerator() TimeSlotAssigner {
+	return &boneGenerator{errorService: NewErrorService[responses.UnassignedLesson, *BoneWeekError]()}
 }
 
 type boneGenerator struct {
-	errorService  ErrorService[responses.UnassignedLesson, *BoneWeekError]
-	loads         []*entities.StudyLoad
-	lessonService services.LessonService
+	errorService ErrorService[responses.UnassignedLesson, *BoneWeekError]
 }
 
 // GenerateBoneLessons allocates lesson slots for the bone week.
 // Uses brute force method, starts with teachers, then discipline and student groups,
 // then free slots for lesson type.
-func (bg *boneGenerator) GenerateBoneLessons() {
-	for _, load := range bg.loads {
+func (bg *boneGenerator) Run(input TimeSlotAssignerInput) []responses.UnassignedLesson {
+	for _, load := range input.StudyLoads {
 		teacher := load.Teacher
 		studentGroup := load.StudentGroup
 		lessonType := load.Type
@@ -59,7 +42,7 @@ func (bg *boneGenerator) GenerateBoneLessons() {
 
 			if lessonSlot != -1 {
 				slot := entities.LessonSlot{Day: day, Slot: lessonSlot}
-				err := bg.lessonService.AssignLesson(load, slot)
+				err := input.LessonService.AssignLesson(load, slot)
 				if err != nil {
 					NewUnexpectedError("slot is busy but algorithm determined it as free",
 						"boneGenerator", "GenerateBoneLessons", &FalseFreeSlotError{
@@ -74,14 +57,10 @@ func (bg *boneGenerator) GenerateBoneLessons() {
 		}
 
 	}
+	return bg.errorService.GetGeneratorResponseErrors()
 }
-
-// Redirect to GenerateBoneLessons function
-func (bg *boneGenerator) Run() {
-	bg.GenerateBoneLessons()
-}
-func (bg *boneGenerator) GetErrorService() ErrorService[responses.UnassignedLesson, *BoneWeekError] {
-	return bg.errorService
+func (bg *boneGenerator) GetComponentIdentifier() ComponentIdentifier {
+	return OnePerWeekTimeSlotAssignerID
 }
 
 // ==========================================================================================================

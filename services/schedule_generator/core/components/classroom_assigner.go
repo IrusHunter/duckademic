@@ -8,40 +8,13 @@ import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 )
 
-// ClassroomAssigner handles assigning classrooms to lessons within the schedule generator..
-type ClassroomAssigner interface {
-	GeneratorComponent[responses.LessonWithoutClassroom, *ClassroomAssignError] // Basic interface for generator component.
-	AssignClassrooms()                                                          // Performs the classroom assignment process.
-	CheckAvailability() error                                                   // Validates that classrooms can be assigned to all lessons.
-}
-
 // NewClassroomAssigner creates a new ClassroomAssigner instance that uses the Munkres
 // assignment algorithm (Hungarian algorithm) to assign classrooms to lessons.
-//
-// It requires a slice of classrooms (c), a slice of lessons (l),
-// and an error service (es).
-func NewClassroomAssigner(
-	c []*entities.Classroom,
-	l []*entities.Lesson,
-	es ErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError],
-) ClassroomAssigner {
-	lessons := make(map[entities.LessonSlot][]*entities.Lesson, 0)
-	for _, lesson := range l {
-		lessons[lesson.LessonSlot] = append(lessons[lesson.LessonSlot], lesson)
-	}
-
-	slotsOrder := make([]entities.LessonSlot, 0, len(lessons))
-	for slot := range lessons {
-		slotsOrder = append(slotsOrder, slot)
-	}
-
+func NewClassroomAssigner() ClassroomAssigner {
 	return &classroomAssigner{
-		classrooms:   c,
-		lessons:      lessons,
-		errorService: es,
+		errorService: NewErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError](),
 		fault:        float32(0.000_000_1),
 		maxValue:     1_000_000_000_000_000,
-		slotsOrder:   slotsOrder,
 	}
 }
 
@@ -58,7 +31,10 @@ type classroomAssigner struct {
 	slotsOrder           []entities.LessonSlot
 }
 
-func (ca *classroomAssigner) AssignClassrooms() {
+func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.LessonWithoutClassroom {
+	ca.setLessons(input.Lessons)
+	ca.classrooms = input.Classrooms
+
 	n := ca.getN()
 	for _, slot := range ca.slotsOrder {
 		lessons := ca.lessons[slot]
@@ -68,7 +44,7 @@ func (ca *classroomAssigner) AssignClassrooms() {
 				"ClassroomAssigner", "AssignClassrooms",
 				fmt.Errorf("classes: %d, lessons: %d, slot: %s", n, len(lessons), slot.String()),
 			)
-			return
+			continue
 		}
 
 		ca.matrix = make([][]float32, 0, n)
@@ -234,14 +210,16 @@ func (ca *classroomAssigner) AssignClassrooms() {
 			}
 		}
 	}
+
+	return ca.errorService.GetGeneratorResponseErrors()
 }
-func (ca *classroomAssigner) Run() {
-	ca.AssignClassrooms()
+func (ca *classroomAssigner) GetComponentIdentifier() ComponentIdentifier {
+	return MunkresClassroomAssignerID
 }
-func (ca *classroomAssigner) GetErrorService() ErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError] {
-	return ca.errorService
-}
-func (ca *classroomAssigner) CheckAvailability() error {
+func (ca *classroomAssigner) CheckAvailability(input ClassroomAssignerInput) error {
+	ca.setLessons(input.Lessons)
+	ca.classrooms = input.Classrooms
+
 	n := ca.getN()
 	for slot, lessons := range ca.lessons {
 		if len(lessons) > n {
@@ -252,6 +230,20 @@ func (ca *classroomAssigner) CheckAvailability() error {
 	return nil
 }
 
+func (ca *classroomAssigner) setLessons(lessons []*entities.Lesson) {
+	lm := make(map[entities.LessonSlot][]*entities.Lesson, 0)
+	for _, lesson := range lessons {
+		lm[lesson.LessonSlot] = append(lm[lesson.LessonSlot], lesson)
+	}
+
+	slotsOrder := make([]entities.LessonSlot, 0, len(lessons))
+	for slot := range lm {
+		slotsOrder = append(slotsOrder, slot)
+	}
+
+	ca.lessons = lm
+	ca.slotsOrder = slotsOrder
+}
 func (ca *classroomAssigner) resetBusynessOfClassrooms() {
 	ca.busynessOfClassrooms = make([]int, ca.getN())
 	for i := range ca.busynessOfClassrooms {
