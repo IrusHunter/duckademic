@@ -2,16 +2,21 @@ package services
 
 import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	"github.com/google/uuid"
 )
 
 // ClassroomService aggregates and manages classrooms that the generator works with.
 type ClassroomService interface {
-	GetAll() []*entities.Classroom      // Returns a slice with all classrooms as pointers.
-	Find(uuid.UUID) *entities.Classroom // Returns a pointer to the classroom with the given ID.
-	CountOverflowLessons() int          // Returns the number of lessons that exceed the classrooms capacity.
-	CountLessonOverlapping() int        // Returns the count of overlapping lessons.
+	// Returns a slice with all classrooms as pointers.
+	GetAll() []*entities.Classroom
+	// Returns a pointer to the classroom with the given ID.
+	Find(uuid.UUID) *entities.Classroom
+	// Returns the lessons that exceed the classrooms capacity and the sum of them.
+	GetOverflowLessons() ([]responses.ClassroomOverflow, int)
+	// Returns the overlapping lessons and the sum of it.
+	GetLessonOverlapping() ([]responses.ClassroomLessonOverlap, int)
 }
 
 // NewClassroomService creates a new ClassroomService basic instance.
@@ -49,15 +54,39 @@ func (s *classroomService) Find(classroomID uuid.UUID) *entities.Classroom {
 
 	return nil
 }
-func (s *classroomService) CountOverflowLessons() (result int) {
+func (s *classroomService) GetOverflowLessons() (res []responses.ClassroomOverflow, count int) {
+	res = []responses.ClassroomOverflow{}
+
 	for _, classroom := range s.classrooms {
-		result += classroom.CountOverflowLessons()
+		l := classroom.GetOverflowLessons()
+		if len(l) != 0 {
+			count += len(l)
+			res = append(res, responses.ClassroomOverflow{
+				CommonEntity: responses.FormCommonEntity(classroom.ID, classroom.RoomNumber),
+				Overflows:    responses.FormClassroomOverflowItems(l),
+				Capacity:     classroom.GetMaximumCapacity(),
+			})
+		}
 	}
+
 	return
 }
-func (s *classroomService) CountLessonOverlapping() (result int) {
+func (s *classroomService) GetLessonOverlapping() (res []responses.ClassroomLessonOverlap, count int) {
+	res = []responses.ClassroomLessonOverlap{}
+
 	for _, classroom := range s.classrooms {
-		result += classroom.CountLessonOverlapping()
+		lo := classroom.GetLessonOverlapping()
+		if len(lo) != 0 {
+			count += len(lo)
+			res = append(res, responses.ClassroomLessonOverlap{
+				CommonEntity: responses.CommonEntity{
+					ID:   classroom.ID,
+					Name: classroom.RoomNumber,
+				},
+				OverlapLessons: responses.FormTimeSlots(lo),
+			})
+		}
 	}
+
 	return
 }

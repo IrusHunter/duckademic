@@ -67,9 +67,8 @@ func (t *Teacher) CheckLesson(lesson *Lesson) error {
 	return nil
 }
 
-// CountLessonOverlapping returns the count of overlapping lessons. Counts only lessons that overlap.
-func (t *Teacher) CountLessonOverlapping() int {
-	return t.BusyGrid.CountLessonOverlapping(t.GetAssignedLessons())
+func (t *Teacher) GetLessonOverlapping() []LessonSlot {
+	return t.BusyGrid.GetLessonOverlapping(t.GetAssignedLessons())
 }
 
 // CalculateClassValueFor returns own value for a classroom.

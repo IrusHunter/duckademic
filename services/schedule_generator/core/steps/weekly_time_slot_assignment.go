@@ -30,7 +30,7 @@ func (s *weeklyTimeSlotAssignmentStep) GetNextStep(c *GeneratorContext) Pipeline
 	return NewWeeklyClassroomAssignmentStep(c)
 }
 func (s *weeklyTimeSlotAssignmentStep) CanGoToTheNextStep() error {
-	if hoursDept := s.studyLoads.CountHoursDeficit(); hoursDept != 0 {
+	if _, hoursDept := s.studyLoads.GetHoursDeficit(); hoursDept != 0 {
 		return fmt.Errorf("%d study loads haven't assigned week lesson", hoursDept)
 	}
 

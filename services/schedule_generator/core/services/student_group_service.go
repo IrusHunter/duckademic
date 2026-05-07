@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 
 	"github.com/google/uuid"
@@ -11,13 +12,18 @@ import (
 
 // StudentGroupService aggregates and manages student groups that the generator works with.
 type StudentGroupService interface {
-	Find(uuid.UUID) *entities.StudentGroup // Returns a pointer to the student group with the given ID.
-	GetAll() []*entities.StudentGroup      // Returns a slice with all student groups as pointers.
-	CountWindows() int                     // Returns the sum of windows (gaps between busy slots).
-	CountLessonOverlapping() int           // Returns the count of overlapping lessons.
-	CountOvertimeLessons() int             // Returns the total number of overtime lessons (above the daily limit).
-	// Returns the total number of lesson scheduled on days that are not allowed for their type.
-	CountInvalidLessonsByType() int
+	// Returns a pointer to the student group with the given ID.
+	Find(uuid.UUID) *entities.StudentGroup
+	// Returns a slice with all student groups as pointers.
+	GetAll() []*entities.StudentGroup
+	// Returns windows (gaps between busy slots) and the sum of it.
+	GetWindows() ([]responses.StudentGroupWindow, int)
+	// Returns the overlapping lessons and the sum of it.
+	GetLessonOverlapping() ([]responses.StudentGroupLessonOverlap, int)
+	// Returns the overtime lessons (above the daily limit) and the sum of it.
+	GetOvertimeLessons() ([]responses.StudentGroupOvertimeLesson, int)
+	// Returns the lessons scheduled on days that are not allowed for their type, and the sum of them.
+	GetInvalidLessonsByType() ([]responses.StudentGroupInvalidLesson, int)
 	UnbindWeeks() // Clears week binding of student groups.
 }
 
@@ -79,29 +85,72 @@ func (sgs *studentGroupService) Find(id uuid.UUID) *entities.StudentGroup {
 
 	return nil
 }
-func (sgs *studentGroupService) CountWindows() (count int) {
+func (sgs *studentGroupService) GetWindows() (res []responses.StudentGroupWindow, count int) {
+	res = []responses.StudentGroupWindow{}
 	for _, g := range sgs.studentGroups {
-		count += g.CountWindows()
+		windows := g.GetWindows()
+		if len(windows) != 0 {
+			count += len(windows)
+			res = append(res, responses.StudentGroupWindow{
+				CommonEntity: responses.CommonEntity{
+					ID:   g.ID,
+					Name: g.Name,
+				},
+				Windows: responses.FormTimeSlots(windows),
+			})
+		}
 	}
 	return
 }
-func (sgs *studentGroupService) CountLessonOverlapping() (count int) {
+func (sgs *studentGroupService) GetLessonOverlapping() (res []responses.StudentGroupLessonOverlap, count int) {
+	res = []responses.StudentGroupLessonOverlap{}
+
 	for _, studentGroup := range sgs.studentGroups {
-		count += studentGroup.CountLessonOverlapping(studentGroup.GetAssignedLessons())
+		lo := studentGroup.GetLessonOverlapping()
+		if len(lo) != 0 {
+			count += len(lo)
+			res = append(res, responses.StudentGroupLessonOverlap{
+				CommonEntity: responses.CommonEntity{
+					ID:   studentGroup.ID,
+					Name: studentGroup.Name,
+				},
+				OverlapLessons: responses.FormTimeSlots(lo),
+			})
+		}
 	}
 
 	return
 }
-func (sgs *studentGroupService) CountOvertimeLessons() (count int) {
+func (sgs *studentGroupService) GetOvertimeLessons() (res []responses.StudentGroupOvertimeLesson, count int) {
+	res = []responses.StudentGroupOvertimeLesson{}
+
 	for _, sg := range sgs.studentGroups {
-		count += sg.CountOvertimeLessons()
+		days := sg.GetOvertimeLessons()
+		if len(days) != 0 {
+			count += len(days)
+			res = append(res, responses.StudentGroupOvertimeLesson{
+				CommonEntity: responses.FormCommonEntity(sg.ID, sg.Name),
+				OvertimeDays: days,
+			})
+		}
 	}
+
 	return
 }
-func (sgs *studentGroupService) CountInvalidLessonsByType() (count int) {
+func (sgs *studentGroupService) GetInvalidLessonsByType() (res []responses.StudentGroupInvalidLesson, count int) {
+	res = []responses.StudentGroupInvalidLesson{}
+
 	for _, sg := range sgs.studentGroups {
-		count += sg.CountInvalidLessonsByType()
+		il := sg.GetInvalidLessonsByType()
+		if len(il) != 0 {
+			count += len(il)
+			res = append(res, responses.StudentGroupInvalidLesson{
+				CommonEntity:   responses.FormCommonEntity(sg.ID, sg.Name),
+				InvalidLessons: responses.FormInvalidLessonByType(il),
+			})
+		}
 	}
+
 	return
 }
 func (sgs *studentGroupService) UnbindWeeks() {

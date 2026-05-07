@@ -31,7 +31,7 @@ func (s *weeklyClassroomAssignmentStep) GetNextStep(c *GeneratorContext) Pipelin
 	return NewWeeklyScheduleExpansionStep(c)
 }
 func (s *weeklyClassroomAssignmentStep) CanGoToTheNextStep() error {
-	if lessonsWithoutC := s.lessonService.CountLessonsWithoutClassroom(); lessonsWithoutC != 0 {
+	if lessonsWithoutC := len(s.lessonService.GetLessonsWithoutClassroom()); lessonsWithoutC != 0 {
 		return fmt.Errorf("%d lessons haven't classrooms", lessonsWithoutC)
 	}
 

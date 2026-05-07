@@ -2,16 +2,21 @@ package services
 
 import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	"github.com/google/uuid"
 )
 
 // TeacherService aggregates and manages teachers that the generator works with.
 type TeacherService interface {
-	Find(uuid.UUID) *entities.Teacher // Returns a pointer to the teacher with the given ID.
-	GetAll() []*entities.Teacher      // Returns a slice with all teachers as pointers.
-	CountWindows() int                // Returns the sum of windows (gaps between busy slots).
-	CountLessonOverlapping() int      // Returns the count of overlapping lessons.
+	// Returns a pointer to the teacher with the given ID.
+	Find(uuid.UUID) *entities.Teacher
+	// Returns a slice with all teachers as pointers.
+	GetAll() []*entities.Teacher
+	// Returns windows (gaps between busy slots) and the sum of it.
+	GetWindows() ([]responses.TeacherWindow, int)
+	// Returns the overlapping lesson slots and the sum of it.
+	GetLessonOverlapping() ([]responses.TeacherLessonOverlap, int)
 }
 
 // NewTeacherService creates a new TeacherService instance.
@@ -67,15 +72,38 @@ func (ts *teacherService) Find(id uuid.UUID) *entities.Teacher {
 
 	return nil
 }
-func (ts *teacherService) CountWindows() (count int) {
+func (ts *teacherService) GetWindows() (res []responses.TeacherWindow, count int) {
+	res = []responses.TeacherWindow{}
 	for _, t := range ts.teachers {
-		count += t.CountWindows()
+		windows := t.GetWindows()
+		if len(windows) != 0 {
+			count += len(windows)
+			res = append(res, responses.TeacherWindow{
+				CommonEntity: responses.CommonEntity{
+					ID:   t.ID,
+					Name: t.UserName,
+				},
+				Windows: responses.FormTimeSlots(windows),
+			})
+		}
 	}
 	return
 }
-func (ts *teacherService) CountLessonOverlapping() (count int) {
+func (ts *teacherService) GetLessonOverlapping() (res []responses.TeacherLessonOverlap, count int) {
+	res = []responses.TeacherLessonOverlap{}
+
 	for _, teacher := range ts.teachers {
-		count += teacher.CountLessonOverlapping()
+		lo := teacher.GetLessonOverlapping()
+		if len(lo) != 0 {
+			count += len(lo)
+			res = append(res, responses.TeacherLessonOverlap{
+				CommonEntity: responses.CommonEntity{
+					ID:   teacher.ID,
+					Name: teacher.UserName,
+				},
+				OverlapLessons: responses.FormTimeSlots(lo),
+			})
+		}
 	}
 
 	return

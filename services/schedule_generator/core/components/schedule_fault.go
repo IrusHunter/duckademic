@@ -107,7 +107,7 @@ func (sf *scheduleFault) GetResponse() responses.Fault {
 		Value: sf.parameters["student_group_invalid_lessons_by_type"].Fault(),
 	}
 
-	res.LessonsWithoutClassroom = responses.FaultParam[responses.LessonWithoutClassroomF]{
+	res.LessonsWithoutClassroom = responses.FaultParam[responses.GeneratedLesson]{
 		Value: sf.parameters["lessons_without_classroom"].Fault(),
 	}
 

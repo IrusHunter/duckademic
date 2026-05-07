@@ -17,21 +17,25 @@ type StudyLoad struct {
 	LessonTypeName   string    `json:"lesson_type_name"`
 }
 
+func FormStudyLoad(studyLoad *entities.StudyLoad) StudyLoad {
+	return StudyLoad{
+		ID:               studyLoad.ID,
+		TeacherID:        studyLoad.Teacher.ID,
+		TeacherName:      studyLoad.Teacher.UserName,
+		StudentGroupID:   studyLoad.StudentGroup.ID,
+		StudentGroupName: studyLoad.StudentGroup.Name,
+		DisciplineID:     studyLoad.Discipline.ID,
+		DisciplineName:   studyLoad.Discipline.Name,
+		LessonTypeID:     studyLoad.Type.ID,
+		LessonTypeName:   studyLoad.Type.Name,
+	}
+}
+
 func FormStudyLoads(studyLoads []*entities.StudyLoad) []StudyLoad {
 	result := make([]StudyLoad, 0, len(studyLoads))
 
 	for _, studyLoad := range studyLoads {
-		result = append(result, StudyLoad{
-			ID:               studyLoad.ID,
-			TeacherID:        studyLoad.Teacher.ID,
-			TeacherName:      studyLoad.Teacher.UserName,
-			StudentGroupID:   studyLoad.StudentGroup.ID,
-			StudentGroupName: studyLoad.StudentGroup.Name,
-			DisciplineID:     studyLoad.Discipline.ID,
-			DisciplineName:   studyLoad.Discipline.Name,
-			LessonTypeID:     studyLoad.Type.ID,
-			LessonTypeName:   studyLoad.Type.Name,
-		})
+		result = append(result, FormStudyLoad(studyLoad))
 	}
 
 	return result

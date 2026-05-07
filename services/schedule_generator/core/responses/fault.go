@@ -1,18 +1,22 @@
 package responses
 
+import (
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+)
+
 type Fault struct {
 	TotalValue float64 `json:"total_value"`
 
 	TeacherWindows                FaultParam[TeacherWindow]              `json:"teacher_windows"`
 	StudentGroupWindows           FaultParam[StudentGroupWindow]         `json:"student_group_windows"`
-	StudyLoadHoursDeficit         FaultParam[StudyLoadHoursDeficit]      `json:"study_load_hours_deficit"`
 	TeacherLessonOverlapping      FaultParam[TeacherLessonOverlap]       `json:"teacher_lesson_overlapping"`
 	StudentGroupLessonOverlapping FaultParam[StudentGroupLessonOverlap]  `json:"student_group_lesson_overlapping"`
 	ClassroomLessonOverlapping    FaultParam[ClassroomLessonOverlap]     `json:"classroom_lesson_overlapping"`
 	StudentGroupOvertimeLessons   FaultParam[StudentGroupOvertimeLesson] `json:"student_group_overtime_lessons"`
 	StudentGroupInvalidLessons    FaultParam[StudentGroupInvalidLesson]  `json:"student_group_invalid_lessons_by_type"`
-	LessonsWithoutClassroom       FaultParam[LessonWithoutClassroomF]    `json:"lessons_without_classroom"`
+	LessonsWithoutClassroom       FaultParam[GeneratedLesson]            `json:"lessons_without_classroom"`
 	ClassroomWithOverflow         FaultParam[ClassroomOverflow]          `json:"classroom_with_overflow"`
+	StudyLoadHoursDeficit         FaultParam[StudyLoadHoursDeficit]      `json:"study_load_hours_deficit"`
 }
 
 type FaultParam[T any] struct {
@@ -21,67 +25,101 @@ type FaultParam[T any] struct {
 }
 
 type TeacherWindow struct {
-	TeacherID int `json:"teacher_id"`
-	Day       int `json:"day"`
-	StartSlot int `json:"start_slot"`
-	EndSlot   int `json:"end_slot"`
+	CommonEntity
+	Windows []TimeSlot `json:"windows"`
+}
+type StudentGroupWindow struct {
+	CommonEntity
+	Windows []TimeSlot `json:"windows"`
 }
 
 type TeacherLessonOverlap struct {
-	TeacherID int   `json:"teacher_id"`
-	Lessons   []int `json:"lessons"`
-	Day       int   `json:"day"`
-	Slot      int   `json:"slot"`
+	CommonEntity
+	OverlapLessons []TimeSlot `json:"overlap_lessons"`
 }
-
-type StudentGroupWindow struct {
-	GroupID   int `json:"group_id"`
-	Day       int `json:"day"`
-	StartSlot int `json:"start_slot"`
-	EndSlot   int `json:"end_slot"`
-}
-
 type StudentGroupLessonOverlap struct {
-	GroupID int   `json:"group_id"`
-	Lessons []int `json:"lessons"`
-	Day     int   `json:"day"`
-	Slot    int   `json:"slot"`
+	CommonEntity
+	OverlapLessons []TimeSlot `json:"overlap_lessons"`
+}
+type ClassroomLessonOverlap struct {
+	CommonEntity
+	OverlapLessons []TimeSlot `json:"overlap_lessons"`
 }
 
 type StudentGroupOvertimeLesson struct {
-	GroupID  int `json:"group_id"`
-	LessonID int `json:"lesson_id"`
-	Day      int `json:"day"`
-	Slot     int `json:"slot"`
+	CommonEntity
+	OvertimeDays []int `json:"overtime_days"`
 }
 
 type StudentGroupInvalidLesson struct {
-	GroupID  int    `json:"group_id"`
-	LessonID int    `json:"lesson_id"`
-	Type     string `json:"type"`
+	CommonEntity
+	InvalidLessons []InvalidLessonByType `json:"invalid_lessons"`
+}
+
+type InvalidLessonByType struct {
+	TimeSlot
+	LessonType       CommonEntity `json:"lesson_type"`
+	ActualLessonType CommonEntity `json:"actual_lesson_type"`
+}
+
+func FormInvalidLessonByType(ils []entities.InvalidLessonByType) (res []InvalidLessonByType) {
+	for _, il := range ils {
+		res = append(res, InvalidLessonByType{
+			TimeSlot: TimeSlot{
+				Slot: il.Lesson.Slot,
+				Day:  il.Lesson.Day,
+			},
+			LessonType:       FormCommonEntity(il.Lesson.Type.ID, il.Lesson.Type.Name),
+			ActualLessonType: FormCommonEntity(il.ActualLessonType.ID, il.ActualLessonType.Name),
+		})
+	}
+	return
 }
 
 type StudyLoadHoursDeficit struct {
-	GroupID int     `json:"group_id"`
-	Missing float64 `json:"missing_hours"`
-}
-
-type ClassroomLessonOverlap struct {
-	ClassroomID int   `json:"classroom_id"`
-	Lessons     []int `json:"lessons"`
-	Day         int   `json:"day"`
-	Slot        int   `json:"slot"`
+	StudyLoad
+	Missing int `json:"missing_hours"`
 }
 
 type ClassroomOverflow struct {
-	ClassroomID int `json:"classroom_id"`
-	LessonID    int `json:"lesson_id"`
-	Capacity    int `json:"capacity"`
-	Required    int `json:"required"`
+	CommonEntity
+	Overflows []ClassroomOverflowItem `json:"overflows"`
+	Capacity  int                     `json:"capacity"`
 }
 
-type LessonWithoutClassroomF struct {
-	LessonID int `json:"lesson_id"`
-	Day      int `json:"day"`
-	Slot     int `json:"slot"`
+type ClassroomOverflowItem struct {
+	TimeSlot
+	Required int `json:"required"`
+}
+
+func FormClassroomOverflowItems(lessons []*entities.Lesson) []ClassroomOverflowItem {
+	res := make([]ClassroomOverflowItem, 0, len(lessons))
+
+	for _, lesson := range lessons {
+		res = append(res, ClassroomOverflowItem{
+			TimeSlot: TimeSlot{
+				Day:  lesson.Day,
+				Slot: lesson.Slot,
+			},
+			Required: lesson.StudentGroup.StudentNumber,
+		})
+	}
+
+	return res
+}
+
+type TimeSlot struct {
+	Day  int `json:"day"`
+	Slot int `json:"slot"`
+}
+
+func FormTimeSlots(slots []entities.LessonSlot) []TimeSlot {
+	res := make([]TimeSlot, 0, len(slots))
+	for _, slot := range slots {
+		res = append(res, TimeSlot{
+			Slot: slot.Slot,
+			Day:  slot.Day,
+		})
+	}
+	return res
 }

@@ -32,9 +32,13 @@ func NewClassroom(id uuid.UUID, rn string, c int, bg *BusyGrid, fp float32) *Cla
 	}
 }
 
+func (c *Classroom) GetMaximumCapacity() int {
+	return int(float32(c.Capacity) * c.FillPercentage)
+}
+
 // CanAccommodate returns true if the classroom has enough capacity. Otherwise returns false.
 func (c *Classroom) CanAccommodate(number int) bool {
-	return float32(c.Capacity)*c.FillPercentage >= float32(number)
+	return c.GetMaximumCapacity() >= number
 }
 
 // CheckLesson checks if a lesson can be assigned to the classroom. It checks that the classroom has
@@ -67,17 +71,18 @@ func (c *Classroom) AddLesson(lesson *Lesson) error {
 	return nil
 }
 
-// CountOverflowLessons returns the number of lessons that exceed the classroom capacity.
-func (c *Classroom) CountOverflowLessons() (result int) {
+func (c *Classroom) GetOverflowLessons() []*Lesson {
+	res := []*Lesson{}
+
 	for _, lesson := range c.lessons {
 		if !c.CanAccommodate(lesson.StudentGroup.StudentNumber) {
-			result++
+			res = append(res, lesson)
 		}
 	}
-	return
+
+	return res
 }
 
-// CountLessonOverlapping returns the number of overlapping lessons. Counts only lessons that overlap.
-func (c *Classroom) CountLessonOverlapping() int {
-	return c.BusyGrid.CountLessonOverlapping(c.lessons)
+func (c *Classroom) GetLessonOverlapping() []LessonSlot {
+	return c.BusyGrid.GetLessonOverlapping(c.lessons)
 }

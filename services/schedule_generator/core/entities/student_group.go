@@ -178,6 +178,10 @@ func (sg *StudentGroup) GetAverageSlotCountOnWeekday(weekday int) (result int) {
 	return
 }
 
+func (sg *StudentGroup) GetLessonOverlapping() []LessonSlot {
+	return sg.BusyGrid.GetLessonOverlapping(sg.GetAssignedLessons())
+}
+
 // ==========================================================================================================
 // ======================================= LessonTypeBinder OVERRIDES =======================================
 // ==========================================================================================================
@@ -292,26 +296,39 @@ func (sg *StudentGroup) CheckLesson(lesson *Lesson) error {
 	return nil
 }
 
-// CountOvertimeLessons returns the total number of overtime lessons (above the daily limit) for the student group.
-func (sg *StudentGroup) CountOvertimeLessons() (result int) {
+func (sg *StudentGroup) GetOvertimeLessons() (days []int) {
+	days = []int{}
+
 	for day := 0; true; day++ {
 		count := sg.CountLessonsOn(day)
 		if count == -1 {
 			break
 		}
-		result += max(0, count-sg.MaxLessonsPerDay)
-	}
-	return
-}
-
-// CountInvalidLessonsType returns the total number of lesson scheduled on days that are not allowed for their type.
-func (sg *StudentGroup) CountInvalidLessonsByType() (result int) {
-	lessons := sg.GetAssignedLessons()
-	for _, lesson := range lessons {
-		if !sg.IsDayOfType(lesson.Type, lesson.Day) {
-			result += 1
+		if count > sg.MaxLessonsPerDay {
+			days = append(days, day)
 		}
 	}
 
 	return
+}
+
+type InvalidLessonByType struct {
+	Lesson           *Lesson
+	ActualLessonType *LessonType
+}
+
+func (sg *StudentGroup) GetInvalidLessonsByType() []InvalidLessonByType {
+	res := []InvalidLessonByType{}
+	lessons := sg.GetAssignedLessons()
+
+	for _, lesson := range lessons {
+		if !sg.IsDayOfType(lesson.Type, lesson.Day) {
+			res = append(res, InvalidLessonByType{
+				Lesson:           lesson,
+				ActualLessonType: sg.GetTypeOfDay(lesson.Day),
+			})
+		}
+	}
+
+	return res
 }

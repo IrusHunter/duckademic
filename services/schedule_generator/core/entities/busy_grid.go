@@ -296,8 +296,9 @@ func (bg *BusyGrid) IsBlocked(slot LessonSlot) bool {
 // =============================================== STATISTICS ===============================================
 // ==========================================================================================================
 
-// CountWindows returns the sum of windows (gaps between busy slots).
-func (bg *BusyGrid) CountWindows() (count int) {
+func (bg *BusyGrid) GetWindows() []LessonSlot {
+	result := []LessonSlot{}
+
 	// Days cycle
 	for day := range len(bg.Grid) {
 		lastBusy := -1
@@ -305,13 +306,14 @@ func (bg *BusyGrid) CountWindows() (count int) {
 		for slot := range bg.Grid[day] {
 			if !bg.IsFree(NewLessonSlot(day, slot)) {
 				if lastBusy != -1 && (slot-lastBusy) > 1 {
-					count += slot - lastBusy - 1
+					result = append(result, LessonSlot{Slot: slot - 1, Day: day})
 				}
 				lastBusy = slot
 			}
 		}
 	}
-	return
+
+	return result
 }
 
 // CountLessonsOn returns the sum of lessons on the day.
@@ -369,12 +371,13 @@ func (bg *BusyGrid) CountSlotsOnDay(day int) (count int) {
 	return
 }
 
-// CountLessonOverlapping returns the count of overlapping lessons. Counts only lessons that overlap.
-func (bg *BusyGrid) CountLessonOverlapping(lessons []*Lesson) (count int) {
+func (bg *BusyGrid) GetLessonOverlapping(lessons []*Lesson) []LessonSlot {
+	res := []LessonSlot{}
+
 	for _, lesson := range lessons {
 		// if lesson in not busy slot => overlap or other error
 		if !bg.IsLessonOn(lesson.LessonSlot) {
-			count++
+			res = append(res, lesson.LessonSlot)
 		}
 
 		// sets slot as free so the next lesson with the same slot wouldn't pass the check
@@ -386,7 +389,7 @@ func (bg *BusyGrid) CountLessonOverlapping(lessons []*Lesson) (count int) {
 		bg.SetSlotBusyState(lesson.LessonSlot, true)
 	}
 
-	return count
+	return res
 }
 
 // GetFullWeekCount returns the count of full weeks in the grid.

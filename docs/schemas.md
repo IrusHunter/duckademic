@@ -793,7 +793,197 @@
 
 ```json
 {
-  "total_value": "double (sum of the generator's fault values)"
+  "total_value": "number (aggregated fault score)",
+
+  "teacher_windows": {
+    "value": "number (penalty value for teacher windows)",
+    "defections": [
+      {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (teacher name)",
+        "windows": [
+          {
+            "day": "integer (weekday number, e.g., 1 = Monday)",
+            "slot": "integer (lesson slot number)"
+          }
+        ]
+      }
+    ]
+  },
+
+  "student_group_windows": {
+    "value": "number (penalty value for student group windows)",
+    "defections": [
+      {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (student group name)",
+        "windows": [
+          {
+            "day": "integer (weekday number)",
+            "slot": "integer (lesson slot number)"
+          }
+        ]
+      }
+    ]
+  },
+
+  "teacher_lesson_overlapping": {
+    "value": "number (penalty value for teacher lesson overlaps)",
+    "defections": [
+      {
+        "id": "uuid (unique identifier of the teacher)",
+        "name": "string (teacher name)",
+        "overlap_lessons": [
+          {
+            "day": "integer (weekday number)",
+            "slot": "integer (lesson slot number)"
+          }
+        ]
+      }
+    ]
+  },
+
+  "student_group_lesson_overlapping": {
+    "value": "number (penalty value for student group lesson overlaps)",
+    "defections": [
+      {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (student group name)",
+        "overlap_lessons": [
+          {
+            "day": "integer (weekday number)",
+            "slot": "integer (lesson slot number)"
+          }
+        ]
+      }
+    ]
+  },
+
+  "classroom_lesson_overlapping": {
+    "value": "number (penalty value for classroom lesson overlaps)",
+    "defections": [
+      {
+        "id": "uuid (unique identifier of the classroom)",
+        "name": "string (classroom name/number)",
+        "overlap_lessons": [
+          {
+            "day": "integer (weekday number)",
+            "slot": "integer (lesson slot number)"
+          }
+        ]
+      }
+    ]
+  },
+
+  "student_group_overtime_lessons": {
+    "value": "number (penalty value for overtime lessons)",
+    "defections": [
+      {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (student group name)",
+        "overtime_days": ["integer (weekday number where overtime lessons occur)"]
+      }
+    ]
+  },
+
+  "student_group_invalid_lessons_by_type": {
+    "value": "number (penalty value for invalid lesson types)",
+    "defections": [
+      {
+        "id": "uuid (unique identifier of the student group)",
+        "name": "string (student group name)",
+        "invalid_lessons": [
+          {
+            "day": "integer (weekday number)",
+            "slot": "integer (lesson slot number)",
+
+            "lesson_type": {
+              "id": "uuid (expected lesson type identifier)",
+              "name": "string (expected lesson type name)"
+            },
+
+            "actual_lesson_type": {
+              "id": "uuid (actual lesson type identifier)",
+              "name": "string (actual lesson type name)"
+            }
+          }
+        ]
+      }
+    ]
+  },
+
+  "lessons_without_classroom": {
+    "value": "number (penalty value for lessons without assigned classroom)",
+    "defections": [
+      {
+        "teacher": {
+          "id": "uuid (teacher identifier)",
+          "name": "string (teacher name)"
+        },
+
+        "student_group": {
+          "id": "uuid (student group identifier)",
+          "name": "string (student group name)"
+        },
+
+        "discipline": {
+          "id": "uuid (discipline identifier)",
+          "name": "string (discipline name)"
+        },
+
+        "lesson_type": {
+          "id": "uuid (lesson type identifier)",
+          "name": "string (lesson type name)"
+        },
+
+        "day": "integer (weekday number)",
+        "slot": "integer (lesson slot number)"
+      }
+    ]
+  },
+
+  "classroom_with_overflow": {
+    "value": "number (penalty value for classroom overflow)",
+    "defections": [
+      {
+        "id": "uuid (unique identifier of the classroom)",
+        "name": "string (classroom name/number)",
+
+        "capacity": "integer (maximum classroom capacity)",
+
+        "overflows": [
+          {
+            "day": "integer (weekday number)",
+            "slot": "integer (lesson slot number)",
+            "required": "integer (required number of seats)"
+          }
+        ]
+      }
+    ]
+  },
+
+  "study_load_hours_deficit": {
+    "value": "number (penalty value for missing study load hours)",
+    "defections": [
+      {
+        "id": "uuid (study load identifier)",
+
+        "teacher_id": "uuid (teacher identifier)",
+        "teacher_name": "string (teacher name)",
+
+        "student_group_id": "uuid (student group identifier)",
+        "student_group_name": "string (student group name)",
+
+        "discipline_id": "uuid (discipline identifier)",
+        "discipline_name": "string (discipline name)",
+
+        "lesson_type_id": "uuid (lesson type identifier)",
+        "lesson_type_name": "string (lesson type name)",
+
+        "missing_hours": "integer (number of missing hours)"
+      }
+    ]
+  }
 }
 ```
 

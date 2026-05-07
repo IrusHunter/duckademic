@@ -18,8 +18,8 @@ type LessonService interface {
 	MoveLessonTo(*entities.Lesson, entities.LessonSlot) error
 	// TODO: collect bone lessons in another structure.
 	GetWeekLessons(int) []*entities.Lesson
-	// Returns the number of lessons that do not have an assigned classroom.
-	CountLessonsWithoutClassroom() int
+	// Returns the lessons that do not have an assigned classroom.
+	GetLessonsWithoutClassroom() []*entities.Lesson
 	Select() *LessonSelector
 }
 
@@ -96,13 +96,16 @@ func (ls *lessonService) MoveLessonTo(lesson *entities.Lesson, to entities.Lesso
 	lesson.MoveLessonTo(to)
 	return nil
 }
-func (ls *lessonService) CountLessonsWithoutClassroom() (result int) {
+func (ls *lessonService) GetLessonsWithoutClassroom() []*entities.Lesson {
+	res := []*entities.Lesson{}
+
 	for _, lesson := range ls.lessons {
 		if lesson.Classroom == nil {
-			result++
+			res = append(res, lesson)
 		}
 	}
-	return
+
+	return res
 }
 func (ls *lessonService) Select() *LessonSelector {
 	return &LessonSelector{

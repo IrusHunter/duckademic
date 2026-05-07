@@ -3,7 +3,6 @@ package steps
 import (
 	"fmt"
 
-	"github.com/IrusHunter/duckademic/services/schedule_generator/core/components"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
@@ -405,43 +404,75 @@ func (c *GeneratorContext) ExtractLessons() ([]responses.Lesson, error) {
 }
 
 func (c *GeneratorContext) GetFault() responses.Fault {
-	scheduleFault := components.NewScheduleFault()
+	fault := responses.Fault{}
 
-	scheduleFault.AddParameter("teacher_windows", components.NewSimpleScheduleParameter(
-		float64(c.fullData.teacherService.CountWindows()), 0.1,
-	))
-	scheduleFault.AddParameter("student_group_windows", components.NewSimpleScheduleParameter(
-		float64(c.fullData.studentGroupService.CountWindows()), 1000,
-	))
-	scheduleFault.AddParameter("study_load_hours_deficit", components.NewSimpleScheduleParameter(
-		float64(c.fullData.studyLoadService.CountHoursDeficit()), 10,
-	))
-	scheduleFault.AddParameter("teacher_lesson_overlapping", components.NewSimpleScheduleParameter(
-		float64(c.fullData.teacherService.CountLessonOverlapping()), 1000,
-	))
-	scheduleFault.AddParameter("student_group_lesson_overlapping", components.NewSimpleScheduleParameter(
-		float64(c.fullData.studentGroupService.CountLessonOverlapping()), 1000,
-	))
-	scheduleFault.AddParameter("classroom_lesson_overlapping", components.NewSimpleScheduleParameter(
-		float64(c.fullData.classroomService.CountLessonOverlapping()), 1000,
-	))
-	scheduleFault.AddParameter("student_group_overtime_lessons", components.NewSimpleScheduleParameter(
-		float64(c.fullData.studentGroupService.CountOvertimeLessons()), 10,
-	))
-	scheduleFault.AddParameter("student_group_invalid_lessons_by_type", components.NewSimpleScheduleParameter(
-		float64(c.fullData.studentGroupService.CountInvalidLessonsByType()), 10,
-	))
-	scheduleFault.AddParameter("lessons_without_classroom", components.NewSimpleScheduleParameter(
-		float64(c.fullData.lessonService.CountLessonsWithoutClassroom())+
-			float64(c.floatLessonService.CountLessonsWithoutClassroom()), 10,
-	))
-	scheduleFault.AddParameter("classroom_with_overflow", components.NewSimpleScheduleParameter(
-		float64(c.fullData.classroomService.CountOverflowLessons()), 10,
-	))
+	teacherWindows, teacherWindowsC := c.fullData.teacherService.GetWindows()
+	fault.TeacherWindows = responses.FaultParam[responses.TeacherWindow]{
+		Value:      float64(teacherWindowsC),
+		Defections: teacherWindows,
+	}
+	fault.TotalValue += fault.TeacherWindows.Value
+
+	studentGroupWindows, studentGroupWindowsC := c.fullData.studentGroupService.GetWindows()
+	fault.StudentGroupWindows = responses.FaultParam[responses.StudentGroupWindow]{
+		Value:      float64(studentGroupWindowsC),
+		Defections: studentGroupWindows,
+	}
+	fault.TotalValue += fault.StudentGroupWindows.Value
+
+	teacherLessonOverlapping, teacherLessonOverlappingC := c.fullData.teacherService.GetLessonOverlapping()
+	fault.TeacherLessonOverlapping = responses.FaultParam[responses.TeacherLessonOverlap]{
+		Value:      float64(teacherLessonOverlappingC),
+		Defections: teacherLessonOverlapping,
+	}
+	fault.TotalValue += fault.TeacherLessonOverlapping.Value
+
+	studentGroupLessonOverlapping, studentGroupLessonOverlappingC := c.fullData.studentGroupService.GetLessonOverlapping()
+	fault.StudentGroupLessonOverlapping = responses.FaultParam[responses.StudentGroupLessonOverlap]{
+		Value:      float64(studentGroupLessonOverlappingC),
+		Defections: studentGroupLessonOverlapping,
+	}
+	fault.TotalValue += fault.StudentGroupLessonOverlapping.Value
+
+	classroomLessonOverlapping, classroomLessonOverlappingC := c.fullData.classroomService.GetLessonOverlapping()
+	fault.ClassroomLessonOverlapping = responses.FaultParam[responses.ClassroomLessonOverlap]{
+		Value:      float64(classroomLessonOverlappingC),
+		Defections: classroomLessonOverlapping,
+	}
+	fault.TotalValue += fault.ClassroomLessonOverlapping.Value
+
+	invalidLessonByType, invalidLessonByTypeC := c.fullData.studentGroupService.GetInvalidLessonsByType()
+	fault.StudentGroupInvalidLessons = responses.FaultParam[responses.StudentGroupInvalidLesson]{
+		Value:      float64(invalidLessonByTypeC),
+		Defections: invalidLessonByType,
+	}
+	fault.TotalValue += fault.StudentGroupInvalidLessons.Value
+
+	studyLoadHoursDeficits, studyLoadHoursDeficitsC := c.fullData.studyLoadService.GetHoursDeficit()
+	fault.StudyLoadHoursDeficit = responses.FaultParam[responses.StudyLoadHoursDeficit]{
+		Value:      float64(studyLoadHoursDeficitsC),
+		Defections: studyLoadHoursDeficits,
+	}
+	fault.TotalValue += fault.StudyLoadHoursDeficit.Value
+
+	classroomOverflow, classroomOverflowC := c.fullData.classroomService.GetOverflowLessons()
+	fault.ClassroomWithOverflow = responses.FaultParam[responses.ClassroomOverflow]{
+		Value:      float64(classroomOverflowC),
+		Defections: classroomOverflow,
+	}
+	fault.TotalValue += fault.ClassroomWithOverflow.Value
+
+	lessonsWithoutClassroom := c.fullData.lessonService.GetLessonsWithoutClassroom()
+	floatingLessonsWithoutC := c.floatLessonService.GetLessonsWithoutClassroom()
+	allLessonsWithoutC := append(lessonsWithoutClassroom, floatingLessonsWithoutC...)
+	fault.LessonsWithoutClassroom = responses.FaultParam[responses.GeneratedLesson]{
+		Value:      float64(len(allLessonsWithoutC)),
+		Defections: responses.FormGeneratedLessons(allLessonsWithoutC),
+	}
 
 	c.WriteSchedule()
 
-	return scheduleFault.GetResponse()
+	return fault
 }
 
 func (c *GeneratorContext) WriteSchedule() {

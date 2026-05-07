@@ -4,12 +4,15 @@ import (
 	"slices"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 )
 
 // StudyLoadService aggregates and manages study loads that the generator works with.
 type StudyLoadService interface {
-	GetAll() []*entities.StudyLoad                      // Returns a slice with all study loads as pointers.
-	CountHoursDeficit() int                             // Returns the number of missing study hours.
+	// Returns a slice with all study loads as pointers.
+	GetAll() []*entities.StudyLoad
+	// Returns the missing study hours and number of it.
+	GetHoursDeficit() ([]responses.StudyLoadHoursDeficit, int)
 	Find(entities.UnassignedLesson) *entities.StudyLoad // Returns a pointer to the teacher with the given data.
 }
 
@@ -79,10 +82,20 @@ type studyLoadService struct {
 func (s *studyLoadService) GetAll() []*entities.StudyLoad {
 	return s.loads
 }
-func (s *studyLoadService) CountHoursDeficit() (result int) {
+func (s *studyLoadService) GetHoursDeficit() (res []responses.StudyLoadHoursDeficit, count int) {
+	res = []responses.StudyLoadHoursDeficit{}
+
 	for _, load := range s.loads {
-		result += load.CountHoursDeficit()
+		hf := load.CountHoursDeficit()
+		if hf != 0 {
+			count += hf
+			res = append(res, responses.StudyLoadHoursDeficit{
+				StudyLoad: responses.FormStudyLoad(load),
+				Missing:   hf,
+			})
+		}
 	}
+
 	return
 }
 func (s *studyLoadService) Find(ul entities.UnassignedLesson) *entities.StudyLoad {
