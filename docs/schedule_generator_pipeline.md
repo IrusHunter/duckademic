@@ -44,6 +44,7 @@ This state assigns specific time slots within a single week. Irregular or one-ti
 **Allowed methods**
 
 - one_per_week_time_slot_assigner
+- brute_time_slot_assigner
 
 **Response** [=> BoneLessons](schemas.md#schedule-generator-bone-lessons)
 

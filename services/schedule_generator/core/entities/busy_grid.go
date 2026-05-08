@@ -355,7 +355,7 @@ func (bg *BusyGrid) GetWeekDaysPriority() (result []float32) {
 // CountSlotsAtDay returns the sum of free slots on the weekday.
 //
 // If day isn't a weekday returns 0.
-func (bg *BusyGrid) CountSlotsOnDay(day int) (count int) {
+func (bg *BusyGrid) CountSlotsOnWeekday(day int) (count int) {
 	if err := bg.CheckWeekDay(day); err != nil {
 		return
 	}
@@ -369,6 +369,14 @@ func (bg *BusyGrid) CountSlotsOnDay(day int) (count int) {
 		}
 	}
 	return
+}
+
+func (bg *BusyGrid) CountSlotsOnDay(day int) int {
+	if err := bg.CheckDay(day); err != nil {
+		return 0
+	}
+
+	return len(bg.Grid[day])
 }
 
 func (bg *BusyGrid) GetLessonOverlapping(lessons []*Lesson) []LessonSlot {

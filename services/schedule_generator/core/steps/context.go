@@ -469,6 +469,7 @@ func (c *GeneratorContext) GetFault() responses.Fault {
 		Value:      float64(len(allLessonsWithoutC)),
 		Defections: responses.FormGeneratedLessons(allLessonsWithoutC),
 	}
+	fault.TotalValue += fault.LessonsWithoutClassroom.Value
 
 	c.WriteSchedule()
 

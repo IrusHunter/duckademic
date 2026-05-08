@@ -23,6 +23,9 @@ func NewWeeklyTimeSlotAssignmentStep(c *GeneratorContext) PipelineStep {
 	onePerWeekTimeSlotAssigner := components.NewBoneGenerator()
 	s.methods[onePerWeekTimeSlotAssigner.GetComponentIdentifier()] = onePerWeekTimeSlotAssigner
 
+	bruteTimeSlotAssigner := components.NewMissingLessonAdder()
+	s.methods[bruteTimeSlotAssigner.GetComponentIdentifier()] = bruteTimeSlotAssigner
+
 	return &s
 }
 

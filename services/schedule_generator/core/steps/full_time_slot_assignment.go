@@ -9,15 +9,15 @@ import (
 )
 
 type fullTimeSlotAssignmentStep struct {
-	methods       map[components.ComponentIdentifier]components.TimeSlotAssigner
-	studyLoads    services.StudyLoadService
-	lessonService services.LessonService
+	methods          map[components.ComponentIdentifier]components.TimeSlotAssigner
+	studyLoadService services.StudyLoadService
+	lessonService    services.LessonService
 }
 
 func NewFullTimeSlotAssignmentStep(c *GeneratorContext) PipelineStep {
 	s := fullTimeSlotAssignmentStep{methods: map[components.ComponentIdentifier]components.TimeSlotAssigner{}}
 
-	s.studyLoads, _ = services.NewStudyLoadService(c.fullData.studyLoadService.GetAll())
+	s.studyLoadService, _ = services.NewStudyLoadService(c.fullData.studyLoadService.GetAll())
 	s.lessonService = c.floatLessonService
 
 	onePerWeekTimeSlotAssigner := components.NewBoneGenerator()
@@ -33,7 +33,7 @@ func (s *fullTimeSlotAssignmentStep) GetNextStep(c *GeneratorContext) PipelineSt
 	return NewFullClassroomAssignmentStep(c)
 }
 func (s *fullTimeSlotAssignmentStep) CanGoToTheNextStep() error {
-	if _, hoursDept := s.studyLoads.GetHoursDeficit(); hoursDept != 0 {
+	if _, hoursDept := s.studyLoadService.GetHoursDeficit(); hoursDept != 0 {
 		return fmt.Errorf("%d study loads haven't assigned week lesson", hoursDept)
 	}
 
@@ -49,7 +49,7 @@ func (s *fullTimeSlotAssignmentStep) Process(cID components.ComponentIdentifier)
 	}
 
 	errs := comp.Run(components.TimeSlotAssignerInput{
-		StudyLoads:    s.studyLoads.GetAll(),
+		StudyLoads:    s.studyLoadService.GetAll(),
 		LessonService: s.lessonService,
 	})
 	return responses.GeneratedLessons{

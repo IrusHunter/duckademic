@@ -25,7 +25,7 @@ func (ma *missingLessonsAdder) Run(input TimeSlotAssignerInput) []responses.Unas
 
 		currentDay := 0
 		outOfGrid := false
-		for !outOfGrid {
+		for !outOfGrid && !load.IsEnoughHours() {
 			err := studentGroup.CheckDay(currentDay)
 			if err != nil {
 				outOfGrid = true
@@ -33,23 +33,23 @@ func (ma *missingLessonsAdder) Run(input TimeSlotAssignerInput) []responses.Unas
 				break
 			}
 
-			for i := range teacher.BusyGrid.Grid[currentDay] {
+			for i := range teacher.CountSlotsOnDay(currentDay) {
 				slot := entities.LessonSlot{
 					Day:  currentDay,
 					Slot: i,
 				}
-				err := input.LessonService.AssignLesson(load, slot)
-				if err == nil {
-					currentDay -= currentDay%7 - 6
-					break
-				}
+				input.LessonService.AssignLesson(load, slot)
+				// if err == nil {
+				// 	// currentDay -= currentDay%7 - 6
+				// 	break
+				// }
 			}
-			delta := studentGroup.GetNextDayOfType(lessonType, currentDay+1)
-			if delta == -1 {
+
+			currentDay = studentGroup.GetNextDayOfType(lessonType, currentDay+1)
+			if currentDay == -1 {
 				outOfGrid = true
 				continue
 			}
-			currentDay += delta
 		}
 
 		if !load.IsEnoughHours() {
