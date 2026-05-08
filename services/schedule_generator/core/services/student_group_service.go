@@ -24,7 +24,9 @@ type StudentGroupService interface {
 	GetOvertimeLessons() ([]responses.StudentGroupOvertimeLesson, int)
 	// Returns the lessons scheduled on days that are not allowed for their type, and the sum of them.
 	GetInvalidLessonsByType() ([]responses.StudentGroupInvalidLesson, int)
-	UnbindWeeks() // Clears week binding of student groups.
+	// Clears week binding of student groups.
+	UnbindWeeks()
+	GetSlotDeficitOfReservedSlotsForLT() int
 }
 
 // NewStudentGroupService creates a new StudentGroupService basic instance.
@@ -157,4 +159,13 @@ func (sgs *studentGroupService) UnbindWeeks() {
 	for _, group := range sgs.studentGroups {
 		group.UnbindWeeks()
 	}
+}
+func (sgs *studentGroupService) GetSlotDeficitOfReservedSlotsForLT() int {
+	count := 0
+
+	for _, sg := range sgs.studentGroups {
+		count += sg.GetSlotDeficitOfReservedSlotsForLT()
+	}
+
+	return count
 }

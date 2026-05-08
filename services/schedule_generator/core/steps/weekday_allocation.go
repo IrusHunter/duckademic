@@ -4,14 +4,13 @@ import (
 	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/components"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
+	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 )
 
 type weekdayAllocationStep struct {
-	methods            map[components.ComponentIdentifier]components.WeekdayAllocator
-	studentGroups      []*entities.StudentGroup
-	canGoToTheNextStep bool
+	methods             map[components.ComponentIdentifier]components.WeekdayAllocator
+	studentGroupService services.StudentGroupService
 }
 
 func NewWeekdayAllocationStep(c *GeneratorContext) PipelineStep {
@@ -20,7 +19,7 @@ func NewWeekdayAllocationStep(c *GeneratorContext) PipelineStep {
 	evenWA := components.NewDayBlocker(c.fullData.studentGroupService.GetAll()[0].GetFullWeekCount(), c.config.LessonFillRate)
 	s.methods[evenWA.GetComponentIdentifier()] = evenWA
 
-	s.studentGroups = c.weekData.studentGroupService.GetAll()
+	s.studentGroupService = c.weekData.studentGroupService
 
 	return &s
 }
@@ -30,9 +29,10 @@ func (s *weekdayAllocationStep) GetNextStep(c *GeneratorContext) PipelineStep {
 	return NewWeeklyTimeSlotAssignmentStep(c)
 }
 func (s *weekdayAllocationStep) CanGoToTheNextStep() error {
-	if !s.canGoToTheNextStep {
-		return fmt.Errorf("required action was not applied")
+	if count := s.studentGroupService.GetSlotDeficitOfReservedSlotsForLT(); count != 0 {
+		return fmt.Errorf("student groups required %d additional reserved slots", count)
 	}
+
 	return nil
 }
 func (s *weekdayAllocationStep) InsertData(data any) error {
@@ -45,10 +45,9 @@ func (s *weekdayAllocationStep) Process(cID components.ComponentIdentifier) (any
 			fmt.Errorf("component %q not allowed for weekday allocation step", cID)
 	}
 
-	s.canGoToTheNextStep = true
-	errs := comp.Run(s.studentGroups)
+	errs := comp.Run(s.studentGroupService.GetAll())
 	return responses.DaysForLessonTypes{
-		StudentGroups: responses.FormDaysForLessonTypes(s.studentGroups),
+		StudentGroups: responses.FormDaysForLessonTypes(s.studentGroupService.GetAll()),
 		Errors:        errs,
 	}, nil
 }

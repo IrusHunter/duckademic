@@ -63,8 +63,8 @@ func (db *dayBlocker) Run(sg []*entities.StudentGroup) []responses.LessonTypeDay
 		copy(daysBlocked, mainDayBlocked)
 		mainGroup := db.groupExtensions[0]
 		for i := 0; i < len(db.groupExtensions); {
-			group := db.groupExtensions[i]
-			if !mainGroup.group.ConnectedTo(db.groupExtensions[i].group) && mainGroup.group != group.group {
+			gExtension := db.groupExtensions[i]
+			if !mainGroup.group.ConnectedTo(db.groupExtensions[i].group) && mainGroup.group != gExtension.group {
 				i++
 				continue
 			}
@@ -72,15 +72,15 @@ func (db *dayBlocker) Run(sg []*entities.StudentGroup) []responses.LessonTypeDay
 
 			availableDays := []int{0, 1, 2, 3, 4, 5, 6}
 
-			for _, lt := range group.group.GetLessonTypes() {
-				requiredSlots := float64(group.group.GetSlotCountForLType(lt))
+			for _, lt := range gExtension.group.GetLessonTypes() {
+				requiredSlots := float64(gExtension.group.GetSlotCountForLType(lt) - gExtension.group.GetReservedSlotsForLT(lt))
 
 				for requiredSlots >= 0 { // break after error assigned
 					// select day that free and blocked the fewest times
 					min := 1000000000
 					mIndex := -1
 					for _, day := range availableDays {
-						if group.IsFreeDay(day) && min > daysBlocked[day] {
+						if gExtension.IsFreeDay(day) && min > daysBlocked[day] {
 							min = daysBlocked[day]
 							mIndex = day
 						}
@@ -90,16 +90,17 @@ func (db *dayBlocker) Run(sg []*entities.StudentGroup) []responses.LessonTypeDay
 					if mIndex == -1 {
 						db.errorService.AddError(&SetDayTypeError{
 							LessonType:    lt,
-							StudentGroup:  group.group,
-							DayPriorities: group.dayPriorities,
+							StudentGroup:  gExtension.group,
+							DayPriorities: gExtension.dayPriorities,
 							AvailableDays: availableDays,
 							SlotsDept:     requiredSlots,
 						})
 						break // continue with next lesson type for group
 					}
 
+					potentialReservedSlots := float64(db.weekCount*gExtension.group.GetAverageSlotCountOnWeekday(mIndex)) * db.lessonFillRate
 					// if an error occurs, ignore this day, delete it from available days, continue the search
-					err := group.group.BindWeekday(lt, mIndex)
+					err := gExtension.group.BindWeekday(lt, mIndex, int(potentialReservedSlots))
 					if err != nil {
 						dayIndex := slices.Index(availableDays, mIndex)
 						availableDays = append(availableDays[:dayIndex], availableDays[dayIndex+1:]...)
@@ -108,7 +109,7 @@ func (db *dayBlocker) Run(sg []*entities.StudentGroup) []responses.LessonTypeDay
 
 					// all good, add to blocked day
 					daysBlocked[mIndex]++
-					requiredSlots -= float64(db.weekCount*group.group.GetAverageSlotCountOnWeekday(mIndex)) * db.lessonFillRate
+					requiredSlots -= potentialReservedSlots
 				}
 			}
 

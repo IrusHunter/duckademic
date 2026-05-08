@@ -28,7 +28,8 @@ type LessonTypeBinder interface {
 	// Assigns a lesson type to a specific weekday.
 	//
 	// Returns an error if the weekday is already blocked.
-	BindWeekday(*LessonType, int) error
+	BindWeekday(lt *LessonType, day, slots int) error
+	GetReservedSlotsForLT(*LessonType) int
 	// Checks whether the given day matches the lesson type.
 	//
 	// Week binding has higher priority than weekday binding.
@@ -39,15 +40,17 @@ type LessonTypeBinder interface {
 // NewLessonTypeBinder creates a new basic LessonTypeChecker instance.
 func NewLessonTypeBinder() LessonTypeBinder {
 	return &lessonTypeBinder{
-		weekBinding: make(map[int]*LessonType),
-		dayBinding:  make([]*LessonType, 7),
+		weekBinding:        make(map[int]*LessonType),
+		dayBinding:         make([]*LessonType, 7),
+		reservedSlotsForLT: map[*LessonType]int{},
 	}
 }
 
 // lessonTypeBinder is the basic implementation of the LessonTypeBlocker interface.
 type lessonTypeBinder struct {
-	weekBinding map[int]*LessonType
-	dayBinding  []*LessonType
+	weekBinding        map[int]*LessonType
+	dayBinding         []*LessonType
+	reservedSlotsForLT map[*LessonType]int
 }
 
 func (c *lessonTypeBinder) BindWeek(lt *LessonType, week int) error {
@@ -59,7 +62,7 @@ func (c *lessonTypeBinder) BindWeek(lt *LessonType, week int) error {
 
 	return nil
 }
-func (c *lessonTypeBinder) BindWeekday(lt *LessonType, day int) error {
+func (c *lessonTypeBinder) BindWeekday(lt *LessonType, day, slots int) error {
 	if !c.IsWeekday(day) {
 		return fmt.Errorf("day %d is not the number of the weekday", day)
 	}
@@ -69,8 +72,12 @@ func (c *lessonTypeBinder) BindWeekday(lt *LessonType, day int) error {
 	}
 
 	c.dayBinding[day] = lt
+	c.reservedSlotsForLT[lt] += slots
 
 	return nil
+}
+func (c *lessonTypeBinder) GetReservedSlotsForLT(lt *LessonType) int {
+	return c.reservedSlotsForLT[lt]
 }
 func (c *lessonTypeBinder) IsDayOfType(lt *LessonType, day int) bool {
 	trueLT, ok := c.weekBinding[day/7]

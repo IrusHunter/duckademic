@@ -227,13 +227,13 @@ func (sg *StudentGroup) BindWeek(lType *LessonType, week int) error {
 
 // BindWeekday uses the BindWeekday method on the first order.
 // Then it binds to connected groups, ignoring their errors.
-func (sg *StudentGroup) BindWeekday(lType *LessonType, day int) error {
-	if err := sg.LessonTypeBinder.BindWeekday(lType, day); err != nil {
+func (sg *StudentGroup) BindWeekday(lType *LessonType, day, slots int) error {
+	if err := sg.LessonTypeBinder.BindWeekday(lType, day, slots); err != nil {
 		return err
 	}
 
 	for _, group := range sg.connectedGroups {
-		group.LessonTypeBinder.BindWeekday(lType, day)
+		group.LessonTypeBinder.BindWeekday(lType, day, slots)
 	}
 
 	return nil
@@ -331,4 +331,18 @@ func (sg *StudentGroup) GetInvalidLessonsByType() []InvalidLessonByType {
 	}
 
 	return res
+}
+
+func (sg *StudentGroup) GetSlotDeficitOfReservedSlotsForLT() int {
+	count := 0
+	lessonTypes := sg.GetLessonTypes()
+
+	for _, lt := range lessonTypes {
+		delta := sg.GetReservedSlotsForLT(lt) - sg.GetSlotCountForLType(lt)
+		if delta < 0 {
+			count -= delta
+		}
+	}
+
+	return count
 }

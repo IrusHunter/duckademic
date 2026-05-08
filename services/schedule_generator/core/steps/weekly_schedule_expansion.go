@@ -48,7 +48,11 @@ func (s *weeklyScheduleExpansionStep) Process(components.ComponentIdentifier) (a
 				lt := studentGroup.GetTypeOfDay(weekday)
 				if lt == nil {
 					lt := s.fullData.lessonTypeService.Find(weekLT.ID)
-					studentGroup.BindWeekday(lt, weekday)
+					slots := 0
+					if studentGroup.GetReservedSlotsForLT(lt) == 0 {
+						slots = lesson.StudentGroup.GetReservedSlotsForLT(weekLT)
+					}
+					studentGroup.BindWeekday(lt, weekday, slots)
 				}
 			}
 		}
