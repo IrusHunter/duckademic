@@ -21,23 +21,24 @@ func NewClassroomAssigner() ClassroomAssigner {
 // studentGroupService is the basic implementation of the StudentGroupService interface.
 // It uses the Munkres assignment algorithm (Hungarian algorithm) to assign classrooms to lessons
 type classroomAssigner struct {
-	classrooms           []*entities.Classroom
-	lessons              map[entities.LessonSlot][]*entities.Lesson
-	errorService         ErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError]
-	busynessOfClassrooms []int
-	matrix               [][]float32 // Matrix indices: [lesson][classroom].
-	fault                float32     // Used for zero comparison.
-	maxValue             float32
-	slotsOrder           []entities.LessonSlot
+	classrooms   []*entities.Classroom
+	lessons      map[entities.LessonSlot][]*entities.Lesson
+	slotsOrder   []entities.LessonSlot
+	errorService ErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError]
+	// busynessOfClassrooms []int
+	fault    float32 // Used for zero comparison.
+	maxValue float32
 }
 
 func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.LessonWithoutClassroom {
 	ca.setLessons(input.Lessons)
 	ca.classrooms = input.Classrooms
 
-	n := ca.getN()
 	for _, slot := range ca.slotsOrder {
+		classrooms := ca.getAvailableClassrooms(slot)
+		n := len(classrooms)
 		lessons := ca.lessons[slot]
+
 		delta := n - len(lessons)
 		if delta < 0 {
 			NewUnexpectedError("number of classrooms is less than number of simultaneous lessons",
@@ -47,12 +48,12 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 			continue
 		}
 
-		ca.matrix = make([][]float32, 0, n)
+		matrix := make([][]float32, 0, n) // matrix indices: [lesson][classroom].
 		// fill matrix with values (lower values indicate better assignments)
 		for _, lesson := range lessons {
 			values := make([]float32, 0, n)
 
-			for _, classroom := range ca.classrooms {
+			for _, classroom := range classrooms {
 				value := float32(1.0)
 				if err := classroom.CheckLesson(lesson); err != nil {
 					value = ca.maxValue
@@ -62,7 +63,7 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 				values = append(values, value)
 			}
 
-			ca.matrix = append(ca.matrix, values)
+			matrix = append(matrix, values)
 		}
 
 		// add unavailable lessons to ensure correct algorithm execution
@@ -71,43 +72,43 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 			for j := range values {
 				values[j] = ca.maxValue
 			}
-			ca.matrix = append(ca.matrix, values)
+			matrix = append(matrix, values)
 		}
 
 		// step 1 subtract the row minimum from each element in the row
-		for i, row := range ca.matrix {
+		for i, row := range matrix {
 			min := slices.Min(row)
 			for j := range row {
-				ca.matrix[i][j] -= min
+				matrix[i][j] -= min
 			}
 		}
 
 		// step 2 subtract the column minimum from each element in the column
 		for j := range n {
 			min := float32(1_000_000_000_000_000)
-			for i := range ca.matrix {
-				if min > ca.matrix[i][j] {
-					min = ca.matrix[i][j]
+			for i := range matrix {
+				if min > matrix[i][j] {
+					min = matrix[i][j]
 				}
 			}
 
-			for i := range ca.matrix {
-				ca.matrix[i][j] -= min
+			for i := range matrix {
+				matrix[i][j] -= min
 			}
 		}
 
 		for {
 			// step 3 cover zeros with lines
 			// step 3.1 the maximum bipartite matching using the Kuhn algorithm
-			ca.resetBusynessOfClassrooms()
-			for i := range ca.matrix {
-				ca.dfc(i, []int{})
+			busynessOfClassrooms := ca.ConstructBusynessOfClassrooms(n)
+			for i := range matrix {
+				ca.dfc(matrix, i, busynessOfClassrooms, []int{})
 			}
 			// step 3.2 build the minimum vertex cover from the maximum matching
 			// step 3.2.1 find free lessons
 			freeLessons := []int{}
 			for i := range n {
-				ind := slices.Index(ca.busynessOfClassrooms, i)
+				ind := slices.Index(busynessOfClassrooms, i)
 				if ind == -1 {
 					freeLessons = append(freeLessons, i)
 				}
@@ -116,7 +117,7 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 			visitedLessons := make([]bool, n)
 			visitedClassrooms := make([]bool, n)
 			for _, fl := range freeLessons {
-				ca.dfcVisited(visitedLessons, visitedClassrooms, fl, []int{})
+				ca.dfcVisited(matrix, visitedLessons, visitedClassrooms, fl, busynessOfClassrooms, []int{})
 			}
 			// step 3.2.3 end of the covering
 			// cover all unvisited rows
@@ -130,7 +131,7 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 			}
 			// cover all visited columns
 			columnLines := make([]bool, n)
-			for j, visited := range visitedLessons {
+			for j, visited := range visitedClassrooms {
 				if visited {
 					columnLines[j] = true
 					checkSum++
@@ -149,8 +150,8 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 						if columnLines[j] {
 							continue
 						}
-						if ca.matrix[i][j] < min {
-							min = ca.matrix[i][j]
+						if matrix[i][j] < min {
+							min = matrix[i][j]
 						}
 					}
 				}
@@ -163,7 +164,7 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 						if columnLines[j] {
 							continue
 						}
-						ca.matrix[i][j] -= min
+						matrix[i][j] -= min
 					}
 				}
 				// step 4.3 add the found minimum to interception of two lines
@@ -175,7 +176,7 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 						if !columnLines[j] {
 							continue
 						}
-						ca.matrix[i][j] += min
+						matrix[i][j] += min
 					}
 				}
 
@@ -187,23 +188,25 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 
 		// step 5 making final assignment
 		// step 5.1 select independent zeros using the Kuhn algorithm
-		ca.resetBusynessOfClassrooms()
+		busynessOfClassrooms := ca.ConstructBusynessOfClassrooms(n)
 		for i := range n {
-			if !ca.dfc(i, []int{}) {
-				ca.errorService.AddError(&ClassroomAssignError{Lesson: lessons[i]})
+			if !ca.dfc(matrix, i, busynessOfClassrooms, []int{}) {
+				if i < len(lessons) {
+					ca.errorService.AddError(&ClassroomAssignError{Lesson: lessons[i]})
+				}
 			}
 		}
 		// step 5.2 assign classrooms to lessons
-		for classroom, lesson := range ca.busynessOfClassrooms {
+		for classroom, lesson := range busynessOfClassrooms {
 			if lesson == -1 {
 				continue
 			}
 			if lesson >= len(lessons) {
 				continue
 			}
-			err := lessons[lesson].SetClassroom(ca.classrooms[classroom])
+			err := lessons[lesson].SetClassroom(classrooms[classroom])
 			if err != nil {
-				NewUnexpectedError("could not assign a classroom to the lesson.",
+				NewUnexpectedError("could not assign a classroom to the lesson",
 					"ClassroomAssigner", "AssignClassrooms", newUnavailableClassroomForLessonError(
 						lessons[lesson], ca.classrooms[classroom], err,
 					))
@@ -220,8 +223,8 @@ func (ca *classroomAssigner) CheckAvailability(input ClassroomAssignerInput) err
 	ca.setLessons(input.Lessons)
 	ca.classrooms = input.Classrooms
 
-	n := ca.getN()
 	for slot, lessons := range ca.lessons {
+		n := len(ca.getAvailableClassrooms(slot))
 		if len(lessons) > n {
 			return fmt.Errorf("not enough classrooms for slot %s (%d < %d)", slot.String(), n, len(lessons))
 		}
@@ -230,6 +233,15 @@ func (ca *classroomAssigner) CheckAvailability(input ClassroomAssignerInput) err
 	return nil
 }
 
+func (ca *classroomAssigner) getAvailableClassrooms(slot entities.LessonSlot) []*entities.Classroom {
+	res := make([]*entities.Classroom, 0, len(ca.classrooms))
+	for _, classroom := range ca.classrooms {
+		if classroom.IsFree(slot) {
+			res = append(res, classroom)
+		}
+	}
+	return res
+}
 func (ca *classroomAssigner) setLessons(lessons []*entities.Lesson) {
 	lm := make(map[entities.LessonSlot][]*entities.Lesson, 0)
 	for _, lesson := range lessons {
@@ -244,29 +256,30 @@ func (ca *classroomAssigner) setLessons(lessons []*entities.Lesson) {
 	ca.lessons = lm
 	ca.slotsOrder = slotsOrder
 }
-func (ca *classroomAssigner) resetBusynessOfClassrooms() {
-	ca.busynessOfClassrooms = make([]int, ca.getN())
-	for i := range ca.busynessOfClassrooms {
-		ca.busynessOfClassrooms[i] = -1
+func (ca *classroomAssigner) ConstructBusynessOfClassrooms(n int) []int {
+	res := make([]int, n)
+	for i := range n {
+		res[i] = -1
 	}
+	return res
 }
 
 // depth-first-search
-func (ca *classroomAssigner) dfc(lessonIndex int, usedLessons []int) bool {
+func (ca *classroomAssigner) dfc(matrix [][]float32, lessonIndex int, classroomBusyness, usedLessons []int) bool {
 	ind := slices.Index(usedLessons, lessonIndex)
 	if ind != -1 {
 		return false
 	}
 
-	n := ca.getN()
+	n := len(classroomBusyness)
 	for j := range n {
-		if ca.matrix[lessonIndex][j] <= ca.fault {
-			if ca.busynessOfClassrooms[j] == -1 {
-				ca.busynessOfClassrooms[j] = lessonIndex
+		if matrix[lessonIndex][j] <= ca.fault {
+			if classroomBusyness[j] == -1 {
+				classroomBusyness[j] = lessonIndex
 				return true
 			} else {
-				if ca.dfc(ca.busynessOfClassrooms[j], append(usedLessons, lessonIndex)) {
-					ca.busynessOfClassrooms[j] = lessonIndex
+				if ca.dfc(matrix, classroomBusyness[j], classroomBusyness, append(usedLessons, lessonIndex)) {
+					classroomBusyness[j] = lessonIndex
 					return true
 				}
 			}
@@ -275,26 +288,22 @@ func (ca *classroomAssigner) dfc(lessonIndex int, usedLessons []int) bool {
 	return false
 }
 
-func (ca *classroomAssigner) dfcVisited(visitedRows, visitedCols []bool, row int, used []int) {
+func (ca *classroomAssigner) dfcVisited(matrix [][]float32, visitedRows, visitedCols []bool, row int, classroomB, used []int) {
 	ind := slices.Index(used, row)
 	if ind != -1 {
 		return
 	}
 
-	n := ca.getN()
+	n := len(classroomB)
 	visitedRows[row] = true
 	for j := range n {
-		if ca.matrix[row][j] < ca.fault {
+		if matrix[row][j] < ca.fault {
 			visitedCols[j] = true
-			if ca.busynessOfClassrooms[j] != -1 {
-				ca.dfcVisited(visitedRows, visitedCols, ca.busynessOfClassrooms[j], append(used, row))
+			if classroomB[j] != -1 {
+				ca.dfcVisited(matrix, visitedRows, visitedCols, classroomB[j], classroomB, append(used, row))
 			}
 		}
 	}
-}
-
-func (ca *classroomAssigner) getN() int {
-	return len(ca.classrooms)
 }
 
 // ==========================================================================================================

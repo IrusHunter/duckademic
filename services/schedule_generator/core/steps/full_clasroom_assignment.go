@@ -18,8 +18,8 @@ type fullClassroomAssignmentStep struct {
 func NewFullClassroomAssignmentStep(c *GeneratorContext) PipelineStep {
 	s := fullClassroomAssignmentStep{methods: map[components.ComponentIdentifier]components.ClassroomAssigner{}}
 
-	s.lessonService = c.fullData.lessonService
-	s.classrooms = c.weekData.classroomService.GetAll()
+	s.lessonService = services.NewLessonService(append(c.fullData.lessonService.GetAll(), c.floatLessonService.GetAll()...))
+	s.classrooms = c.fullData.classroomService.GetAll()
 
 	munkresClassroomAssigner := components.NewClassroomAssigner()
 	s.methods[munkresClassroomAssigner.GetComponentIdentifier()] = munkresClassroomAssigner
@@ -47,7 +47,7 @@ func (s *fullClassroomAssignmentStep) Process(cID components.ComponentIdentifier
 	}
 
 	errs := comp.Run(components.ClassroomAssignerInput{
-		Lessons:    s.lessonService.GetAll(),
+		Lessons:    s.lessonService.GetLessonsWithoutClassroom(),
 		Classrooms: s.classrooms,
 	})
 	return responses.GeneratedLessonsWithC{

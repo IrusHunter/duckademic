@@ -47,7 +47,7 @@ func (s *weeklyClassroomAssignmentStep) Process(cID components.ComponentIdentifi
 	}
 
 	errs := comp.Run(components.ClassroomAssignerInput{
-		Lessons:    s.lessonService.GetAll(),
+		Lessons:    s.lessonService.GetLessonsWithoutClassroom(),
 		Classrooms: s.classrooms,
 	})
 	return responses.BoneLessonsWithC{

@@ -42,7 +42,7 @@ type unexpectedError struct {
 }
 
 func (e *unexpectedError) Error() string {
-	return fmt.Sprintf("%s %s ==> %s. \n└-- basic error: %s", e.className, e.methodName, e.description, e.err.Error())
+	return fmt.Sprintf("%s %s ==> %s. [[basic error: %s]]", e.className, e.methodName, e.description, e.err.Error())
 }
 func (e *unexpectedError) GetTypeOfError() GeneratorComponentErrorTypes {
 	return unexpectedErrorType

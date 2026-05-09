@@ -92,7 +92,7 @@ func NewLessonSlot(day, slot int) LessonSlot {
 //
 // The output format is: "day: %day, slot: %slot".
 func (ls *LessonSlot) String() string {
-	return fmt.Sprintf("day: %d, slot: %d", ls.Day, ls.Slot)
+	return fmt.Sprintf("Slot{day: %d, slot: %d}", ls.Day, ls.Slot)
 }
 
 // After returns true when the receiver is positioned after other lesson slot (other) .

@@ -47,7 +47,7 @@ func (c *Classroom) CanAccommodate(number int) bool {
 // Return an error if validation fails.
 func (c *Classroom) CheckLesson(lesson *Lesson) error {
 	if !c.IsFree(lesson.LessonSlot) {
-		return fmt.Errorf("slot %s is busy", lesson.LessonSlot.String())
+		return fmt.Errorf("%s is busy", lesson.LessonSlot.String())
 	}
 
 	if !c.CanAccommodate(lesson.StudentGroup.StudentNumber) {
