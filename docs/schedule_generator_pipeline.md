@@ -46,7 +46,7 @@ This state assigns specific time slots within a single week. Irregular or one-ti
 - one_per_week_time_slot_assigner
 - brute_time_slot_assigner
 
-**Response** [=> BoneLessons](schemas.md#schedule-generator-bone-lessons)
+**Response** [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
 
 ### 4. Weekly Classroom Assignment State
 
@@ -56,7 +56,7 @@ This optional state assigns classrooms to lessons in the skeleton schedule. Sinc
 
 - munkres_classroom_assigner
 
-**Response** [=> BoneLessonsWithC](schemas.md#schedule-generator-bone-lessons-with-c)
+**Response** [=> GeneratedLessonsWithC](schemas.md#schedule-generator-generated-lessons-with-c)
 
 ### 5. Weekly Schedule Expansion State
 

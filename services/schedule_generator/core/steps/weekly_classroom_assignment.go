@@ -50,8 +50,8 @@ func (s *weeklyClassroomAssignmentStep) Process(cID components.ComponentIdentifi
 		Lessons:    s.lessonService.GetLessonsWithoutClassroom(),
 		Classrooms: s.classrooms,
 	})
-	return responses.BoneLessonsWithC{
-		LessonsWithClassroom:    responses.FormBoneLessons(s.lessonService.GetAll()),
+	return responses.GeneratedLessonsWithC{
+		LessonsWithClassroom:    responses.FormGeneratedLessons(s.lessonService.GetAll()),
 		LessonsWithoutClassroom: errs,
 	}, nil
 }

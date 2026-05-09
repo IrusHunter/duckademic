@@ -52,8 +52,8 @@ func (s *weeklyTimeSlotAssignmentStep) Process(cID components.ComponentIdentifie
 		StudyLoads:    s.studyLoads.GetAll(),
 		LessonService: s.lessonService,
 	})
-	return responses.BoneLessons{
-		Lessons: responses.FormBoneLessons(s.lessonService.GetAll()),
+	return responses.GeneratedLessons{
+		Lessons: responses.FormGeneratedLessons(s.lessonService.GetAll()),
 		Errors:  errs,
 	}, nil
 }
