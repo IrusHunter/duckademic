@@ -12,7 +12,6 @@ import (
 // It requires week count and lesson fill rate that defines how much space has slot for one lesson.
 func NewDayBlocker(w int, lfr float64) WeekdayAllocator {
 	db := dayBlocker{
-		errorService:   NewErrorService[responses.LessonTypeDayDebt, *SetDayTypeError](),
 		weekCount:      w,
 		lessonFillRate: lfr,
 	}
@@ -48,7 +47,6 @@ func newGroupExtension(group *entities.StudentGroup) *groupExtension {
 
 type dayBlocker struct {
 	groupExtensions []groupExtension
-	errorService    ErrorService[responses.LessonTypeDayDebt, *SetDayTypeError]
 	weekCount       int
 	lessonFillRate  float64
 }
@@ -57,6 +55,7 @@ func (db *dayBlocker) Run(sg []*entities.StudentGroup) []responses.LessonTypeDay
 	db.setGroupExtensions(sg)
 
 	mainDayBlocked := make([]int, 7)
+	errorService := NewErrorService[responses.LessonTypeDayDebt, *SetDayTypeError]()
 
 	for len(db.groupExtensions) != 0 {
 		daysBlocked := make([]int, 7) // contains num of groups that chose this day
@@ -88,7 +87,7 @@ func (db *dayBlocker) Run(sg []*entities.StudentGroup) []responses.LessonTypeDay
 
 					// day not found
 					if mIndex == -1 {
-						db.errorService.AddError(&SetDayTypeError{
+						errorService.AddError(&SetDayTypeError{
 							LessonType:    lt,
 							StudentGroup:  gExtension.group,
 							DayPriorities: gExtension.dayPriorities,
@@ -119,7 +118,7 @@ func (db *dayBlocker) Run(sg []*entities.StudentGroup) []responses.LessonTypeDay
 		}
 	}
 
-	return db.errorService.GetGeneratorResponseErrors()
+	return errorService.GetGeneratorResponseErrors()
 }
 func (db *dayBlocker) GetComponentIdentifier() ComponentIdentifier {
 	return EvenWeekdayAllocatorID

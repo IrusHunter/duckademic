@@ -9,14 +9,15 @@ import (
 
 // NewMissingLessonAdder creates a MissingLessonsAdder instance.
 func NewMissingLessonAdder() TimeSlotAssigner {
-	return &missingLessonsAdder{errorService: NewErrorService[responses.UnassignedLesson, *MissingLessonsAdderError]()}
+	return &missingLessonsAdder{}
 }
 
 type missingLessonsAdder struct {
-	errorService ErrorService[responses.UnassignedLesson, *MissingLessonsAdderError]
 }
 
 func (ma *missingLessonsAdder) Run(input TimeSlotAssignerInput) []responses.UnassignedLesson {
+	errorService := NewErrorService[responses.UnassignedLesson, *MissingLessonsAdderError]()
+
 	for _, load := range input.StudyLoads {
 		teacher := load.Teacher
 		studentGroup := load.StudentGroup
@@ -38,11 +39,10 @@ func (ma *missingLessonsAdder) Run(input TimeSlotAssignerInput) []responses.Unas
 					Day:  currentDay,
 					Slot: i,
 				}
-				input.LessonService.AssignLesson(load, slot)
-				// if err == nil {
-				// 	// currentDay -= currentDay%7 - 6
-				// 	break
-				// }
+				err := input.LessonService.AssignLesson(load, slot)
+				if err == nil {
+					break
+				}
 			}
 
 			currentDay = studentGroup.GetNextDayOfType(lessonType, currentDay+1)
@@ -53,14 +53,14 @@ func (ma *missingLessonsAdder) Run(input TimeSlotAssignerInput) []responses.Unas
 		}
 
 		if !load.IsEnoughHours() {
-			ma.errorService.AddError(&MissingLessonsAdderError{
+			errorService.AddError(&MissingLessonsAdderError{
 				StudyLoad: load,
 				Count:     load.GetRequiredSlots(),
 			})
 		}
 	}
 
-	return ma.errorService.GetGeneratorResponseErrors()
+	return errorService.GetGeneratorResponseErrors()
 }
 func (ma *missingLessonsAdder) GetComponentIdentifier() ComponentIdentifier {
 	return BruteTimeSlotAssignerID

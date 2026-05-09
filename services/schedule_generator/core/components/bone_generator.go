@@ -8,17 +8,17 @@ import (
 )
 
 func NewBoneGenerator() TimeSlotAssigner {
-	return &boneGenerator{errorService: NewErrorService[responses.UnassignedLesson, *BoneWeekError]()}
+	return &boneGenerator{}
 }
 
-type boneGenerator struct {
-	errorService ErrorService[responses.UnassignedLesson, *BoneWeekError]
-}
+type boneGenerator struct{}
 
 // GenerateBoneLessons allocates lesson slots for the bone week.
 // Uses brute force method, starts with teachers, then discipline and student groups,
 // then free slots for lesson type.
 func (bg *boneGenerator) Run(input TimeSlotAssignerInput) []responses.UnassignedLesson {
+	errorService := NewErrorService[responses.UnassignedLesson, *BoneWeekError]()
+
 	for _, load := range input.StudyLoads {
 		teacher := load.Teacher
 		studentGroup := load.StudentGroup
@@ -33,7 +33,7 @@ func (bg *boneGenerator) Run(input TimeSlotAssignerInput) []responses.Unassigned
 			day := studentGroup.GetNextDayOfType(lessonType, offset)
 			if day > 7 || day < 0 {
 				// якщо день був не на кістковому тижні, виникає виняток, який треба обробити якось
-				bg.errorService.AddError(&BoneWeekError{StudyLoad: load})
+				errorService.AddError(&BoneWeekError{StudyLoad: load})
 				break
 			}
 
@@ -57,7 +57,7 @@ func (bg *boneGenerator) Run(input TimeSlotAssignerInput) []responses.Unassigned
 		}
 
 	}
-	return bg.errorService.GetGeneratorResponseErrors()
+	return errorService.GetGeneratorResponseErrors()
 }
 func (bg *boneGenerator) GetComponentIdentifier() ComponentIdentifier {
 	return OnePerWeekTimeSlotAssignerID

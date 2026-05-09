@@ -12,27 +12,28 @@ import (
 // assignment algorithm (Hungarian algorithm) to assign classrooms to lessons.
 func NewClassroomAssigner() ClassroomAssigner {
 	return &classroomAssigner{
-		errorService: NewErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError](),
-		fault:        float32(0.000_000_1),
-		maxValue:     1_000_000_000_000_000,
+		fault:                      float32(0.000_000_1),
+		maxValue:                   1_000_000_000_000_000,
+		valueForUnavailableLessons: 1_000_000,
 	}
 }
 
 // studentGroupService is the basic implementation of the StudentGroupService interface.
 // It uses the Munkres assignment algorithm (Hungarian algorithm) to assign classrooms to lessons
 type classroomAssigner struct {
-	classrooms   []*entities.Classroom
-	lessons      map[entities.LessonSlot][]*entities.Lesson
-	slotsOrder   []entities.LessonSlot
-	errorService ErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError]
+	classrooms []*entities.Classroom
+	lessons    map[entities.LessonSlot][]*entities.Lesson
+	slotsOrder []entities.LessonSlot
 	// busynessOfClassrooms []int
-	fault    float32 // Used for zero comparison.
-	maxValue float32
+	fault                      float32 // Used for zero comparison.
+	maxValue                   float32
+	valueForUnavailableLessons float32
 }
 
 func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.LessonWithoutClassroom {
 	ca.setLessons(input.Lessons)
 	ca.classrooms = input.Classrooms
+	errorService := NewErrorService[responses.LessonWithoutClassroom, *ClassroomAssignError]()
 
 	for _, slot := range ca.slotsOrder {
 		classrooms := ca.getAvailableClassrooms(slot)
@@ -70,7 +71,7 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 		for range delta {
 			values := make([]float32, n)
 			for j := range values {
-				values[j] = ca.maxValue
+				values[j] = ca.valueForUnavailableLessons
 			}
 			matrix = append(matrix, values)
 		}
@@ -192,7 +193,7 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 		for i := range n {
 			if !ca.dfc(matrix, i, busynessOfClassrooms, []int{}) {
 				if i < len(lessons) {
-					ca.errorService.AddError(&ClassroomAssignError{Lesson: lessons[i]})
+					errorService.AddError(&ClassroomAssignError{Lesson: lessons[i]})
 				}
 			}
 		}
@@ -214,7 +215,7 @@ func (ca *classroomAssigner) Run(input ClassroomAssignerInput) []responses.Lesso
 		}
 	}
 
-	return ca.errorService.GetGeneratorResponseErrors()
+	return errorService.GetGeneratorResponseErrors()
 }
 func (ca *classroomAssigner) GetComponentIdentifier() ComponentIdentifier {
 	return MunkresClassroomAssignerID
