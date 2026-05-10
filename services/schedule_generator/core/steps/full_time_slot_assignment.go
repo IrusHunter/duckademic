@@ -34,7 +34,7 @@ func (s *fullTimeSlotAssignmentStep) GetNextStep(c *GeneratorContext) PipelineSt
 }
 func (s *fullTimeSlotAssignmentStep) CanGoToTheNextStep() error {
 	if _, hoursDept := s.studyLoadService.GetHoursDeficit(); hoursDept != 0 {
-		return fmt.Errorf("%d study loads haven't assigned week lesson", hoursDept)
+		return fmt.Errorf("%d study loads haven't assigned hours", hoursDept)
 	}
 
 	return nil

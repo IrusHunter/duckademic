@@ -36,7 +36,7 @@ func NewGroupCohortService(
 
 	res := &groupCohortService{
 		repository:             gr,
-		studentGroupREpository: sgr,
+		studentGroupRepository: sgr,
 		groupMembersService:    gms,
 	}
 	res.BaseService = platform.NewBaseService(sc, gr,
@@ -56,7 +56,7 @@ func NewGroupCohortService(
 type groupCohortService struct {
 	platform.BaseService[entities.GroupCohort]
 	repository             repositories.GroupCohortRepository
-	studentGroupREpository repositories.StudentGroupRepository
+	studentGroupRepository repositories.StudentGroupRepository
 	groupMembersService    GroupMemberService
 	logger                 logger.Logger
 }
@@ -163,7 +163,7 @@ func (s *groupCohortService) ToGeneratorGroupCohorts(ctx context.Context, gc []e
 	res := make([]GeneratorGroupCohort, 0, len(gc))
 
 	for _, groupCohort := range gc {
-		studentGroups, err := s.studentGroupREpository.GetByGroupCohortID(ctx, groupCohort.ID)
+		studentGroups, err := s.studentGroupRepository.GetByGroupCohortID(ctx, groupCohort.ID)
 		if err != nil {
 			s.GetLogger().LogAndReturnError(
 				contextutil.GetTraceID(ctx),

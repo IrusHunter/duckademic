@@ -13,6 +13,7 @@ import (
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 type LessonOccurrenceService interface {
@@ -44,7 +45,9 @@ func NewLessonOccurrenceService(
 	res.BaseService = platform.NewBaseService(
 		sc,
 		lr,
-		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.LessonOccurrence]{},
+		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.LessonOccurrence]{
+			platform.OnUpdateValidation: res.onUpdateValidation,
+		},
 	)
 
 	return res
@@ -55,6 +58,61 @@ type lessonOccurrenceService struct {
 	repository            repositories.LessonOccurrenceRepository
 	lessonSlotRepository  repositories.LessonSlotRepository
 	groupMemberRepository repositories.GroupMemberRepository
+	tx                    *sqlx.Tx
+}
+
+func (s *lessonOccurrenceService) onUpdateValidation(ctx context.Context, le *entities.LessonOccurrence) error {
+	var err error
+	s.tx, err = s.repository.BeginTx(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	if le.TeacherID == nil {
+		return fmt.Errorf("failed to get teacher id: nil field")
+	}
+	if err := s.repository.LockTeacherDate(ctx, s.tx, *le.TeacherID, le.Date); err != nil {
+		return fmt.Errorf("failed to lock teacher-date: %w", err)
+	}
+
+	if le.StudentGroupID == nil {
+		return fmt.Errorf("failed to get student group id: nil field")
+	}
+	connectedGroups, err := s.groupMemberRepository.GetConnectedGroups(ctx, *le.StudentGroupID)
+	if err != nil {
+		return fmt.Errorf("failed to get connected groups for %q: %w", *le.StudentGroupID, err)
+	}
+	if err := s.repository.LockStudentGroupsDate(ctx, s.tx, connectedGroups, le.Date); err != nil {
+		return fmt.Errorf("failed to lock teacher-date: %w", err)
+	}
+
+	if le.ClassroomID != nil {
+		if err := s.repository.LockClassroomDate(ctx, s.tx, *le.ClassroomID, le.Date); err != nil {
+			return fmt.Errorf("failed to lock teacher-date: %w", err)
+		}
+	}
+
+	lessonsCountPerDay, err := s.repository.GetLessonsCountForGroups(ctx, s.tx, connectedGroups, le.Date)
+	if err != nil {
+		return fmt.Errorf("failed to get lesson count: %w", err)
+	}
+	if lessonsCountPerDay >= 4 {
+		return fmt.Errorf("students load limit reached")
+	}
+
+	return nil
+}
+
+func (s *lessonOccurrenceService) Update(
+	ctx context.Context, id uuid.UUID, lo entities.LessonOccurrence,
+) (entities.LessonOccurrence, error) {
+	lo, err := s.BaseService.Update(ctx, id, lo)
+	if err != nil {
+		s.repository.RollbackTx(s.tx)
+		return entities.LessonOccurrence{}, err
+	}
+	s.repository.CommitTx(s.tx)
+	return lo, nil
 }
 
 func (s *lessonOccurrenceService) AddFromExternal(ctx context.Context, el []entities.ExternalLesson) error {

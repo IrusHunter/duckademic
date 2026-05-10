@@ -43,7 +43,7 @@ func (l *logger) Log(traceID, method, message string, logType LogType) {
 	}
 }
 func (l *logger) LogAndReturnError(traceID, method string, err error, logType LogType) error {
-	l.Log(traceID, "Add", err.Error(), logType)
+	l.Log(traceID, method, err.Error(), logType)
 	return err
 }
 

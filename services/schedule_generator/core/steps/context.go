@@ -163,7 +163,7 @@ func (c *GeneratorContext) SetStudentGroups(
 	if c.fullData.studentGroupService != nil {
 		return fmt.Errorf("student groups already set")
 	}
-	if err := c.CheckServices([]ServiceEnum{DisciplineServiceE, TeacherServiceE}); err != nil {
+	if err := c.CheckServices([]ServiceEnum{DisciplineServiceE, LessonTypeServiceE}); err != nil {
 		return err
 	}
 

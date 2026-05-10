@@ -51,6 +51,7 @@
     - [/study-loads](#schedule-study-loads) !schedule.study_load
     - [/lesson-slots](#schedule-lesson-slots) !schedule.lesson_slot
     - [/lesson-occurrences](#schedule-lesson-occurrences) !schedule.lesson_occurrence
+    - [/lesson-occurrence/{id}](#schedule-lesson-occurrence-id) !schedule.lesson_occurrence
     - [/get-personal-schedule](#schedule-get-personal-schedule) !
 
 - Schedule Generator Service (/schedule-generator)
@@ -561,6 +562,31 @@
 ### GET (schedule.lesson_occurrence) - gets all lesson occurrences from the database
 
 200 OK [=> LessonOccurrence[]](schemas.md#schedule-lesson-occurrence)
+
+<a id="schedule-lesson-occurrence-id"></a>
+
+## /lesson-occurrences/{id}
+
+### GET (schedule.lesson_occurrence) - finds a lesson occurrence with an ID as a URL parameter
+
+200 OK [=> LessonOccurrence](schemas.md#schedule-lesson-occurrence)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT (schedule.lesson_occurrence) - updates a lesson occurrence by its ID with the data provided in the request body
+
+```json
+{
+  "date": "timestamp (date and time of the lesson occurrence)",
+
+  // Optional fields
+  "classroom_id": "uuid | null (optional classroom assignment)"
+}
+```
+
+200 OK [=> LessonOccurrence](schemas.md#schedule-lesson-occurrence)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="schedule-load-data-into-generator"></a>
 

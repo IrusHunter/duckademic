@@ -596,6 +596,36 @@ func lessonOccurrenceMigrations(tx *sqlx.Tx) error {
 		return fmt.Errorf("failed to create on update trigger for lesson_occurrences: %w", err)
 	}
 
+	teacherConstraint := `
+	CREATE UNIQUE INDEX IF NOT EXISTS uniq_teacher_date
+	ON lesson_occurrences(teacher_id, date)
+	WHERE status != 'canceled';
+	`
+
+	if _, err := tx.Exec(teacherConstraint); err != nil {
+		return fmt.Errorf("failed to create teachers and date unique index: %w", err)
+	}
+
+	studentGroupConstraint := `
+	CREATE UNIQUE INDEX IF NOT EXISTS uniq_student_group_date
+	ON lesson_occurrences(student_group_id, date)
+	WHERE status != 'canceled';
+	`
+
+	if _, err := tx.Exec(studentGroupConstraint); err != nil {
+		return fmt.Errorf("failed to create student group and date unique index: %w", err)
+	}
+
+	classroomConstraint := `
+	CREATE UNIQUE INDEX IF NOT EXISTS uniq_classroom_date
+	ON lesson_occurrences(classroom_id, date)
+	WHERE status != 'canceled';
+	`
+
+	if _, err := tx.Exec(classroomConstraint); err != nil {
+		return fmt.Errorf("failed to create classroom and date unique index: %w", err)
+	}
+
 	return nil
 }
 func semesterMigrations(tx *sqlx.Tx) error {

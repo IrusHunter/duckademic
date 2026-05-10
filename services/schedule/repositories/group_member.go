@@ -17,7 +17,8 @@ type GroupMemberRepository interface {
 	ExternalUpdate(context.Context, uuid.UUID, entities.GroupMember) (entities.GroupMember, error)
 	GetByGroupID(context.Context, uuid.UUID) ([]uuid.UUID, error)
 	GetByStudentIDs(context.Context, []uuid.UUID) ([]entities.GroupMember, error)
-	GetByStudentID(ctx context.Context, studentID uuid.UUID) ([]uuid.UUID, error)
+	GetByStudentID(context.Context, uuid.UUID) ([]uuid.UUID, error)
+	GetConnectedGroups(context.Context, uuid.UUID) ([]uuid.UUID, error)
 }
 
 func NewGroupMemberRepository(db *sqlx.DB) GroupMemberRepository {
@@ -120,4 +121,45 @@ func (r *groupMemberRepository) GetByStudentID(ctx context.Context, studentID uu
 	}
 
 	return ids, nil
+}
+
+func (r *groupMemberRepository) GetConnectedGroups(ctx context.Context, studentGroupID uuid.UUID) ([]uuid.UUID, error) {
+	studentsIDs, err := r.GetByGroupID(ctx, studentGroupID)
+	if err != nil {
+		return []uuid.UUID{}, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetConnectedGroups",
+			err,
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	allConnectedGMs, err := r.GetByStudentIDs(ctx, studentsIDs)
+	if err != nil {
+		return []uuid.UUID{}, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetConnectedGroups",
+			err,
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	return r.getUniqueStudentGroupIDs(allConnectedGMs), nil
+}
+
+func (r *groupMemberRepository) getUniqueStudentGroupIDs(gm []entities.GroupMember) []uuid.UUID {
+	seen := make(map[uuid.UUID]struct{})
+	result := make([]uuid.UUID, 0)
+
+	for _, item := range gm {
+		if item.StudentGroupID == nil {
+			continue
+		}
+		if _, ok := seen[*item.StudentGroupID]; !ok {
+			seen[*item.StudentGroupID] = struct{}{}
+			result = append(result, *item.StudentGroupID)
+		}
+	}
+
+	return result
 }

@@ -3,10 +3,13 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
+	"sort"
 	"time"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/shared/contextutil"
+	"github.com/IrusHunter/duckademic/shared/db"
 	"github.com/IrusHunter/duckademic/shared/logger"
 	"github.com/IrusHunter/duckademic/shared/platform"
 	"github.com/google/uuid"
@@ -15,10 +18,18 @@ import (
 
 type LessonOccurrenceRepository interface {
 	platform.BaseRepository[entities.LessonOccurrence]
-	GetLessonsForTeacher(
-		ctx context.Context, teacherID uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
+	GetLessonsForTeacher(ctx context.Context, tID uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
 	GetLessonsForStudentGroups(
 		ctx context.Context, sgIDs []uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
+	GetLessonsCountForGroups(context.Context, *sqlx.Tx, []uuid.UUID, time.Time) (int, error)
+
+	BeginTx(ctx context.Context) (*sqlx.Tx, error)
+	CommitTx(tx *sqlx.Tx) error
+	RollbackTx(tx *sqlx.Tx) error
+
+	LockTeacherDate(context.Context, *sqlx.Tx, uuid.UUID, time.Time) error
+	LockStudentGroupsDate(context.Context, *sqlx.Tx, []uuid.UUID, time.Time) error
+	LockClassroomDate(context.Context, *sqlx.Tx, uuid.UUID, time.Time) error
 }
 
 func NewLessonOccurrenceRepository(db *sqlx.DB) LessonOccurrenceRepository {
@@ -36,7 +47,7 @@ func NewLessonOccurrenceRepository(db *sqlx.DB) LessonOccurrenceRepository {
 			"classroom_id",
 			"status",
 		},
-		[]string{},
+		[]string{"date", "classroom_id"},
 		[]string{"created_at", "updated_at"},
 	)
 
@@ -225,4 +236,177 @@ func (r *lessonOccurrenceRepository) GetLessonsForStudentGroups(
 	}
 
 	return result, nil
+}
+func (r *lessonOccurrenceRepository) GetLessonsCountForGroups(
+	ctx context.Context,
+	tx *sqlx.Tx,
+	groupIDs []uuid.UUID,
+	date time.Time,
+) (int, error) {
+	year, month, day := date.Date()
+	startDate := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+	endDate := time.Date(year, month, day, 23, 59, 59, 0, time.UTC)
+
+	query, args, err := sqlx.In(fmt.Sprintf(`
+		SELECT
+			COUNT(lo.id) as lessons_count
+
+		FROM %s lo
+		JOIN %s sl
+			ON lo.study_load_id = sl.id
+
+		WHERE sl.student_group_id IN (?)
+		AND lo.date BETWEEN ? AND ?
+		AND lo.status != 'canceled'
+	`,
+		entities.LessonOccurrence{}.TableName(),
+		entities.StudyLoad{}.TableName(),
+	),
+		groupIDs,
+		startDate,
+		endDate,
+	)
+
+	if err != nil {
+		return 0, err
+	}
+
+	query = tx.Rebind(query)
+
+	type row struct {
+		LessonsCount int `db:"lessons_count"`
+	}
+
+	var rows row
+
+	err = tx.GetContext(ctx, &rows, query, args...)
+	if err != nil {
+		return 0, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetLessonsCountForGroups",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	return rows.LessonsCount, nil
+}
+
+func (r *lessonOccurrenceRepository) LockTeacherDate(ctx context.Context, tx *sqlx.Tx, tID uuid.UUID, date time.Time) error {
+	key := buildLockKey(
+		"teacher",
+		tID.String(),
+		date.Format(db.TimeFormat),
+	)
+
+	_, err := tx.ExecContext(
+		ctx,
+		`SELECT pg_advisory_xact_lock($1)`,
+		key,
+	)
+
+	if err != nil {
+		return r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LockTeacherSlot",
+			err,
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	return nil
+}
+func (r *lessonOccurrenceRepository) LockStudentGroupsDate(
+	ctx context.Context,
+	tx *sqlx.Tx,
+	groupIDs []uuid.UUID,
+	date time.Time,
+) error {
+	sort.Slice(groupIDs, func(i, j int) bool {
+		return groupIDs[i].String() < groupIDs[j].String()
+	})
+
+	for _, groupID := range groupIDs {
+		key := buildLockKey(
+			"group",
+			groupID.String(),
+			date.Format(db.TimeFormat),
+		)
+
+		_, err := tx.ExecContext(
+			ctx,
+			`SELECT pg_advisory_xact_lock($1)`,
+			key,
+		)
+
+		if err != nil {
+			return r.GetLogger().LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"LockStudentGroupsSlot",
+				err,
+				logger.RepositoryQueryFailed,
+			)
+		}
+	}
+
+	return nil
+}
+func (r *lessonOccurrenceRepository) LockClassroomDate(
+	ctx context.Context,
+	tx *sqlx.Tx,
+	classroomID uuid.UUID,
+	date time.Time,
+) error {
+	key := buildLockKey(
+		"classroom",
+		classroomID.String(),
+		date.Format(db.TimeFormat),
+	)
+
+	_, err := tx.ExecContext(
+		ctx,
+		`SELECT pg_advisory_xact_lock($1)`,
+		key,
+	)
+
+	if err != nil {
+		return r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"LockClassroomSlot",
+			err,
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	return nil
+}
+
+func (r *lessonOccurrenceRepository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"BeginTx",
+			err,
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	return tx, nil
+}
+func (r *lessonOccurrenceRepository) CommitTx(tx *sqlx.Tx) error {
+	return tx.Commit()
+}
+func (r *lessonOccurrenceRepository) RollbackTx(tx *sqlx.Tx) error {
+	return tx.Rollback()
+}
+
+func buildLockKey(parts ...string) int64 {
+	h := fnv.New64a()
+
+	for _, p := range parts {
+		_, _ = h.Write([]byte(p))
+	}
+
+	return int64(h.Sum64())
 }
