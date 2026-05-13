@@ -65,6 +65,10 @@ func (g *ScheduleGenerator) SubmitAndGoToTheNextStep(ignoreWarnings bool) error 
 }
 
 func (g *ScheduleGenerator) ProcessStep(method components.ComponentIdentifier, data any) (any, error) {
+	if g.currentStep == nil {
+		return nil, fmt.Errorf("step doesn't initialize")
+	}
+
 	if err := g.currentStep.InsertData(data); err != nil {
 		return nil, err
 	}
@@ -73,5 +77,9 @@ func (g *ScheduleGenerator) ProcessStep(method components.ComponentIdentifier, d
 }
 
 func (g *ScheduleGenerator) ApplyManualChange(data map[string]string) error {
+	if g.currentStep == nil {
+		return fmt.Errorf("step doesn't initialize")
+	}
+
 	return g.currentStep.ApplyManualChange(data)
 }
