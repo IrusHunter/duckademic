@@ -668,9 +668,15 @@
 
 ### GET - extracts study loads and lessons from schedule generator
 
+```json
+{
+  "start_time": "timestamp (when lessons starts)"
+}
+```
+
 200 OK
 
-500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
+400 BAD REQUEST 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
 
 <a id="schedule-get-personal-schedule"></a>
 

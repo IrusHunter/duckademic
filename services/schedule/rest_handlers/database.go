@@ -184,6 +184,22 @@ func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *h
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) ExtractDataFromGenerator(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	body := struct {
+		StartTime time.Time `json:"start_time"`
+	}{}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		jsonutil.ResponseWithError(w, 400, h.logger.LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"ExtractDataFromGenerator",
+			fmt.Errorf("failed to decode body: %w", err),
+			logger.HandlerBadRequest,
+		))
+		return
+	}
+
+	body.StartTime = body.StartTime.Add(-time.Hour * 24 * time.Duration(body.StartTime.Weekday()))
+
 	var studyLoads []entities.StudyLoad
 	url := h.scheduleGeneratorDomain + "/get-study-loads"
 
@@ -205,7 +221,7 @@ func (h *databaseHandler) ExtractDataFromGenerator(ctx context.Context, w http.R
 		return
 	}
 
-	if err := h.lessonOccurrenceService.AddFromExternal(ctx, externalL); err != nil {
+	if err := h.lessonOccurrenceService.AddFromExternal(ctx, body.StartTime, externalL); err != nil {
 		jsonutil.ResponseWithError(w, http.StatusInternalServerError, err)
 		return
 	}

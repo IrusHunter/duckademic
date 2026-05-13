@@ -18,7 +18,7 @@ import (
 
 type LessonOccurrenceService interface {
 	platform.BaseService[entities.LessonOccurrence]
-	AddFromExternal(ctx context.Context, el []entities.ExternalLesson) error
+	AddFromExternal(context.Context, time.Time, []entities.ExternalLesson) error
 	GetLessonsForTeacher(
 		ctx context.Context, teacherID uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
 	GetLessonsForStudent(
@@ -115,7 +115,9 @@ func (s *lessonOccurrenceService) Update(
 	return lo, nil
 }
 
-func (s *lessonOccurrenceService) AddFromExternal(ctx context.Context, el []entities.ExternalLesson) error {
+func (s *lessonOccurrenceService) AddFromExternal(ctx context.Context, st time.Time, el []entities.ExternalLesson) error {
+	st = st.Add(-time.Hour * 24 * time.Duration(st.Weekday()))
+
 	sem := make(chan struct{}, 10)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
@@ -159,8 +161,7 @@ func (s *lessonOccurrenceService) AddFromExternal(ctx context.Context, el []enti
 			}
 
 			lesson.LessonSlotID = slot.ID
-			lesson.Date = time.Date(2026, time.January, 20, 0, 0, 0, 0, time.UTC).Add(slot.StartTime).
-				Add(time.Hour * 24 * time.Duration(externalL.Day))
+			lesson.Date = st.Add(slot.StartTime).Add(time.Hour * 24 * time.Duration(externalL.Day))
 
 			_, err := s.Add(ctx, lesson)
 			if err != nil {
