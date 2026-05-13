@@ -26,6 +26,8 @@ This initial state is responsible for preparing all input data required for sche
 - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
 - [/set-classrooms](#schedule-generator-set-classrooms)
 
+**Manual change** Not allowed
+
 ### 2. Weekday Allocation State
 
 In this state, weekdays are preliminarily distributed among different lesson types for each student group.
@@ -34,6 +36,8 @@ A simplified rule is applied: each day is assigned only one type of lesson. The 
 **Allowed methods**
 
 - even_weekday_allocator
+
+**Manual change** [=> WeekdayBindingOverride](schemas.md#schedule-generator-weekday-binding-override)
 
 **Response** [=> DaysForLessonTypes](schemas.md#schedule-generator-days-for-lesson-types)
 
@@ -46,6 +50,8 @@ This state assigns specific time slots within a single week. Irregular or one-ti
 - one_per_week_time_slot_assigner
 - brute_time_slot_assigner
 
+**Manual change** [=> TimeSlotForLessonOverride](schemas.md#schedule-generator-time-slot-for-lesson-override)
+
 **Response** [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
 
 ### 4. Weekly Classroom Assignment State
@@ -56,6 +62,8 @@ This optional state assigns classrooms to lessons in the skeleton schedule. Sinc
 
 - munkres_classroom_assigner
 
+**Manual change** [=> ClassroomForLessonOverride](schemas.md#schedule-generator-classroom-for-lesson-override)
+
 **Response** [=> GeneratedLessonsWithC](schemas.md#schedule-generator-generated-lessons-with-c)
 
 ### 5. Weekly Schedule Expansion State
@@ -65,6 +73,8 @@ At this stage, the skeleton schedule is extended to all academic weeks.Teacher-s
 **Allowed methods**
 
 - any (fixed - single predefined method, not configurable)
+
+**Manual change** Not allowed
 
 **Response** [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
 
@@ -77,6 +87,8 @@ This state handles the assignment of time slots for previously unassigned (“fl
 - one_per_week_time_slot_assigner
 - brute_time_slot_assigner
 
+**Manual change** [=> TimeSlotForLessonOverride](schemas.md#schedule-generator-time-slot-for-lesson-override)
+
 **Response** [=> GeneratedLessons](schemas.md#schedule-generator-generated-lessons)
 
 ### 7. Full Classroom Assignment State
@@ -86,6 +98,8 @@ This state assigns classrooms to all remaining lessons that do not yet have one.
 **Allowed methods**
 
 - munkres_classroom_assigner
+
+**Manual change** [=> ClassroomForLessonOverride](schemas.md#schedule-generator-classroom-for-lesson-override)
 
 **Response** [=> GeneratedLessonsWithC](schemas.md#schedule-generator-generated-lessons-with-c)
 
@@ -105,3 +119,5 @@ They all separate endpoints.
 - [/get-study-loads](#schedule-generator-get-study-loads)
 - [/get-lessons](#schedule-generator-get-lessons)
 - [/get-fault](#schedule-generator-get-fault)
+
+**Manual change** Not allowed

@@ -11,7 +11,7 @@ type GeneratedLessons struct {
 }
 
 type GeneratedLesson struct {
-	CommonLesson
+	StudyLoad
 	Days      []int         `json:"days"`
 	Slot      int           `json:"slot"`
 	Classroom *CommonEntity `json:"classroom,omitempty"`
@@ -52,26 +52,9 @@ func FormGeneratedLessons(lessons []*entities.Lesson) []GeneratedLesson {
 		}
 
 		grouped[k] = &GeneratedLesson{
-			CommonLesson: CommonLesson{
-				Teacher: CommonEntity{
-					ID:   lesson.Teacher.ID,
-					Name: lesson.Teacher.UserName,
-				},
-				StudentGroup: CommonEntity{
-					ID:   lesson.StudentGroup.ID,
-					Name: lesson.StudentGroup.Name,
-				},
-				Discipline: CommonEntity{
-					ID:   lesson.Discipline.ID,
-					Name: lesson.Discipline.Name,
-				},
-				LessonType: CommonEntity{
-					ID:   lesson.Type.ID,
-					Name: lesson.Type.Name,
-				},
-			},
-			Days: []int{lesson.Day},
-			Slot: lesson.Slot,
+			StudyLoad: FormStudyLoad(lesson.StudyLoad),
+			Days:      []int{lesson.Day},
+			Slot:      lesson.Slot,
 			Classroom: func() *CommonEntity {
 				if lesson.Classroom == nil {
 					return nil

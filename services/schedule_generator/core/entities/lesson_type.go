@@ -29,6 +29,7 @@ type LessonTypeBinder interface {
 	//
 	// Returns an error if the weekday is already blocked.
 	BindWeekday(lt *LessonType, day, slots int) error
+	UnbindWeekday(lt *LessonType, day, slots int) error
 	GetReservedSlotsForLT(*LessonType) int
 	// Checks whether the given day matches the lesson type.
 	//
@@ -73,6 +74,20 @@ func (c *lessonTypeBinder) BindWeekday(lt *LessonType, day, slots int) error {
 
 	c.dayBinding[day] = lt
 	c.reservedSlotsForLT[lt] += slots
+
+	return nil
+}
+func (c *lessonTypeBinder) UnbindWeekday(lt *LessonType, day, slots int) error {
+	if !c.IsWeekday(day) {
+		return fmt.Errorf("day %d is not the number of the weekday", day)
+	}
+
+	if c.dayBinding[day] != lt {
+		return fmt.Errorf("day %d not blocked for %s", day, lt.Name)
+	}
+
+	c.dayBinding[day] = nil
+	c.reservedSlotsForLT[lt] -= slots
 
 	return nil
 }

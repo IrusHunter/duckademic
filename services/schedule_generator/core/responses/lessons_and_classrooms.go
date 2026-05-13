@@ -6,7 +6,7 @@ type GeneratedLessonsWithC struct {
 }
 
 type LessonWithoutClassroom struct {
-	CommonLesson
+	StudyLoad
 	Day  int `json:"day"`
 	Slot int `json:"slot"`
 }

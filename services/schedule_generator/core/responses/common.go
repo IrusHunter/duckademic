@@ -14,14 +14,7 @@ func FormCommonEntity(id uuid.UUID, name string) CommonEntity {
 	}
 }
 
-type CommonLesson struct {
-	Teacher      CommonEntity `json:"teacher"`
-	StudentGroup CommonEntity `json:"student_group"`
-	Discipline   CommonEntity `json:"discipline"`
-	LessonType   CommonEntity `json:"lesson_type"`
-}
-
 type UnassignedLesson struct {
-	CommonLesson
+	StudyLoad
 	Count int
 }

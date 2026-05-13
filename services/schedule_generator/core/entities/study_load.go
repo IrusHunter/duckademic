@@ -53,6 +53,21 @@ func (sl *StudyLoad) AddLesson(lesson *Lesson) error {
 	return nil
 }
 
+func (sl *StudyLoad) RemoveLesson(lesson *Lesson) error {
+	if lesson.StudyLoad != sl {
+		return fmt.Errorf("invalid lesson for study load")
+	}
+
+	ind := slices.Index(sl.Lessons, lesson)
+	if ind == -1 {
+		return fmt.Errorf("lesson not found for study load")
+	}
+	sl.Lessons = append(sl.Lessons[:ind], sl.Lessons[ind+1:]...)
+	sl.CurrentHours -= lesson.Value
+
+	return nil
+}
+
 // CountHoursDeficit returns the number of missing study hours.
 func (sl *StudyLoad) CountHoursDeficit() int {
 	return sl.Discipline.GetRequiredHours(sl.Type) - sl.CurrentHours

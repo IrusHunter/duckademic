@@ -49,6 +49,20 @@ func (l *Lesson) SetClassroom(c *Classroom) error {
 	return nil
 }
 
+func (l *Lesson) RemoveClassroom() error {
+	if l.Classroom == nil {
+		return fmt.Errorf("lesson already without classroom")
+	}
+
+	l.Classroom = nil
+
+	if err := l.Classroom.RemoveLesson(l); err != nil {
+		panic("tmp")
+	}
+
+	return nil
+}
+
 // String returns a human-readable representation of the lesson.
 //
 // The output format is: "teacher: %%, student group: %%, discipline: %%, lesson type: %%, lesson slot: %%, classroom: %%".

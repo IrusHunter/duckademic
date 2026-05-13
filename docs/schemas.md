@@ -492,6 +492,50 @@
 }
 ```
 
+<a id="schedule-generator-weekday-binding-override"></a>
+
+### Weekday Binding Override
+
+```json
+{
+  "student_group_id": "uuid (unique identifier of the student group)",
+  "lesson_type_id": "uuid (unique identifier of the lesson type)",
+
+  // Optional field
+  "old_weekday": "integer (previous weekday number)",
+  "new_weekday": "integer (new weekday number)"
+}
+```
+
+<a id="schedule-generator-time-slot-for-lesson-override"></a>
+
+### Time Slot for Lesson Override
+
+```json
+{
+  "study_load_id": "uuid (unique identifier of the study load)",
+
+  // Optional fields
+  "old_day": "integer (previous day number)",
+  "old_slot": "integer (previous lesson slot number)",
+  "new_day": "integer (new day number)",
+  "new_slot": "integer (new lesson slot number)"
+}
+```
+
+<a id="schedule-generator-classroom-for-lesson-override"></a>
+
+### Classroom for Lesson Override
+
+```json
+{
+  "lesson_id": "uuid (unique identifier of the lesson)",
+
+  // Optional field
+  "new_classroom_id": "uuid (unique identifier of the new classroom)"
+}
+```
+
 <a id="schedule-generator-days-for-lesson-types"></a>
 
 ### Days for Lesson Types
@@ -535,22 +579,15 @@
 {
   "lessons": [
     {
-      "teacher": {
-        "id": "uuid (unique identifier of the teacher)",
-        "name": "string (name of the teacher)"
-      },
-      "student_group": {
-        "id": "uuid (unique identifier of the student group)",
-        "name": "string (name of the student group)"
-      },
-      "discipline": {
-        "id": "uuid (unique identifier of the discipline)",
-        "name": "string (name of the discipline)"
-      },
-      "lesson_type": {
-        "id": "uuid (unique identifier of the lesson type)",
-        "name": "string (name of the lesson type)"
-      },
+      "id": "uuid (unique identifier of the study load)",
+      "teacher_id": "uuid (unique identifier of the teacher)",
+      "teacher_name": "string (short full name of the teacher)",
+      "student_group_id": "uuid (unique identifier of the student group)",
+      "student_group_name": "string (name of the student group)",
+      "discipline_id": "uuid (unique identifier of the discipline)",
+      "discipline_name": "string (name of the discipline)",
+      "lesson_type_id": "uuid (unique identifier of the lesson type)",
+      "lesson_type_name": "string (name of the lesson type)",
       "days": ["integer (day number of similar lessons at same weekday)"],
       "slot": "integer (lesson slot number in the day)",
 
@@ -563,22 +600,15 @@
   ],
   "errors": [
     {
-      "teacher": {
-        "id": "uuid (unique identifier of the teacher)",
-        "name": "string (name of the teacher)"
-      },
-      "student_group": {
-        "id": "uuid (unique identifier of the student group)",
-        "name": "string (name of the student group)"
-      },
-      "discipline": {
-        "id": "uuid (unique identifier of the discipline)",
-        "name": "string (name of the discipline)"
-      },
-      "lesson_type": {
-        "id": "uuid (unique identifier of the lesson type)",
-        "name": "string (name of the lesson type)"
-      },
+      "id": "uuid (unique identifier of the study load)",
+      "teacher_id": "uuid (unique identifier of the teacher)",
+      "teacher_name": "string (short full name of the teacher)",
+      "student_group_id": "uuid (unique identifier of the student group)",
+      "student_group_name": "string (name of the student group)",
+      "discipline_id": "uuid (unique identifier of the discipline)",
+      "discipline_name": "string (name of the discipline)",
+      "lesson_type_id": "uuid (unique identifier of the lesson type)",
+      "lesson_type_name": "string (name of the lesson type)",
       "count": "integer (number of unassigned lessons)"
     }
   ]
@@ -593,49 +623,31 @@
 {
   "lessons_with_classroom": [
     {
-      "teacher": {
-        "id": "uuid (unique identifier of the teacher)",
-        "name": "string (name of the teacher)"
-      },
-      "student_group": {
-        "id": "uuid (unique identifier of the student group)",
-        "name": "string (name of the student group)"
-      },
-      "discipline": {
-        "id": "uuid (unique identifier of the discipline)",
-        "name": "string (name of the discipline)"
-      },
-      "lesson_type": {
-        "id": "uuid (unique identifier of the lesson type)",
-        "name": "string (name of the lesson type)"
-      },
-      "classroom": {
-        "id": "uuid (unique identifier of the classroom)",
-        "name": "string (name/number of the classroom)"
-      },
+      "id": "uuid (unique identifier of the study load)",
+      "teacher_id": "uuid (unique identifier of the teacher)",
+      "teacher_name": "string (short full name of the teacher)",
+      "student_group_id": "uuid (unique identifier of the student group)",
+      "student_group_name": "string (name of the student group)",
+      "discipline_id": "uuid (unique identifier of the discipline)",
+      "discipline_name": "string (name of the discipline)",
+      "lesson_type_id": "uuid (unique identifier of the lesson type)",
+      "lesson_type_name": "string (name of the lesson type)",
       "days": ["integer (day number of similar lessons at same weekday)"],
       "slot": "integer (lesson slot number in the day)"
     }
   ],
   "lessons_without_classroom": [
     {
-      "teacher": {
-        "id": "uuid (unique identifier of the teacher)",
-        "name": "string (name of the teacher)"
-      },
-      "student_group": {
-        "id": "uuid (unique identifier of the student group)",
-        "name": "string (name of the student group)"
-      },
-      "discipline": {
-        "id": "uuid (unique identifier of the discipline)",
-        "name": "string (name of the discipline)"
-      },
-      "lesson_type": {
-        "id": "uuid (unique identifier of the lesson type)",
-        "name": "string (name of the lesson type)"
-      },
-      "day": "integer (weekday number, e.g., 1 = Monday)",
+      "id": "uuid (unique identifier of the study load)",
+      "teacher_id": "uuid (unique identifier of the teacher)",
+      "teacher_name": "string (short full name of the teacher)",
+      "student_group_id": "uuid (unique identifier of the student group)",
+      "student_group_name": "string (name of the student group)",
+      "discipline_id": "uuid (unique identifier of the discipline)",
+      "discipline_name": "string (name of the discipline)",
+      "lesson_type_id": "uuid (unique identifier of the lesson type)",
+      "lesson_type_name": "string (name of the lesson type)",
+      "day": ["integer (day number of similar lessons at same weekday)"],
       "slot": "integer (lesson slot number in the day)"
     }
   ]

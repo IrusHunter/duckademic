@@ -345,25 +345,8 @@ func (e *ClassroomAssignError) Error() string {
 }
 func (e *ClassroomAssignError) GeneratorResponseError() responses.LessonWithoutClassroom {
 	return responses.LessonWithoutClassroom{
-		CommonLesson: responses.CommonLesson{
-			Teacher: responses.CommonEntity{
-				ID:   e.Teacher.ID,
-				Name: e.Teacher.UserName,
-			},
-			StudentGroup: responses.CommonEntity{
-				ID:   e.StudentGroup.ID,
-				Name: e.StudentGroup.Name,
-			},
-			Discipline: responses.CommonEntity{
-				ID:   e.Discipline.ID,
-				Name: e.Discipline.Name,
-			},
-			LessonType: responses.CommonEntity{
-				ID:   e.Type.ID,
-				Name: e.Type.Name,
-			},
-		},
-		Day:  e.Day,
-		Slot: e.Slot,
+		StudyLoad: responses.FormStudyLoad(e.StudyLoad),
+		Day:       e.Day,
+		Slot:      e.Slot,
 	}
 }

@@ -61,6 +61,9 @@ func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/process-step", map[string]platform.HandlerFunc{
 		http.MethodPost: ra.NewDefaultHandler(ra.scheduleGeneratorHandler.ProcessStep),
 	})
+	ra.NewRoute("/apply-manual-change", map[string]platform.HandlerFunc{
+		http.MethodPost: ra.NewDefaultHandler(ra.scheduleGeneratorHandler.ApplyManualChange),
+	})
 
 	http.HandleFunc("/get-study-loads", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.scheduleGeneratorHandler.GetStudyLoads)(r.Context(), w, r)

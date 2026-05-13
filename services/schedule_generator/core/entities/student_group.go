@@ -239,6 +239,18 @@ func (sg *StudentGroup) BindWeekday(lType *LessonType, day, slots int) error {
 	return nil
 }
 
+func (sg *StudentGroup) UnbindWeekday(lType *LessonType, day, slots int) error {
+	if err := sg.LessonTypeBinder.UnbindWeekday(lType, day, slots); err != nil {
+		return err
+	}
+
+	for _, group := range sg.connectedGroups {
+		group.LessonTypeBinder.UnbindWeekday(lType, day, slots)
+	}
+
+	return nil
+}
+
 // ==========================================================================================================
 // ================================================= OTHERS =================================================
 // ==========================================================================================================
@@ -269,6 +281,23 @@ func (sg *StudentGroup) AddLesson(lesson *Lesson) error {
 	// }
 
 	return err
+}
+
+func (sg *StudentGroup) RemoveLesson(lesson *Lesson) error {
+	if lesson.StudentGroup != sg {
+		return fmt.Errorf("invalid lesson")
+	}
+
+	err := sg.SetSlotBusyState(lesson.LessonSlot, false)
+	if err != nil {
+		return err
+	}
+	// TODO: Sharing busy state between groups causes bug: student group has a window, but between lessons of connected groups
+	// for _, g := range sg.connectedGroups {
+	// 	g.SetSlotBusyState(lesson.LessonSlot, true)
+	// }
+
+	return nil
 }
 
 // CheckLesson checks if the lesson can be added. It checks slot validation, availability,

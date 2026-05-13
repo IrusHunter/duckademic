@@ -53,6 +53,16 @@ func (t *Teacher) AddLesson(lesson *Lesson) error {
 	return err
 }
 
+func (t *Teacher) RemoveLesson(lesson *Lesson) error {
+	if lesson.Teacher != t {
+		return fmt.Errorf("invalid lesson for teacher")
+	}
+
+	t.SetSlotBusyState(lesson.LessonSlot, false)
+
+	return nil
+}
+
 // CheckLesson checks if the lesson can be added. It checks slot validation and availability.
 //
 // Return an error if validation fails.

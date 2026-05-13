@@ -9,15 +9,15 @@ import (
 )
 
 type weeklyTimeSlotAssignmentStep struct {
-	methods       map[components.ComponentIdentifier]components.TimeSlotAssigner
-	studyLoads    services.StudyLoadService
-	lessonService services.LessonService
+	methods          map[components.ComponentIdentifier]components.TimeSlotAssigner
+	studyLoadService services.StudyLoadService
+	lessonService    services.LessonService
 }
 
 func NewWeeklyTimeSlotAssignmentStep(c *GeneratorContext) PipelineStep {
 	s := weeklyTimeSlotAssignmentStep{methods: map[components.ComponentIdentifier]components.TimeSlotAssigner{}}
 
-	s.studyLoads, _ = services.NewStudyLoadService(c.weekData.studyLoadService.GetAll())
+	s.studyLoadService, _ = services.NewStudyLoadService(c.weekData.studyLoadService.GetAll())
 	s.lessonService = c.weekData.lessonService
 
 	onePerWeekTimeSlotAssigner := components.NewBoneGenerator()
@@ -33,7 +33,7 @@ func (s *weeklyTimeSlotAssignmentStep) GetNextStep(c *GeneratorContext) Pipeline
 	return NewWeeklyClassroomAssignmentStep(c)
 }
 func (s *weeklyTimeSlotAssignmentStep) CanGoToTheNextStep() error {
-	if _, hoursDept := s.studyLoads.GetHoursDeficit(); hoursDept != 0 {
+	if _, hoursDept := s.studyLoadService.GetHoursDeficit(); hoursDept != 0 {
 		return fmt.Errorf("%d study loads haven't assigned week lesson", hoursDept)
 	}
 
@@ -49,11 +49,14 @@ func (s *weeklyTimeSlotAssignmentStep) Process(cID components.ComponentIdentifie
 	}
 
 	errs := comp.Run(components.TimeSlotAssignerInput{
-		StudyLoads:    s.studyLoads.GetAll(),
+		StudyLoads:    s.studyLoadService.GetAll(),
 		LessonService: s.lessonService,
 	})
 	return responses.GeneratedLessons{
 		Lessons: responses.FormGeneratedLessons(s.lessonService.GetAll()),
 		Errors:  errs,
 	}, nil
+}
+func (s *weeklyTimeSlotAssignmentStep) ApplyManualChange(data map[string]string) error {
+	return TimeSlotForLessonOverrideChange(data, s.lessonService, s.studyLoadService)
 }

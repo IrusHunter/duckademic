@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
+	"github.com/google/uuid"
 )
 
 // LessonService aggregates and manages lessons that the generator works with.
@@ -14,6 +15,7 @@ type LessonService interface {
 	GetAll() []*entities.Lesson
 	// Assigns a lesson to the selected slot.
 	AssignLesson(*entities.StudyLoad, entities.LessonSlot) error
+	UnassignLesson(lesson *entities.Lesson)
 	// MoveLessonTo moves lesson to another slot (to).
 	MoveLessonTo(*entities.Lesson, entities.LessonSlot) error
 	// TODO: collect bone lessons in another structure.
@@ -21,6 +23,8 @@ type LessonService interface {
 	// Returns the lessons that do not have an assigned classroom.
 	GetLessonsWithoutClassroom() []*entities.Lesson
 	Select() *LessonSelector
+	FindByStudyLoadIDAndSlot(uuid.UUID, entities.LessonSlot) *entities.Lesson
+	FindByID(id uuid.UUID) *entities.Lesson
 }
 
 // NewLessonService creates a new LessonService basic instance.
@@ -65,6 +69,29 @@ func (ls *lessonService) AssignLesson(sl *entities.StudyLoad, slot entities.Less
 
 	return nil
 }
+func (ls *lessonService) UnassignLesson(lesson *entities.Lesson) {
+	ind := slices.Index(ls.lessons, lesson)
+	if ind == -1 {
+		panic("invalid lesson")
+	}
+	ls.lessons = append(ls.lessons[:ind], ls.lessons[ind+1:]...)
+
+	if err := lesson.StudentGroup.RemoveLesson(lesson); err != nil {
+		panic("tmp")
+	}
+	if err := lesson.Teacher.RemoveLesson(lesson); err != nil {
+		panic("tmp")
+	}
+	if err := lesson.StudyLoad.RemoveLesson(lesson); err != nil {
+		panic("tmp")
+	}
+
+	if lesson.Classroom != nil {
+		if err := lesson.Classroom.RemoveLesson(lesson); err != nil {
+			panic("tmp")
+		}
+	}
+}
 func (ls *lessonService) GetWeekLessons(week int) (res []*entities.Lesson) {
 	for _, l := range ls.lessons {
 		if l.Day/7 == week {
@@ -106,6 +133,28 @@ func (ls *lessonService) GetLessonsWithoutClassroom() []*entities.Lesson {
 	}
 
 	return res
+}
+func (s *lessonService) FindByStudyLoadIDAndSlot(studyLoadID uuid.UUID, slot entities.LessonSlot) *entities.Lesson {
+	ind := slices.IndexFunc(s.lessons, func(lesson *entities.Lesson) bool {
+		return lesson.StudyLoad.ID == studyLoadID && lesson.LessonSlot == slot
+	})
+
+	if ind == -1 {
+		return nil
+	}
+
+	return s.lessons[ind]
+}
+func (s *lessonService) FindByID(id uuid.UUID) *entities.Lesson {
+	ind := slices.IndexFunc(s.lessons, func(lesson *entities.Lesson) bool {
+		return lesson.ID == id
+	})
+
+	if ind == -1 {
+		return nil
+	}
+
+	return s.lessons[ind]
 }
 func (ls *lessonService) Select() *LessonSelector {
 	return &LessonSelector{

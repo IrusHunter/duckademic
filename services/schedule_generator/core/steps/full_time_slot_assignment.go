@@ -57,3 +57,6 @@ func (s *fullTimeSlotAssignmentStep) Process(cID components.ComponentIdentifier)
 		Errors:  errs,
 	}, nil
 }
+func (s *fullTimeSlotAssignmentStep) ApplyManualChange(data map[string]string) error {
+	return TimeSlotForLessonOverrideChange(data, s.lessonService, s.studyLoadService)
+}

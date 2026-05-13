@@ -71,3 +71,7 @@ func (g *ScheduleGenerator) ProcessStep(method components.ComponentIdentifier, d
 
 	return g.currentStep.Process(method)
 }
+
+func (g *ScheduleGenerator) ApplyManualChange(data map[string]string) error {
+	return g.currentStep.ApplyManualChange(data)
+}

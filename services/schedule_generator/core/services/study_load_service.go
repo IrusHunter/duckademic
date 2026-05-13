@@ -5,6 +5,7 @@ import (
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
+	"github.com/google/uuid"
 )
 
 // StudyLoadService aggregates and manages study loads that the generator works with.
@@ -14,6 +15,7 @@ type StudyLoadService interface {
 	// Returns the missing study hours and number of it.
 	GetHoursDeficit() ([]responses.StudyLoadHoursDeficit, int)
 	Find(entities.UnassignedLesson) *entities.StudyLoad // Returns a pointer to the teacher with the given data.
+	FindByID(uuid.UUID) *entities.StudyLoad
 }
 
 // NewStudyLoadService creates a new StudyLoadService basic instance.
@@ -101,6 +103,16 @@ func (s *studyLoadService) GetHoursDeficit() (res []responses.StudyLoadHoursDefi
 func (s *studyLoadService) Find(ul entities.UnassignedLesson) *entities.StudyLoad {
 	ind := slices.IndexFunc(s.loads, func(load *entities.StudyLoad) bool {
 		return ul == load.UnassignedLesson
+	})
+
+	if ind == -1 {
+		return nil
+	}
+	return s.loads[ind]
+}
+func (s *studyLoadService) FindByID(id uuid.UUID) *entities.StudyLoad {
+	ind := slices.IndexFunc(s.loads, func(load *entities.StudyLoad) bool {
+		return load.ID == id
 	})
 
 	if ind == -1 {

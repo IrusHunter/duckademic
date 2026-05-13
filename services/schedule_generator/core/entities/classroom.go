@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/google/uuid"
 )
@@ -15,7 +16,7 @@ type Classroom struct {
 	RoomNumber     string    // Human-readable identifier of the Classroom.
 	Capacity       int       // Maximum number of students allowed in the classroom.
 	FillPercentage float32   // Capacity fraction above which the classroom is full.
-	lessons        []*Lesson // Lessons scheduled in this classroom.
+	Lessons        []*Lesson // Lessons scheduled in this classroom.
 }
 
 // NewClassroom create a new Classroom instance.
@@ -65,8 +66,23 @@ func (c *Classroom) AddLesson(lesson *Lesson) error {
 		return fmt.Errorf("lesson check fails: %w", err)
 	}
 
-	c.lessons = append(c.lessons, lesson)
+	c.Lessons = append(c.Lessons, lesson)
 	c.BusyGrid.SetSlotBusyState(lesson.LessonSlot, true)
+
+	return nil
+}
+
+func (c *Classroom) RemoveLesson(lesson *Lesson) error {
+	if lesson.Classroom != c {
+		return fmt.Errorf("invalid lesson for classroom")
+	}
+
+	ind := slices.Index(c.Lessons, lesson)
+	if ind == -1 {
+		return fmt.Errorf("lesson not found for classroom")
+	}
+	c.Lessons = append(c.Lessons[:ind], c.Lessons[ind+1:]...)
+	c.BusyGrid.SetSlotBusyState(lesson.LessonSlot, false)
 
 	return nil
 }
@@ -74,7 +90,7 @@ func (c *Classroom) AddLesson(lesson *Lesson) error {
 func (c *Classroom) GetOverflowLessons() []*Lesson {
 	res := []*Lesson{}
 
-	for _, lesson := range c.lessons {
+	for _, lesson := range c.Lessons {
 		if !c.CanAccommodate(lesson.StudentGroup.StudentNumber) {
 			res = append(res, lesson)
 		}
@@ -84,5 +100,5 @@ func (c *Classroom) GetOverflowLessons() []*Lesson {
 }
 
 func (c *Classroom) GetLessonOverlapping() []LessonSlot {
-	return c.BusyGrid.GetLessonOverlapping(c.lessons)
+	return c.BusyGrid.GetLessonOverlapping(c.Lessons)
 }

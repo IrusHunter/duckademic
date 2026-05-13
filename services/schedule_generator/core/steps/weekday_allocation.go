@@ -11,15 +11,20 @@ import (
 type weekdayAllocationStep struct {
 	methods             map[components.ComponentIdentifier]components.WeekdayAllocator
 	studentGroupService services.StudentGroupService
+	lessonTypeService   services.LessonTypeService
+	weekCount           int
 }
 
 func NewWeekdayAllocationStep(c *GeneratorContext) PipelineStep {
-	s := weekdayAllocationStep{methods: map[components.ComponentIdentifier]components.WeekdayAllocator{}}
+	s := weekdayAllocationStep{
+		methods:             map[components.ComponentIdentifier]components.WeekdayAllocator{},
+		studentGroupService: c.weekData.studentGroupService,
+		lessonTypeService:   c.weekData.lessonTypeService,
+		weekCount:           c.weekData.studentGroupService.GetAll()[0].GetFullWeekCount(),
+	}
 
 	evenWA := components.NewDayBlocker(c.fullData.studentGroupService.GetAll()[0].GetFullWeekCount(), c.config.LessonFillRate)
 	s.methods[evenWA.GetComponentIdentifier()] = evenWA
-
-	s.studentGroupService = c.weekData.studentGroupService
 
 	return &s
 }
@@ -50,4 +55,32 @@ func (s *weekdayAllocationStep) Process(cID components.ComponentIdentifier) (any
 		StudentGroups: responses.FormDaysForLessonTypes(s.studentGroupService.GetAll()),
 		Errors:        errs,
 	}, nil
+}
+func (s *weekdayAllocationStep) ApplyManualChange(data map[string]string) error {
+	weekdayBindingOverride, err := FormWeekdayBindingOverride(data)
+	if err != nil {
+		return fmt.Errorf("failed to parse weekday binding override: %w", err)
+	}
+
+	studentGroup := s.studentGroupService.Find(weekdayBindingOverride.StudentGroupID)
+	if studentGroup == nil {
+		return fmt.Errorf("student group with id %q not found", weekdayBindingOverride.StudentGroupID)
+	}
+
+	lessonType := s.lessonTypeService.Find(weekdayBindingOverride.LessonTypeID)
+	if lessonType == nil {
+		return fmt.Errorf("lesson type with id %q not found", weekdayBindingOverride.LessonTypeID)
+	}
+
+	if weekdayBindingOverride.NewWeekday != nil {
+		nw := *weekdayBindingOverride.NewWeekday
+		err = studentGroup.BindWeekday(lessonType, nw, s.weekCount*studentGroup.CountSlotsOnWeekday(nw))
+	}
+
+	if weekdayBindingOverride.OldWeekday != nil {
+		ow := *weekdayBindingOverride.OldWeekday
+		err = studentGroup.UnbindWeekday(lessonType, ow, s.weekCount*studentGroup.CountSlotsOnWeekday(ow))
+	}
+
+	return nil
 }

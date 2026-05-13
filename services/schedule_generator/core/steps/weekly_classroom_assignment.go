@@ -4,22 +4,21 @@ import (
 	"fmt"
 
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/components"
-	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/services"
 )
 
 type weeklyClassroomAssignmentStep struct {
-	methods       map[components.ComponentIdentifier]components.ClassroomAssigner
-	lessonService services.LessonService
-	classrooms    []*entities.Classroom
+	methods          map[components.ComponentIdentifier]components.ClassroomAssigner
+	lessonService    services.LessonService
+	classroomService services.ClassroomService
 }
 
 func NewWeeklyClassroomAssignmentStep(c *GeneratorContext) PipelineStep {
 	s := weeklyClassroomAssignmentStep{methods: map[components.ComponentIdentifier]components.ClassroomAssigner{}}
 
 	s.lessonService = c.weekData.lessonService
-	s.classrooms = c.weekData.classroomService.GetAll()
+	s.classroomService = c.weekData.classroomService
 
 	munkresClassroomAssigner := components.NewClassroomAssigner()
 	s.methods[munkresClassroomAssigner.GetComponentIdentifier()] = munkresClassroomAssigner
@@ -48,10 +47,13 @@ func (s *weeklyClassroomAssignmentStep) Process(cID components.ComponentIdentifi
 
 	errs := comp.Run(components.ClassroomAssignerInput{
 		Lessons:    s.lessonService.GetLessonsWithoutClassroom(),
-		Classrooms: s.classrooms,
+		Classrooms: s.classroomService.GetAll(),
 	})
 	return responses.GeneratedLessonsWithC{
 		LessonsWithClassroom:    responses.FormGeneratedLessons(s.lessonService.GetAll()),
 		LessonsWithoutClassroom: errs,
 	}, nil
+}
+func (s *weeklyClassroomAssignmentStep) ApplyManualChange(data map[string]string) error {
+	return ClassroomForLessonOverrideChange(data, s.lessonService, s.classroomService)
 }

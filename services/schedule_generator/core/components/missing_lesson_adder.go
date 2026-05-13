@@ -79,24 +79,7 @@ func (e *MissingLessonsAdderError) Error() string {
 }
 func (e *MissingLessonsAdderError) GeneratorResponseError() responses.UnassignedLesson {
 	return responses.UnassignedLesson{
-		CommonLesson: responses.CommonLesson{
-			Teacher: responses.CommonEntity{
-				ID:   e.Teacher.ID,
-				Name: e.Teacher.UserName,
-			},
-			StudentGroup: responses.CommonEntity{
-				ID:   e.StudentGroup.ID,
-				Name: e.StudentGroup.Name,
-			},
-			Discipline: responses.CommonEntity{
-				ID:   e.Discipline.ID,
-				Name: e.Discipline.Name,
-			},
-			LessonType: responses.CommonEntity{
-				ID:   e.Type.ID,
-				Name: e.Type.Name,
-			},
-		},
-		Count: e.Count,
+		StudyLoad: responses.FormStudyLoad(e.StudyLoad),
+		Count:     e.Count,
 	}
 }

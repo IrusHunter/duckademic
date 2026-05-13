@@ -18,6 +18,7 @@ import (
 type ScheduleGeneratorHandler interface {
 	CreateGenerator(context.Context, http.ResponseWriter, *http.Request)
 	GetDefaultConfig(context.Context, http.ResponseWriter, *http.Request)
+
 	SetTeachers(context.Context, http.ResponseWriter, *http.Request)
 	SetDisciplines(context.Context, http.ResponseWriter, *http.Request)
 	SetLessonTypes(context.Context, http.ResponseWriter, *http.Request)
@@ -25,8 +26,11 @@ type ScheduleGeneratorHandler interface {
 	SetStudentGroups(context.Context, http.ResponseWriter, *http.Request)
 	SetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
 	SetClassrooms(context.Context, http.ResponseWriter, *http.Request)
+
 	SubmitAndGoToTheNextStep(context.Context, http.ResponseWriter, *http.Request)
 	ProcessStep(context.Context, http.ResponseWriter, *http.Request)
+	ApplyManualChange(context.Context, http.ResponseWriter, *http.Request)
+
 	GetStudyLoads(context.Context, http.ResponseWriter, *http.Request)
 	GetLessons(context.Context, http.ResponseWriter, *http.Request)
 	GetFault(context.Context, http.ResponseWriter, *http.Request)
@@ -493,6 +497,47 @@ func (h *scheduleGeneratorHandler) ProcessStep(ctx context.Context, w http.Respo
 	}
 
 	jsonutil.ResponseWithJSON(w, 200, resp)
+}
+func (h *scheduleGeneratorHandler) ApplyManualChange(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.generator == nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"ApplyManualChange",
+				fmt.Errorf("generator wasn't initialized"),
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	var body map[string]string
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"ApplyManualChange",
+				fmt.Errorf("failed to decode body: %w", err),
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	if err := h.generator.ApplyManualChange(body); err != nil {
+		jsonutil.ResponseWithError(w, 400,
+			h.logger.LogAndReturnError(
+				contextutil.GetTraceID(ctx),
+				"ApplyManualChange",
+				err,
+				logger.HandlerRequestFailed,
+			),
+		)
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 
 func (h *scheduleGeneratorHandler) GetStudyLoads(ctx context.Context, w http.ResponseWriter, r *http.Request) {

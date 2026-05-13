@@ -61,9 +61,7 @@
     - [/init](#schedule-generator-init)
     - [/submit-and-go](#schedule-generator-submit-and-go)
     - [/process-step](#schedule-generator-process-step)
-    - [/get-study-loads](#schedule-generator-get-study-loads)
-    - [/get-lessons](#schedule-generator-get-lessons)
-    - [/get-fault](#schedule-generator-get-fault)
+    - [/apply-manual-change](#schedule-generator-apply-manual-change)
   - Internal
     - [/set-teachers](#schedule-generator-set-teachers)
     - [/set-disciplines](#schedule-generator-set-disciplines)
@@ -72,6 +70,9 @@
     - [/set-student-groups](#schedule-generator-set-student-groups)
     - [/set-teacher-loads](#schedule-generator-set-teacher-loads)
     - [/set-classrooms](#schedule-generator-set-classrooms)
+    - [/get-study-loads](#schedule-generator-get-study-loads)
+    - [/get-lessons](#schedule-generator-get-lessons)
+    - [/get-fault](#schedule-generator-get-fault)
 
 - Student Service (/student)
   - Source of Truth
@@ -145,6 +146,7 @@
     - [/refresh](#auth-refresh)
     - [/reset-password/{id}](#auth-reset-password-id) !auth.user.reset_password
     - [/change-password](#auth-change-password)
+
 - Course Service (/course)
   - Mirror
     - [/teachers](#course-teachers) !course.teacher
@@ -813,6 +815,18 @@
 ```
 
 200 OK => one of the responses (see [schedule_generator_pipeline.mg](schedule_generator_pipeline.mg) for details)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-generator-apply-manual-change"></a>
+
+## /apply-manual-change
+
+### POST – apply a manual schedule modification
+
+<= one of the requests (see [schedule_generator_pipeline.mg](schedule_generator_pipeline.mg) for details)
+
+204 NO CONTENT
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 

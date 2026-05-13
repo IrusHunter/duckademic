@@ -94,3 +94,6 @@ func (s *weeklyScheduleExpansionStep) Process(components.ComponentIdentifier) (a
 	res := responses.GeneratedLessons{Lessons: responses.FormGeneratedLessons(s.fullData.lessonService.GetAll())}
 	return res, nil
 }
+func (s *weeklyScheduleExpansionStep) ApplyManualChange(data map[string]string) error {
+	return fmt.Errorf("you can't manually change something at weekly schedule expansion step")
+}
