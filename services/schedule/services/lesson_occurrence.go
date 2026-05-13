@@ -140,12 +140,22 @@ func (s *lessonOccurrenceService) AddFromExternal(ctx context.Context, el []enti
 
 			slot := s.lessonSlotRepository.FindBySlotAndWeekday(ctx, externalL.Slot, externalL.Day%7)
 			if slot == nil {
-				mu.Lock()
-				lastError = s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "AddMultiple",
-					fmt.Errorf("failed to find lesson slot (%d/%d) [%d]", externalL.Day, externalL.Slot, i),
-					logger.ServiceValidationFailed)
-				mu.Unlock()
-				return
+				var err error
+				newSlot, err := s.lessonSlotRepository.Add(ctx, entities.LessonSlot{
+					ID:      uuid.New(),
+					Weekday: time.Weekday(externalL.Day % 7),
+					Slot:    externalL.Slot,
+				})
+
+				if err != nil {
+					mu.Lock()
+					lastError = s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "AddMultiple",
+						fmt.Errorf("failed to find lesson slot (%d/%d) [%d]", externalL.Day, externalL.Slot, i),
+						logger.ServiceValidationFailed)
+					mu.Unlock()
+					return
+				}
+				slot = &newSlot
 			}
 
 			lesson.LessonSlotID = slot.ID
