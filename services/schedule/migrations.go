@@ -568,6 +568,14 @@ func lessonSlotMigrations(tx *sqlx.Tx) error {
 		return fmt.Errorf("failed to create on update trigger for lesson_slots: %w", err)
 	}
 
+	indexWeekdaySlot := `
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_lesson_slots_weekday_slot
+	ON lesson_slots (weekday, slot);
+	`
+	if _, err := tx.Exec(indexWeekdaySlot); err != nil {
+		return fmt.Errorf("failed to create lesson_slots weekday-slot index: %w", err)
+	}
+
 	return nil
 }
 func lessonOccurrenceMigrations(tx *sqlx.Tx) error {

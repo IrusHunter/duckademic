@@ -25,7 +25,7 @@ func NewLessonSlotRepository(db *sqlx.DB) LessonSlotRepository {
 			"start_time",
 			"duration",
 		},
-		[]string{},
+		[]string{"duration", "start_time"},
 		[]string{"created_at", "updated_at"},
 	)
 

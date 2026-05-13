@@ -557,6 +557,50 @@
 
 200 OK [=> LessonSlot[]](schemas.md#schedule-lesson-slot)
 
+### POST (schedule.lesson_slot) - adds a new lesson slot
+
+```json
+{
+  "slot": "integer (index of the slot within a day, starting from 0)",
+  "weekday": "integer (day of the week, 0 = Sunday, 6 = Saturday)",
+  "start_time": "duration (lesson start time as duration since midnight, in nanoseconds)",
+  "duration": "duration (length of the lesson, in nanoseconds)"
+}
+```
+
+200 OK [=> LessonSlot](schemas.md#schedule-lesson-slot)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-lesson-slot-id"></a>
+
+## /lesson-slot/{id}
+
+### GET (schedule.lesson_slot) - finds a lesson slot with an ID as a URL parameter
+
+200 OK [=> LessonSlot](schemas.md#schedule-lesson-slot)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (schedule.lesson_slot) - deletes a lesson slot by its ID provided in the URL path
+
+200 OK [=> LessonSlot](schemas.md#schedule-lesson-slot)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### PUT (schedule.lesson_slot) - updates a lesson slot by its ID with the data provided in the request body
+
+```json
+{
+  "start_time": "duration (lesson start time as duration since midnight, in nanoseconds)",
+  "duration": "duration (length of the lesson, in nanoseconds)"
+}
+```
+
+200 OK [=> LessonSlot](schemas.md#schedule-lesson-slot)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
 <a id="schedule-lesson-occurrences"></a>
 
 ## /lesson-occurrences
@@ -2239,3 +2283,7 @@ Required query parameters:
 ```
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+```
+
+```

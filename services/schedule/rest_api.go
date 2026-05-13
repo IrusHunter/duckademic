@@ -145,7 +145,13 @@ func (ra *restapi) Run(port int) error {
 	})
 
 	ra.NewRoute("/lesson-slots", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.lessonSlotHandler.GetAll, []string{"schedule.lesson_slot"}),
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.lessonSlotHandler.GetAll, []string{"schedule.lesson_slot"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.lessonSlotHandler.Add, []string{"schedule.lesson_slot"}),
+	})
+	ra.NewRoute("/lesson-slot/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.lessonSlotHandler.Find, []string{"schedule.lesson_slot"}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.lessonSlotHandler.Update, []string{"schedule.lesson_slot"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.lessonSlotHandler.Delete, []string{"schedule.lesson_slot"}),
 	})
 
 	ra.NewRoute("/lesson-occurrences", map[string]platform.HandlerFunc{

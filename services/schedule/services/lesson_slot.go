@@ -31,7 +31,9 @@ func NewLessonSlotService(
 		sc,
 		lr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.LessonSlot]{
-			platform.OnAddPrepare: res.onAddPrepare,
+			platform.OnAddPrepare:       res.onAddPrepare,
+			platform.ValidateEntity:     res.validateEntity,
+			platform.OnUpdateValidation: res.validateEntity,
 		},
 	)
 
@@ -41,6 +43,17 @@ func NewLessonSlotService(
 type lessonSlotService struct {
 	platform.BaseService[entities.LessonSlot]
 	repository repositories.LessonSlotRepository
+}
+
+func (s *lessonSlotService) validateEntity(ctx context.Context, ls *entities.LessonSlot) error {
+	if err := ls.ValidateDuration(); err != nil {
+		return err
+	}
+	if err := ls.ValidateStartTime(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *lessonSlotService) onAddPrepare(ctx context.Context, ls *entities.LessonSlot) error {

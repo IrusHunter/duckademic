@@ -39,6 +39,21 @@ func (l LessonSlot) String() string {
 	return fmt.Sprintf("LessonSlot{%s}", strings.Join(parts, ", "))
 }
 
+func (l *LessonSlot) ValidateStartTime() error {
+	if l.StartTime <= 0 {
+		return fmt.Errorf("start time must be positive (get %d)", l.StartTime)
+	}
+
+	return nil
+}
+func (l *LessonSlot) ValidateDuration() error {
+	if l.Duration <= 0 {
+		return fmt.Errorf("duration must be positive (get %d)", l.Duration)
+	}
+
+	return nil
+}
+
 func (LessonSlot) TableName() string {
 	return "lesson_slots"
 }
