@@ -88,7 +88,8 @@ func main() {
 		groupMemberRepository)
 	semesterService := services.NewSemesterService(semesterRepository, eventBus)
 	semesterDisciplineService := services.NewSemesterDisciplineService(semesterDisciplineRepository, eventBus)
-	teacherSlotPriorityService := services.NewTeacherSlotPriorityService(teacherSlotPriorityRepository)
+	teacherSlotPriorityService := services.NewTeacherSlotPriorityService(teacherSlotPriorityRepository, teacherRepository,
+		lessonSlotRepository)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)

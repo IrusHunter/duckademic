@@ -20,8 +20,6 @@ func NewTeacherSlotPriorityRepository(db *sqlx.DB) TeacherSlotPriorityRepository
 			"teacher_id",
 			"time_slot_id",
 			"priority",
-			"created_at",
-			"updated_at",
 		},
 		[]string{"priority"},
 		[]string{"created_at", "updated_at"},
