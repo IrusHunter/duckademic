@@ -364,6 +364,21 @@
 }
 ```
 
+<a id="schedule-teacher-slot-priority"></a>
+
+### Teacher Slot Priority
+
+```json
+{
+  "id": "uuid (unique identifier of the teacher slot priority)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "time_slot_id": "uuid (unique identifier of the lesson slot)",
+  "priority": "string (priority value of the teacher for the selected lesson slot)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 ## Schedule Generator Service
 
 <a id="schedule-generator-generator-config"></a>

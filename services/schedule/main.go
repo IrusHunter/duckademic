@@ -66,6 +66,7 @@ func main() {
 	lessonOccurrenceRepository := repositories.NewLessonOccurrenceRepository(database)
 	semesterRepository := repositories.NewSemesterRepository(database)
 	semesterDisciplineRepository := repositories.NewSemesterDisciplineRepository(database)
+	teacherSlotPriorityRepository := repositories.NewTeacherSlotPriorityRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
@@ -87,6 +88,7 @@ func main() {
 		groupMemberRepository)
 	semesterService := services.NewSemesterService(semesterRepository, eventBus)
 	semesterDisciplineService := services.NewSemesterDisciplineService(semesterDisciplineRepository, eventBus)
+	teacherSlotPriorityService := services.NewTeacherSlotPriorityService(teacherSlotPriorityRepository)
 
 	academicRankHandler := resthandlers.NewAcademicRankHandler(academicRankService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
@@ -105,10 +107,12 @@ func main() {
 	lessonOccurrenceHandler := resthandlers.NewLessonOccurrenceHandler(lessonOccurrenceService)
 	semesterHandler := resthandlers.NewSemesterHandler(semesterService)
 	semesterDisciplineHandler := resthandlers.NewSemesterDisciplineHandler(semesterDisciplineService)
+	teacherSlotPriorityHandler := resthandlers.NewTeacherSlotPriorityHandler(teacherSlotPriorityService)
 	databaseHandler := resthandlers.NewDatabaseHandler(http.DefaultClient, scheduleGeneratorDomain, academicRankService,
 		teacherService, disciplineService, lessonTypeService, lessonTypeAssignmentService, studentService, studentGroupService,
 		groupMemberService, teacherLoadService, groupCohortService, groupCohortAssignmentService, classroomService,
-		studyLoadService, lessonSlotService, lessonOccurrenceService, semesterService, semesterDisciplineService)
+		studyLoadService, lessonSlotService, lessonOccurrenceService, semesterService, semesterDisciplineService,
+		teacherSlotPriorityService)
 
 	jwtSecret := envutil.GetStringFromENV("JWT_SECRET")
 	if jwtSecret == "" {
@@ -117,7 +121,8 @@ func main() {
 	restapi := NewRESTAPI(academicRankHandler, teacherHandler, disciplineHandler, lessonTypeHandler,
 		lessonTypeAssignmentHandler, studentHandler, studentGroupHandler, groupMemberHandler, teacherLoadHandler,
 		groupCohortHandler, groupCohortAssignmentHandler, classroomHandler, studyLoadHandler, lessonSlotHandler,
-		lessonOccurrenceHandler, semesterHandler, semesterDisciplineHandler, databaseHandler, []byte(jwtSecret))
+		lessonOccurrenceHandler, semesterHandler, semesterDisciplineHandler, teacherSlotPriorityHandler, databaseHandler,
+		[]byte(jwtSecret))
 
 	go func() {
 		time.Sleep(events.ExternalSeedCooldown)

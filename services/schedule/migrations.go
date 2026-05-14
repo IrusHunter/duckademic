@@ -30,6 +30,7 @@ func Migrate(database *sqlx.DB) error {
 		lessonSlotMigrations,
 		lessonOccurrenceMigrations,
 		semesterDisciplineMigrations,
+		teacherSlotPriorityMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -716,6 +717,83 @@ func semesterDisciplineMigrations(tx *sqlx.Tx) error {
 
 	if err := db.EnsureUpdatedAtTriggerTx(context.Background(), tx, "semester_discipline"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for semester_discipline: %w", err)
+	}
+
+	return nil
+}
+func teacherSlotPriorityMigrations(tx *sqlx.Tx) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS teacher_slot_priorities (
+		id UUID PRIMARY KEY,
+		teacher_id UUID NOT NULL,
+		time_slot_id UUID NOT NULL,
+		priority TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := tx.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create teacher_slot_priorities relation: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTriggerTx(
+		context.Background(),
+		tx,
+		"teacher_slot_priorities",
+	); err != nil {
+		return fmt.Errorf(
+			"failed to create on update trigger for teacher_slot_priorities: %w",
+			err,
+		)
+	}
+
+	uniqueTeacherSlotIndex := `
+	CREATE UNIQUE INDEX IF NOT EXISTS uniq_teacher_slot_priority
+	ON teacher_slot_priorities(teacher_id, time_slot_id);
+	`
+
+	if _, err := tx.Exec(uniqueTeacherSlotIndex); err != nil {
+		return fmt.Errorf(
+			"failed to create unique teacher_id + time_slot_id index: %w",
+			err,
+		)
+	}
+
+	teacherIndex := `
+	CREATE INDEX IF NOT EXISTS idx_teacher_slot_priorities_teacher_id
+	ON teacher_slot_priorities(teacher_id);
+	`
+
+	if _, err := tx.Exec(teacherIndex); err != nil {
+		return fmt.Errorf(
+			"failed to create teacher_id index for teacher_slot_priorities: %w",
+			err,
+		)
+	}
+
+	if err := db.EnsureForeignKeyTx(
+		context.Background(),
+		tx,
+		"fk_teacher_slot_priorities_teacher",
+		"teacher_slot_priorities",
+		"teacher_id",
+		"teachers",
+		"id",
+	); err != nil {
+		return fmt.Errorf("failed to create teacher_id foreign key: %w", err)
+	}
+
+	if err := db.EnsureForeignKeyTx(
+		context.Background(),
+		tx,
+		"fk_teacher_slot_priorities_time_slot",
+		"teacher_slot_priorities",
+		"time_slot_id",
+		"lesson_slots",
+		"id",
+	); err != nil {
+		return fmt.Errorf("failed to create time_slot_id foreign key: %w", err)
 	}
 
 	return nil

@@ -53,6 +53,8 @@
     - [/lesson-occurrences](#schedule-lesson-occurrences) !schedule.lesson_occurrence
     - [/lesson-occurrence/{id}](#schedule-lesson-occurrence-id) !schedule.lesson_occurrence
     - [/get-personal-schedule](#schedule-get-personal-schedule) !
+    - [/teacher-slots-priorities](#schedule-teacher-slots-priorities) !schedule.teacher_slot_priority
+    - [/teacher-slots-priority/{id}](#schedule-teacher-slots-priority-id) !schedule.teacher_slot_priority
 
 - Schedule Generator Service (/schedule-generator)
   - Source of Truth
@@ -694,6 +696,44 @@
 200 OK [=> []LessonOccurrence (full)](schemas.md#schedule-lesson-occurrence)
 
 400 BAD REQUEST or 401 UNAUTHORIZE or 500 INTERNAL SERVER ERROR [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-teacher-slots-priorities"></a>
+
+## /teacher-slots-priorities
+
+### GET (schedule.teacher_slot_priority) - gets all teacher slot priorities
+
+200 OK [=> TeacherSlotPriority[]](schemas.md#schedule-teacher-slot-priority)
+
+### POST (schedule.teacher_slot_priority) - creates a teacher slot priority
+
+```json id="bkg1gh"
+{
+  "teacher_id": "uuid (identifier of the teacher)",
+  "time_slot_id": "uuid (identifier of the lesson slot)",
+  "priority": "string (priority value for the lesson slot)"
+}
+```
+
+200 OK [=> TeacherSlotPriority](schemas.md#schedule-teacher-slot-priority)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-teacher-slots-priority-id"></a>
+
+## /teacher-slots-priority/{id}
+
+### GET (schedule.teacher_slot_priority) - finds a teacher slot priority by ID
+
+200 OK [=> TeacherSlotPriority](schemas.md#schedule-teacher-slot-priority)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (schedule.teacher_slot_priority) - deletes a teacher slot priority by ID
+
+200 OK [=> TeacherSlotPriority](schemas.md#schedule-teacher-slot-priority)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
 # Schedule Generator Service
 

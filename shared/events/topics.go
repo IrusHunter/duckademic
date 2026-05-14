@@ -4,18 +4,18 @@ type RedisTopic string
 
 const (
 	AcademicRankRT          RedisTopic = "academic:ranks"
-	TeacherRT               RedisTopic = "teachers" // 1 delay
-	StudentRT               RedisTopic = "students" // 1 delay
+	TeacherRT               RedisTopic = "teachers" // x2 delay
+	StudentRT               RedisTopic = "students" // x2 delay
 	LessonTypeRT            RedisTopic = "lesson:types"
 	DisciplineRT            RedisTopic = "disciplines"
 	SemesterDisciplineRT    RedisTopic = "semester:disciplines"
 	LessonTypeAssignmentRT  RedisTopic = "lesson:type:assignments"
 	SemesterRT              RedisTopic = "semesters"
-	StudentGroupRT          RedisTopic = "student:groups"          // 1 delay
-	GroupMemberRT           RedisTopic = "group:members"           // 2 delay
-	GroupCohortRT           RedisTopic = "group:cohorts"           // 1 delay
-	TeacherLoadRT           RedisTopic = "teacher:loads"           // 2 delay
-	GroupCohortAssignmentRT RedisTopic = "group:cohort:assignment" // 1 delay
+	StudentGroupRT          RedisTopic = "student:groups"          // x2 delay
+	GroupMemberRT           RedisTopic = "group:members"           // x3 delay
+	GroupCohortRT           RedisTopic = "group:cohorts"           // x2 delay
+	TeacherLoadRT           RedisTopic = "teacher:loads"           // x3 delay
+	GroupCohortAssignmentRT RedisTopic = "group:cohort:assignment" // x2 delay
 	ClassroomRT             RedisTopic = "classroom"
 	AccessPermissionRT      RedisTopic = "access:permission"
 )

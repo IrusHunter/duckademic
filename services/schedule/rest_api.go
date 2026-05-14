@@ -33,6 +33,7 @@ func NewRESTAPI(
 	loh resthandlers.LessonOccurrenceHandler,
 	semH resthandlers.SemesterHandler,
 	sdh resthandlers.SemesterDisciplineHandler,
+	tsph resthandlers.TeacherSlotPriorityHandler,
 	dh resthandlers.DatabaseHandler,
 	jwtSecrete []byte,
 ) RESTAPI {
@@ -56,6 +57,7 @@ func NewRESTAPI(
 		lessonOccurrenceHandler:      loh,
 		semesterHandler:              semH,
 		semesterDisciplineHandler:    sdh,
+		teacherSlotPriorityHandler:   tsph,
 	}
 }
 
@@ -79,6 +81,7 @@ type restapi struct {
 	lessonOccurrenceHandler      resthandlers.LessonOccurrenceHandler
 	semesterHandler              resthandlers.SemesterHandler
 	semesterDisciplineHandler    resthandlers.SemesterDisciplineHandler
+	teacherSlotPriorityHandler   resthandlers.TeacherSlotPriorityHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -170,6 +173,19 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.semesterHandler.GetAll, []string{"schedule.semester-discipline"}),
 	})
 
+	ra.NewRoute("/teacher-slots-priorities", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(
+			ra.teacherSlotPriorityHandler.GetAll, []string{"schedule.teacher_slot_priority"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(
+			ra.teacherSlotPriorityHandler.Add, []string{"schedule.teacher_slot_priority"}),
+	})
+	ra.NewRoute("/teacher-slots-priority/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(
+			ra.teacherSlotPriorityHandler.Find, []string{"schedule.teacher_slot_priority"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(
+			ra.teacherSlotPriorityHandler.Delete, []string{"schedule.teacher_slot_priority"}),
+	})
+
 	http.HandleFunc("/load-data-into-generator", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.LoadDataIntoGenerator)(r.Context(), w, r)
 	})
@@ -214,5 +230,6 @@ func BuildAccessPermissions() []events.AccessPermissionRE {
 		{Name: "schedule.lesson_occurrence"},
 		{Name: "schedule.semester"},
 		{Name: "schedule.semester-discipline"},
+		{Name: "schedule.teacher_slot_priority"},
 	}
 }
