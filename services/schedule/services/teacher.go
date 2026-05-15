@@ -22,16 +22,20 @@ type TeacherService interface {
 	ToGeneratorTeachers(context.Context, []entities.Teacher) []GeneratorTeacher
 }
 
-func NewTeacherService(tr repositories.TeacherRepository, eb events.EventBus) TeacherService {
+func NewTeacherService(
+	tr repositories.TeacherRepository,
+	tspr repositories.TeacherSlotPriorityRepository,
+	eb events.EventBus,
+) TeacherService {
 	sc := platform.NewServiceConfig("TeacherService", filepath.Join("data", "teachers.json"), "teacher")
 
 	res := &teacherService{
-		repository: tr,
+		repository:                    tr,
+		teacherSlotPriorityRepository: tspr,
 	}
 	res.BaseService = platform.NewBaseService(sc, tr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Teacher]{},
 	)
-	res.logger = res.GetLogger()
 
 	eb.Subscribe(contextutil.SetTraceID(context.Background()), string(events.TeacherRT), res.eventHandler)
 
@@ -40,19 +44,19 @@ func NewTeacherService(tr repositories.TeacherRepository, eb events.EventBus) Te
 
 type teacherService struct {
 	platform.BaseService[entities.Teacher]
-	repository repositories.TeacherRepository
-	logger     logger.Logger
+	repository                    repositories.TeacherRepository
+	teacherSlotPriorityRepository repositories.TeacherSlotPriorityRepository
 }
 
 func (s *teacherService) eventHandler(ctx context.Context, b []byte) {
 	t, err := events.FromByteConvertor[events.TeacherRE](b)
 	if err != nil {
-		s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "TeacherRTHandler",
+		s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "TeacherRTHandler",
 			err, logger.EventDataReadFailed)
 		return
 	}
 
-	s.logger.Log(contextutil.GetTraceID(ctx), "TeacherRTHandler",
+	s.GetLogger().Log(contextutil.GetTraceID(ctx), "TeacherRTHandler",
 		fmt.Sprintf("received %s", t), logger.EventDataReceived,
 	)
 
@@ -76,7 +80,7 @@ func (s *teacherService) eventHandler(ctx context.Context, b []byte) {
 func (s *teacherService) Seed(ctx context.Context) error {
 	teachers := []entities.Teacher{}
 	if err := jsonutil.ReadFileTo(filepath.Join("data", "teachers.json"), &teachers); err != nil {
-		return s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+		return s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
 			fmt.Errorf("failed to load teachers seed data: %w", err), logger.ServiceDataFetchFailed,
 		)
 	}
@@ -85,7 +89,7 @@ func (s *teacherService) Seed(ctx context.Context) error {
 	for _, teacher := range teachers {
 		trueT := s.repository.FindByName(ctx, teacher.Name)
 		if trueT == nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+			lastError = s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
 				fmt.Errorf("teacher with name %q not found", teacher.Name), logger.ServiceDataFetchFailed,
 			)
 			continue
@@ -93,13 +97,13 @@ func (s *teacherService) Seed(ctx context.Context) error {
 
 		_, err := s.Update(ctx, trueT.ID, teacher)
 		if err != nil {
-			lastError = s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
+			lastError = s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "Seed",
 				fmt.Errorf("failed to update %s: %w", teacher, err), logger.ServiceRepositoryFailed,
 			)
 		}
 	}
 
-	s.logger.Log(contextutil.GetTraceID(ctx), "Seed",
+	s.GetLogger().Log(contextutil.GetTraceID(ctx), "Seed",
 		fmt.Sprintf("%d teachers updated successfully", len(teachers)), logger.ServiceOperationSuccess,
 	)
 	return lastError
@@ -111,12 +115,12 @@ func (s *teacherService) ExternalUpdate(
 ) (entities.Teacher, error) {
 	updatedT, err := s.repository.ExternalUpdate(ctx, id, teacher)
 	if err != nil {
-		return entities.Teacher{}, s.logger.LogAndReturnError(contextutil.GetTraceID(ctx), "ExternalUpdate",
+		return entities.Teacher{}, s.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "ExternalUpdate",
 			err, logger.ServiceRepositoryFailed,
 		)
 	}
 
-	s.logger.Log(contextutil.GetTraceID(ctx), "ExternalUpdate",
+	s.GetLogger().Log(contextutil.GetTraceID(ctx), "ExternalUpdate",
 		fmt.Sprintf("%s successfully updated", updatedT), logger.ServiceOperationSuccess)
 	return updatedT, nil
 }
@@ -163,21 +167,90 @@ func (s *teacherService) GetFullTeachersByIDs(ctx context.Context, teacherIDs []
 }
 
 type GeneratorTeacher struct {
-	ID       uuid.UUID `json:"id"`
-	Name     string    `json:"name"`
-	Priority int       `json:"priority"`
+	ID              uuid.UUID         `json:"id"`
+	Name            string            `json:"name"`
+	Priority        int               `json:"priority"`
+	SlotsPriorities map[int][]float32 `json:"slots_priorities"`
 }
 
 func (s *teacherService) ToGeneratorTeachers(ctx context.Context, t []entities.Teacher) []GeneratorTeacher {
 	res := make([]GeneratorTeacher, 0, len(t))
 
+	sem := make(chan struct{}, 5)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
 	for _, teacher := range t {
-		res = append(res, GeneratorTeacher{
-			ID:       teacher.ID,
-			Name:     teacher.Name,
-			Priority: teacher.AcademicRank.Priority,
-		})
+		wg.Add(1)
+		sem <- struct{}{}
+
+		go func(teacher entities.Teacher) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			slotPriorities, err := s.teacherSlotPriorityRepository.GetByTeacherID(ctx, teacher.ID)
+			if err != nil {
+				s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"ToGeneratorTeachers",
+					err,
+					logger.RepositoryScanFailed,
+				)
+				return
+			}
+
+			trueSP := map[int][]float32{}
+
+			for _, sPriority := range slotPriorities {
+				slot := sPriority.TimeSlot.Slot
+				weekday := int(sPriority.TimeSlot.Weekday)
+
+				trueP, ok := trueSP[weekday]
+				if !ok {
+					trueP = make([]float32, slot)
+				}
+				for i := len(trueP); i < slot+1; i++ {
+					trueP = append(trueP, 1)
+				}
+
+				switch entities.TeacherSlotPriorityValue(sPriority.Priority) {
+				case entities.TeacherSlotBlocked:
+					trueP[slot] = 0
+
+				default:
+					s.GetLogger().LogAndReturnError(
+						contextutil.GetTraceID(ctx),
+						"ToGeneratorTeachers",
+						fmt.Errorf(
+							"invalid priority for teacher %s at %d/%d (day/slot)",
+							teacher.Name,
+							sPriority.TimeSlot.Weekday,
+							slot,
+						),
+						logger.ServiceValidationFailed,
+					)
+
+					continue
+				}
+
+				trueSP[weekday] = trueP
+			}
+
+			genTeacher := GeneratorTeacher{
+				ID:              teacher.ID,
+				Name:            teacher.Name,
+				Priority:        teacher.AcademicRank.Priority,
+				SlotsPriorities: trueSP,
+			}
+
+			mu.Lock()
+			res = append(res, genTeacher)
+			mu.Unlock()
+
+		}(teacher)
 	}
+
+	wg.Wait()
 
 	return res
 }

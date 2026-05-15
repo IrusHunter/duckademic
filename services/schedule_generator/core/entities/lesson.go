@@ -105,7 +105,7 @@ func NewLessonSlot(day, slot int) LessonSlot {
 // String returns a human-readable representation of LessonSlot.
 //
 // The output format is: "day: %day, slot: %slot".
-func (ls *LessonSlot) String() string {
+func (ls LessonSlot) String() string {
 	return fmt.Sprintf("Slot{day: %d, slot: %d}", ls.Day, ls.Slot)
 }
 

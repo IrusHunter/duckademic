@@ -27,7 +27,7 @@ type groupExtension struct {
 }
 
 func (ge *groupExtension) IsFreeDay(day int) bool {
-	return ge.dayPriorities[day] > 0.99
+	return ge.dayPriorities[day] > 0.000_000_001
 }
 
 func newGroupExtension(group *entities.StudentGroup) *groupExtension {

@@ -182,6 +182,20 @@ func (sg *StudentGroup) GetLessonOverlapping() []LessonSlot {
 	return sg.BusyGrid.GetLessonOverlapping(sg.GetAssignedLessons())
 }
 
+func (sg *StudentGroup) GetWeekDaysPriority() []float32 {
+	res := sg.BusyGrid.GetWeekDaysPriority()
+	teachers := sg.GetTeachers()
+
+	for _, teacher := range teachers {
+		teacherPr := teacher.GetWeekDaysPriority()
+		for i := range len(res) {
+			res[i] *= teacherPr[i]
+		}
+	}
+
+	return res
+}
+
 // ==========================================================================================================
 // ======================================= LessonTypeBinder OVERRIDES =======================================
 // ==========================================================================================================

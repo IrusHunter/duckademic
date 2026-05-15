@@ -3,7 +3,6 @@ package services
 import (
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/entities"
 	"github.com/IrusHunter/duckademic/services/schedule_generator/core/responses"
-	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 	"github.com/google/uuid"
 )
 
@@ -21,38 +20,9 @@ type TeacherService interface {
 
 // NewTeacherService creates a new TeacherService instance.
 //
-// It requires an array of database teachers (t) and a busy grid for them (bg).
-//
-// Returns an error if any teacher is an invalid model.
-func NewTeacherService(t []externalEntities.Teacher, bg [][]float32) (TeacherService, error) {
-	ts := teacherService{teachers: make([]*entities.Teacher, 0, len(t))}
-
-	for i := range t {
-		teacher := entities.NewDefaultTeacher(t[i].ID, t[i].Name, t[i].Priority, entities.NewBusyGrid(bg))
-		// for _, day := range t[i].BusyDays {
-		// 	err := teacher.BlockWeekDay(int(day))
-		// 	if err != nil {
-		// 		return nil, fmt.Errorf("teacher %s (%s) has invalid busy day %d (err: %s)",
-		// 			teacher.UserName, teacher.ID, day, err.Error(),
-		// 		)
-		// 	}
-		// }
-
-		// sort in priority order (not necessary now)
-		// success := false
-		// for j, lowerTeacher := range ts.teachers {
-		// 	if lowerTeacher.Priority <= teacher.Priority {
-		// 		ts.teachers = append(ts.teachers[:j], append([]*entities.Teacher{teacher}, ts.teachers[j:]...)...)
-		// 		success = true
-		// 		break
-		// 	}
-		// }
-		// if !success {
-		ts.teachers = append(ts.teachers, teacher)
-		// }
-	}
-
-	return &ts, nil
+// It requires an array of teachers (t).
+func NewTeacherService(t []*entities.Teacher) TeacherService {
+	return &teacherService{teachers: t}
 }
 
 // teacherService is the basic implementation of the TeacherService interface.

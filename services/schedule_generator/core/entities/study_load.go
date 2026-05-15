@@ -93,6 +93,7 @@ type LoadService interface {
 	GetAssignedLessons() []*Lesson
 	// Returns all lesson types from registered loads.
 	GetLessonTypes() []*LessonType
+	GetTeachers() []*Teacher
 	// Registers a new study load.
 	AddLoad(*StudyLoad)
 	// Returns the nearest previous lesson on the slot's day.
@@ -131,6 +132,17 @@ func (lc *loadService) GetLessonTypes() (result []*LessonType) {
 
 		if ind == -1 {
 			result = append(result, load.Type)
+		}
+	}
+
+	return
+}
+func (lc *loadService) GetTeachers() (result []*Teacher) {
+	for _, load := range lc.loads {
+		ind := slices.Index(result, load.Teacher)
+
+		if ind == -1 {
+			result = append(result, load.Teacher)
 		}
 	}
 

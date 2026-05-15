@@ -69,7 +69,7 @@ func main() {
 	teacherSlotPriorityRepository := repositories.NewTeacherSlotPriorityRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository, eventBus)
-	teacherService := services.NewTeacherService(teacherRepository, eventBus)
+	teacherService := services.NewTeacherService(teacherRepository, teacherSlotPriorityRepository, eventBus)
 	disciplineService := services.NewDisciplineService(disciplineRepository, eventBus)
 	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
 	lessonTypeAssignmentService := services.NewLessonTypeAssignmentService(lessonTypeAssignmentRepository,

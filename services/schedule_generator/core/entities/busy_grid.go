@@ -140,6 +140,25 @@ func (bg *BusyGrid) BlockFullDay(day int) error {
 	return nil
 }
 
+func (bg *BusyGrid) BlockWeekdaySlotForAllWeeks(slot LessonSlot) error {
+	if err := bg.CheckWeekDay(slot.Day); err != nil {
+		return err
+	}
+	if err := bg.CheckSlot(slot); err != nil {
+		return err
+	}
+
+	currentDay := slot.Day
+	for bg.CheckDay(currentDay) == nil {
+		if err := bg.BlockSlot(NewLessonSlot(currentDay, slot.Slot)); err != nil {
+			panic(err)
+		}
+		currentDay += 7
+	}
+
+	return nil
+}
+
 // BlockSlot marks the slot as blocked.
 //
 // Returns an error if the slot isn't within the grid.

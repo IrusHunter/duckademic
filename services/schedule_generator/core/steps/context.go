@@ -146,12 +146,40 @@ func (c *GeneratorContext) SetTeachers(teachers []externalEntities.Teacher) erro
 		return fmt.Errorf("teachers already set")
 	}
 
-	ts, err := services.NewTeacherService(teachers, c.fullData.busyGrid)
+	helper := func(busyGrid [][]float32) ([]*entities.Teacher, error) {
+		res := make([]*entities.Teacher, 0, len(teachers))
+		for _, t := range teachers {
+			teacher := entities.NewDefaultTeacher(t.ID, t.Name, t.Priority, entities.NewBusyGrid(busyGrid))
+
+			for day, priorities := range t.SlotsPriorities {
+				for slot, priority := range priorities {
+					if priority < 0.000_000_001 {
+						timeSlot := entities.NewLessonSlot(day, slot)
+						err := teacher.BlockWeekdaySlotForAllWeeks(timeSlot)
+						if err != nil {
+							return nil, fmt.Errorf("invalid %s at %s: %w", timeSlot, t.Name, err)
+						}
+					}
+				}
+			}
+
+			res = append(res, teacher)
+		}
+
+		return res, nil
+	}
+
+	fullDataT, err := helper(c.fullData.busyGrid)
 	if err != nil {
 		return err
 	}
-	c.fullData.teacherService = ts
-	c.weekData.teacherService, _ = services.NewTeacherService(teachers, c.weekData.busyGrid)
+	weekDataT, err := helper(c.weekData.busyGrid)
+	if err != nil {
+		return err
+	}
+
+	c.fullData.teacherService = services.NewTeacherService(fullDataT)
+	c.weekData.teacherService = services.NewTeacherService(weekDataT)
 
 	return nil
 }

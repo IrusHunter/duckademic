@@ -409,6 +409,11 @@
   "id": "uuid (identifier of the teacher)",
   "name": "string (short full name of the teacher)",
   "priority": "int (determines the rank's priority: higher value = higher rank)"
+  "slots_priorities": {
+    "weekday (int - number of the weekday)": [
+      "slot_index (float value where 0 = blocked, 1 = value by default)"
+    ]
+  }
 }
 ```
 
