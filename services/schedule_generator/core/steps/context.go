@@ -146,7 +146,7 @@ func (c *GeneratorContext) SetTeachers(teachers []externalEntities.Teacher) erro
 		return fmt.Errorf("teachers already set")
 	}
 
-	helper := func(busyGrid [][]float32) ([]*entities.Teacher, error) {
+	helper := func(busyGrid [][]float32, includeUD bool) ([]*entities.Teacher, error) {
 		res := make([]*entities.Teacher, 0, len(teachers))
 		for _, t := range teachers {
 			teacher := entities.NewDefaultTeacher(t.ID, t.Name, t.Priority, entities.NewBusyGrid(busyGrid))
@@ -163,17 +163,32 @@ func (c *GeneratorContext) SetTeachers(teachers []externalEntities.Teacher) erro
 				}
 			}
 
+			if includeUD {
+				for _, day := range t.UnavailableDays {
+					if day.Before(c.config.StartDate) || day.After(c.config.EndDate) {
+						// return some error
+						continue
+					}
+
+					trueDay := int(day.Sub(c.config.StartDate).Hours())/24 - int(c.config.StartDate.Weekday())
+					err := teacher.BlockFullDay(trueDay)
+					if err != nil {
+						return nil, fmt.Errorf("failed to block unavailable day %d for %s: %w", trueDay, teacher.UserName, err)
+					}
+				}
+			}
+
 			res = append(res, teacher)
 		}
 
 		return res, nil
 	}
 
-	fullDataT, err := helper(c.fullData.busyGrid)
+	fullDataT, err := helper(c.fullData.busyGrid, true)
 	if err != nil {
 		return err
 	}
-	weekDataT, err := helper(c.weekData.busyGrid)
+	weekDataT, err := helper(c.weekData.busyGrid, false)
 	if err != nil {
 		return err
 	}

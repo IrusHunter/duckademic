@@ -50,3 +50,13 @@ func (TeacherUnavailableDay) TableName() string {
 func (TeacherUnavailableDay) EntityName() string {
 	return "teacher unavailable day"
 }
+
+func ExtractDays(tuds []TeacherUnavailableDay) []time.Time {
+	res := make([]time.Time, 0, len(tuds))
+
+	for _, tud := range tuds {
+		res = append(res, tud.Day)
+	}
+
+	return res
+}

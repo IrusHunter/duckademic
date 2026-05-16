@@ -70,7 +70,8 @@ func main() {
 	teacherUnavailableDayRepository := repositories.NewTeacherUnavailableDaysRepository(database)
 
 	academicRankService := services.NewAcademicRankService(academicRankRepository, eventBus)
-	teacherService := services.NewTeacherService(teacherRepository, teacherSlotPriorityRepository, eventBus)
+	teacherService := services.NewTeacherService(teacherRepository, teacherSlotPriorityRepository,
+		teacherUnavailableDayRepository, eventBus)
 	disciplineService := services.NewDisciplineService(disciplineRepository, eventBus)
 	lessonTypeService := services.NewLessonTypeService(lessonTypeRepository, eventBus)
 	lessonTypeAssignmentService := services.NewLessonTypeAssignmentService(lessonTypeAssignmentRepository,

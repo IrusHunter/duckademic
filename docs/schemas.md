@@ -427,7 +427,10 @@
     "weekday (int - number of the weekday)": [
       "slot_index (float value where 0 = blocked, 1 = value by default)"
     ]
-  }
+  },
+  "unavailable_days": [
+    "timestamp (date when the teacher is unavailable)"
+  ]
 }
 ```
 

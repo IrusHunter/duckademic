@@ -145,14 +145,15 @@ func (bg *BusyGrid) BlockWeekdaySlotForAllWeeks(slot LessonSlot) error {
 		return err
 	}
 	if err := bg.CheckSlot(slot); err != nil {
-		return err
+		slot.Day += 7
+		if bg.CheckSlot(slot) != nil {
+			return err
+		}
 	}
 
 	currentDay := slot.Day
 	for bg.CheckDay(currentDay) == nil {
-		if err := bg.BlockSlot(NewLessonSlot(currentDay, slot.Slot)); err != nil {
-			panic(err)
-		}
+		bg.BlockSlot(NewLessonSlot(currentDay, slot.Slot))
 		currentDay += 7
 	}
 

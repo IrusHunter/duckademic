@@ -33,7 +33,10 @@ func (s *validationService) ValidateTeachers(teachers []entities.Teacher) error 
 			return fmt.Errorf("failed name validation for teacher at index %d: %w", i, err)
 		}
 		if err := t.ValidateSlotsPriorities(); err != nil {
-			return fmt.Errorf("failed slots priority validation for teacher at index %d: %w", i, err)
+			return fmt.Errorf("failed slots priority validation for teacher %s (index - %d): %w", t.Name, i, err)
+		}
+		if err := t.ValidateUnavailableDays(); err != nil {
+			return fmt.Errorf("failed unavailable days validation for teacher %s (index - %d): %w", t.Name, i, err)
 		}
 
 		if _, exists := seenIDs[t.ID.String()]; exists {

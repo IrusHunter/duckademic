@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/IrusHunter/duckademic/services/schedule/entities"
 	"github.com/IrusHunter/duckademic/services/schedule/repositories"
@@ -25,13 +26,15 @@ type TeacherService interface {
 func NewTeacherService(
 	tr repositories.TeacherRepository,
 	tspr repositories.TeacherSlotPriorityRepository,
+	tudr repositories.TeacherUnavailableDayRepository,
 	eb events.EventBus,
 ) TeacherService {
 	sc := platform.NewServiceConfig("TeacherService", filepath.Join("data", "teachers.json"), "teacher")
 
 	res := &teacherService{
-		repository:                    tr,
-		teacherSlotPriorityRepository: tspr,
+		repository:                       tr,
+		teacherSlotPriorityRepository:    tspr,
+		teacherUnavailableDaysRepository: tudr,
 	}
 	res.BaseService = platform.NewBaseService(sc, tr,
 		map[platform.ServiceExternalFuncType]platform.ServiceExternalFunc[entities.Teacher]{},
@@ -44,8 +47,9 @@ func NewTeacherService(
 
 type teacherService struct {
 	platform.BaseService[entities.Teacher]
-	repository                    repositories.TeacherRepository
-	teacherSlotPriorityRepository repositories.TeacherSlotPriorityRepository
+	repository                       repositories.TeacherRepository
+	teacherSlotPriorityRepository    repositories.TeacherSlotPriorityRepository
+	teacherUnavailableDaysRepository repositories.TeacherUnavailableDayRepository
 }
 
 func (s *teacherService) eventHandler(ctx context.Context, b []byte) {
@@ -171,6 +175,7 @@ type GeneratorTeacher struct {
 	Name            string            `json:"name"`
 	Priority        int               `json:"priority"`
 	SlotsPriorities map[int][]float32 `json:"slots_priorities"`
+	UnavailableDays []time.Time       `json:"unavailable_days"`
 }
 
 func (s *teacherService) ToGeneratorTeachers(ctx context.Context, t []entities.Teacher) []GeneratorTeacher {
@@ -236,11 +241,23 @@ func (s *teacherService) ToGeneratorTeachers(ctx context.Context, t []entities.T
 				trueSP[weekday] = trueP
 			}
 
+			unavailableDays, err := s.teacherUnavailableDaysRepository.GetByTeacherID(ctx, teacher.ID)
+			if err != nil {
+				s.GetLogger().LogAndReturnError(
+					contextutil.GetTraceID(ctx),
+					"ToGeneratorTeachers",
+					err,
+					logger.ServiceValidationFailed,
+				)
+				return
+			}
+
 			genTeacher := GeneratorTeacher{
 				ID:              teacher.ID,
 				Name:            teacher.Name,
 				Priority:        teacher.AcademicRank.Priority,
 				SlotsPriorities: trueSP,
+				UnavailableDays: entities.ExtractDays(unavailableDays),
 			}
 
 			mu.Lock()
