@@ -34,6 +34,7 @@ func NewRESTAPI(
 	semH resthandlers.SemesterHandler,
 	sdh resthandlers.SemesterDisciplineHandler,
 	tsph resthandlers.TeacherSlotPriorityHandler,
+	tudh resthandlers.TeacherUnavailableDayHandler,
 	dh resthandlers.DatabaseHandler,
 	jwtSecrete []byte,
 ) RESTAPI {
@@ -58,6 +59,7 @@ func NewRESTAPI(
 		semesterHandler:              semH,
 		semesterDisciplineHandler:    sdh,
 		teacherSlotPriorityHandler:   tsph,
+		teacherUnavailableDayHandler: tudh,
 	}
 }
 
@@ -82,6 +84,7 @@ type restapi struct {
 	semesterHandler              resthandlers.SemesterHandler
 	semesterDisciplineHandler    resthandlers.SemesterDisciplineHandler
 	teacherSlotPriorityHandler   resthandlers.TeacherSlotPriorityHandler
+	teacherUnavailableDayHandler resthandlers.TeacherUnavailableDayHandler
 }
 
 func (ra *restapi) Run(port int) error {
@@ -186,6 +189,19 @@ func (ra *restapi) Run(port int) error {
 			ra.teacherSlotPriorityHandler.Delete, []string{"schedule.teacher_slot_priority"}),
 	})
 
+	ra.NewRoute("/teacher-unavailable-days", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(
+			ra.teacherUnavailableDayHandler.GetAll, []string{"schedule.teacher_unavailable_day"}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(
+			ra.teacherUnavailableDayHandler.Add, []string{"schedule.teacher_unavailable_day"}),
+	})
+	ra.NewRoute("/teacher-unavailable-day/{id}", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(
+			ra.teacherUnavailableDayHandler.Find, []string{"schedule.teacher_unavailable_day"}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(
+			ra.teacherUnavailableDayHandler.Delete, []string{"schedule.teacher_unavailable_day"}),
+	})
+
 	http.HandleFunc("/load-data-into-generator", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.LoadDataIntoGenerator)(r.Context(), w, r)
 	})
@@ -231,5 +247,6 @@ func BuildAccessPermissions() []events.AccessPermissionRE {
 		{Name: "schedule.semester"},
 		{Name: "schedule.semester-discipline"},
 		{Name: "schedule.teacher_slot_priority"},
+		{Name: "schedule.teacher_unavailable_day"},
 	}
 }

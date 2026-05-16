@@ -31,6 +31,7 @@ func Migrate(database *sqlx.DB) error {
 		lessonOccurrenceMigrations,
 		semesterDisciplineMigrations,
 		teacherSlotPriorityMigrations,
+		teacherUnavailableDayMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -794,6 +795,70 @@ func teacherSlotPriorityMigrations(tx *sqlx.Tx) error {
 		"id",
 	); err != nil {
 		return fmt.Errorf("failed to create time_slot_id foreign key: %w", err)
+	}
+
+	return nil
+}
+func teacherUnavailableDayMigrations(tx *sqlx.Tx) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS teacher_unavailable_days (
+		id UUID PRIMARY KEY,
+		teacher_id UUID NOT NULL,
+		day TIMESTAMP WITH TIME ZONE NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := tx.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create teacher_unavailable_days relation: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTriggerTx(
+		context.Background(),
+		tx,
+		"teacher_unavailable_days",
+	); err != nil {
+		return fmt.Errorf(
+			"failed to create on update trigger for teacher_unavailable_days: %w",
+			err,
+		)
+	}
+
+	uniqueTeacherDayIndex := `
+	CREATE UNIQUE INDEX IF NOT EXISTS uniq_teacher_unavailable_day
+	ON teacher_unavailable_days(teacher_id, day);
+	`
+
+	if _, err := tx.Exec(uniqueTeacherDayIndex); err != nil {
+		return fmt.Errorf(
+			"failed to create unique teacher_id + day index: %w",
+			err,
+		)
+	}
+
+	teacherIndex := `
+	CREATE INDEX IF NOT EXISTS idx_teacher_unavailable_days_teacher_id
+	ON teacher_unavailable_days(teacher_id);
+	`
+
+	if _, err := tx.Exec(teacherIndex); err != nil {
+		return fmt.Errorf(
+			"failed to create teacher_id index for teacher_unavailable_days: %w",
+			err,
+		)
+	}
+
+	if err := db.EnsureForeignKeyTx(
+		context.Background(),
+		tx,
+		"fk_teacher_unavailable_days_teacher",
+		"teacher_unavailable_days",
+		"teacher_id",
+		"teachers",
+		"id",
+	); err != nil {
+		return fmt.Errorf("failed to create teacher_id foreign key: %w", err)
 	}
 
 	return nil

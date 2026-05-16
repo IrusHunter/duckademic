@@ -379,6 +379,20 @@
 }
 ```
 
+<a id="schedule-teacher-unavailable-day"></a>
+
+### Teacher Unavailable Day
+
+```json
+{
+  "id": "uuid (unique identifier of the teacher unavailable day)",
+  "teacher_id": "uuid (unique identifier of the teacher)",
+  "day": "timestamp (date when the teacher is unavailable)",
+  "created_at": "timestamp (record creation timestamp)",
+  "updated_at": "timestamp (record last update timestamp)"
+}
+```
+
 ## Schedule Generator Service
 
 <a id="schedule-generator-generator-config"></a>

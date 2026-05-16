@@ -48,6 +48,7 @@ func NewDatabaseHandler(
 	semS services.SemesterService,
 	sds services.SemesterDisciplineService,
 	tsps services.TeacherSlotPriorityService,
+	tuds services.TeacherUnavailableDayService,
 ) DatabaseHandler {
 	return &databaseHandler{
 		httpClient:                   httpC,
@@ -71,6 +72,7 @@ func NewDatabaseHandler(
 		semesterService:              semS,
 		semesterDisciplineService:    sds,
 		teacherSlotPriorityService:   tsps,
+		teacherUnavailableDayService: tuds,
 	}
 }
 
@@ -96,12 +98,13 @@ type databaseHandler struct {
 	semesterService              services.SemesterService
 	semesterDisciplineService    services.SemesterDisciplineService
 	teacherSlotPriorityService   services.TeacherSlotPriorityService
+	teacherUnavailableDayService services.TeacherUnavailableDayService
 }
 
 func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if err := h.lessonSlotService.Seed(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to seed lesson slots: %w", err))
-		return
+		// return
 	}
 
 	go func() {
@@ -114,11 +117,17 @@ func (h *databaseHandler) Seed(ctx context.Context, w http.ResponseWriter, r *ht
 		time.Sleep(events.ExternalSeedCooldown)
 		ctx = contextutil.SetTraceID(context.Background())
 		h.teacherSlotPriorityService.Seed(ctx)
+		ctx = contextutil.SetTraceID(context.Background())
+		h.teacherUnavailableDayService.Seed(ctx)
 	}()
 
 	jsonutil.ResponseWithJSON(w, 204, nil)
 }
 func (h *databaseHandler) Clear(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if err := h.teacherUnavailableDayService.Clear(ctx); err != nil {
+		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear teacher slot priorities: %w", err))
+		return
+	}
 	if err := h.teacherSlotPriorityService.Clear(ctx); err != nil {
 		jsonutil.ResponseWithError(w, 500, fmt.Errorf("failed to clear teacher slot priorities: %w", err))
 		return

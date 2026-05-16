@@ -49,12 +49,16 @@
     - [/load-classrooms-into-generator](#schedule-load-classrooms-into-generator)
     - [/extract-data-from-generator](#schedule-extract-data-from-generator)
     - [/study-loads](#schedule-study-loads) !schedule.study_load
-    - [/lesson-slots](#schedule-lesson-slots) !schedule.lesson_slot
     - [/lesson-occurrences](#schedule-lesson-occurrences) !schedule.lesson_occurrence
     - [/lesson-occurrence/{id}](#schedule-lesson-occurrence-id) !schedule.lesson_occurrence
     - [/get-personal-schedule](#schedule-get-personal-schedule) !
+  - Source of Truth
+    - [/lesson-slots](#schedule-lesson-slots) !schedule.lesson_slot
+    - [/lesson-slot/{id}](#schedule-lesson-slot-id) !schedule.lesson_slot
     - [/teacher-slots-priorities](#schedule-teacher-slots-priorities) !schedule.teacher_slot_priority
     - [/teacher-slots-priority/{id}](#schedule-teacher-slots-priority-id) !schedule.teacher_slot_priority
+    - [/teacher-unavailable-days](#schedule-teacher-unavailable-days) !schedule.teacher_unavailable_day
+    - [/teacher-unavailable-day/{id}](#schedule-teacher-unavailable-day-id) !schedule.teacher_unavailable_day
 
 - Schedule Generator Service (/schedule-generator)
   - Source of Truth
@@ -732,6 +736,43 @@
 ### DELETE (schedule.teacher_slot_priority) - deletes a teacher slot priority by ID
 
 200 OK [=> TeacherSlotPriority](schemas.md#schedule-teacher-slot-priority)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-teacher-unavailable-days"></a>
+
+## /teacher-unavailable-days
+
+### GET (schedule.teacher_unavailable_day) - gets all teacher unavailable days
+
+200 OK [=> TeacherUnavailableDay[]](schemas.md#schedule-teacher-unavailable-day)
+
+### POST (schedule.teacher_unavailable_day) - creates a teacher unavailable day
+
+```json id="uad1qp"
+{
+  "teacher_id": "uuid (identifier of the teacher)",
+  "day": "timestamp (date when the teacher is unavailable)"
+}
+```
+
+200 OK [=> TeacherUnavailableDay](schemas.md#schedule-teacher-unavailable-day)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+<a id="schedule-teacher-unavailable-day-id"></a>
+
+## /teacher-unavailable-days/{id}
+
+### GET (schedule.teacher_unavailable_day) - finds a teacher unavailable day by ID
+
+200 OK [=> TeacherUnavailableDay](schemas.md#schedule-teacher-unavailable-day)
+
+400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
+
+### DELETE (schedule.teacher_unavailable_day) - deletes a teacher unavailable day by ID
+
+200 OK [=> TeacherUnavailableDay](schemas.md#schedule-teacher-unavailable-day)
 
 400 BAD REQUEST [=> ErrorResponse](schemas.md#errorresponse)
 
