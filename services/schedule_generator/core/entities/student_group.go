@@ -98,7 +98,7 @@ func (sg *StudentGroup) ConnectedTo(studentGroup *StudentGroup) bool {
 
 // GetFreeSlots returns free slots of the selected day (day).
 //
-// If a day out of the grid returns an empty array.
+// If a day out of the grid returns an empty array. (not in use)
 func (sg *StudentGroup) GetFreeSlots(day int) (slots []float32) {
 	if err := sg.CheckDay(day); err != nil {
 		return []float32{}
@@ -158,16 +158,6 @@ func (sg *StudentGroup) LessonCanBeMoved(lesson *Lesson, to LessonSlot) error {
 
 	return nil
 }
-
-// func (sg *StudentGroup) GetGetAverageSlotCountOnWeekdays() []int {
-// 	result := make([]int, 7)
-//
-// 	for i := range result {
-// 		result[i] = sg.GetAverageSlotCountOnWeekday(i)
-// 	}
-//
-// 	return result
-// }
 
 func (sg *StudentGroup) GetAverageSlotCountOnWeekday(weekday int) (result int) {
 	result = sg.BusyGrid.GetAverageSlotCountOnWeekday(weekday)

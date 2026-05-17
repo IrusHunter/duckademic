@@ -50,7 +50,7 @@ func (s *fullClassroomAssignmentStep) Process(cID components.ComponentIdentifier
 		Classrooms: s.classroomService.GetAll(),
 	})
 	return responses.GeneratedLessonsWithC{
-		LessonsWithClassroom:    responses.FormGeneratedLessons(s.lessonService.GetAll()),
+		LessonsWithClassroom:    responses.FormGeneratedLessons(s.lessonService.GetLessonsWithClassroom()),
 		LessonsWithoutClassroom: errs,
 	}, nil
 }

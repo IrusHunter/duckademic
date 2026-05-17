@@ -22,6 +22,7 @@ type LessonService interface {
 	GetWeekLessons(int) []*entities.Lesson
 	// Returns the lessons that do not have an assigned classroom.
 	GetLessonsWithoutClassroom() []*entities.Lesson
+	GetLessonsWithClassroom() []*entities.Lesson
 	Select() *LessonSelector
 	FindByStudyLoadIDAndSlot(uuid.UUID, entities.LessonSlot) *entities.Lesson
 	FindByID(id uuid.UUID) *entities.Lesson
@@ -128,6 +129,17 @@ func (ls *lessonService) GetLessonsWithoutClassroom() []*entities.Lesson {
 
 	for _, lesson := range ls.lessons {
 		if lesson.Classroom == nil {
+			res = append(res, lesson)
+		}
+	}
+
+	return res
+}
+func (ls *lessonService) GetLessonsWithClassroom() []*entities.Lesson {
+	res := []*entities.Lesson{}
+
+	for _, lesson := range ls.lessons {
+		if lesson.Classroom != nil {
 			res = append(res, lesson)
 		}
 	}
