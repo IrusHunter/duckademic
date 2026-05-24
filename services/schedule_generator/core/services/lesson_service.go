@@ -15,6 +15,7 @@ type LessonService interface {
 	GetAll() []*entities.Lesson
 	// Assigns a lesson to the selected slot.
 	AssignLesson(*entities.StudyLoad, entities.LessonSlot) error
+	// COMMENT THIS
 	UnassignLesson(lesson *entities.Lesson)
 	// MoveLessonTo moves lesson to another slot (to).
 	MoveLessonTo(*entities.Lesson, entities.LessonSlot) error
@@ -22,9 +23,13 @@ type LessonService interface {
 	GetWeekLessons(int) []*entities.Lesson
 	// Returns the lessons that do not have an assigned classroom.
 	GetLessonsWithoutClassroom() []*entities.Lesson
+	// COMMENT THIS
 	GetLessonsWithClassroom() []*entities.Lesson
+	// TODO: remove
 	Select() *LessonSelector
+	// COMMENT THIS
 	FindByStudyLoadIDAndSlot(uuid.UUID, entities.LessonSlot) *entities.Lesson
+	// COMMENT THIS
 	FindByID(id uuid.UUID) *entities.Lesson
 }
 

@@ -9,8 +9,6 @@ import (
 // Teacher represents a university teacher in the scheduling context.
 //
 // The model enforces disallows simultaneous classes.
-//
-// TODO: add teacher availability constraints.
 type Teacher struct {
 	BusyGrid              // Availability grid.
 	LoadService           // Manages and validates assigned study loads.
@@ -48,17 +46,18 @@ func (t *Teacher) AddLesson(lesson *Lesson) error {
 		return err
 	}
 
-	t.SetSlotBusyState(lesson.LessonSlot, true)
+	t.SetSlotBusyState(lesson.LessonSlot, true) // TODO: process the error as unexpected
 
 	return err
 }
 
+// COMMENT THIS
 func (t *Teacher) RemoveLesson(lesson *Lesson) error {
 	if lesson.Teacher != t {
 		return fmt.Errorf("invalid lesson for teacher")
 	}
 
-	t.SetSlotBusyState(lesson.LessonSlot, false)
+	t.SetSlotBusyState(lesson.LessonSlot, false) // TODO: process the error as unexpected
 
 	return nil
 }
@@ -77,6 +76,7 @@ func (t *Teacher) CheckLesson(lesson *Lesson) error {
 	return nil
 }
 
+// COMMENT THIS
 func (t *Teacher) GetLessonOverlapping() []LessonSlot {
 	return t.BusyGrid.GetLessonOverlapping(t.GetAssignedLessons())
 }

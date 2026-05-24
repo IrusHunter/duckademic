@@ -11,7 +11,7 @@ import (
 //
 // The model enforces workload constraints.
 type StudyLoad struct {
-	ID               uuid.UUID
+	ID               uuid.UUID // COMMENT THIS
 	UnassignedLesson           // Base lesson definition.
 	CurrentHours     int       // Currently scheduled hours.
 	Lessons          []*Lesson // Scheduled lessons contributing to the load.
@@ -53,6 +53,7 @@ func (sl *StudyLoad) AddLesson(lesson *Lesson) error {
 	return nil
 }
 
+// COMMENT THIS
 func (sl *StudyLoad) RemoveLesson(lesson *Lesson) error {
 	if lesson.StudyLoad != sl {
 		return fmt.Errorf("invalid lesson for study load")
@@ -93,11 +94,12 @@ type LoadService interface {
 	GetAssignedLessons() []*Lesson
 	// Returns all lesson types from registered loads.
 	GetLessonTypes() []*LessonType
+	// COMMENT THIS
 	GetTeachers() []*Teacher
 	// Registers a new study load.
 	AddLoad(*StudyLoad)
 	// Returns the nearest previous lesson on the slot's day.
-	GetPreviousLessonOnDay(LessonSlot) *Lesson
+	GetPreviousLessonOnDay(LessonSlot) *Lesson // TODO: unused
 	// Returns all lessons on given day.
 	GetAllLessonsOnDay(int) []*Lesson
 	// Returns count of all required lesson slots for study loads with given lesson type.

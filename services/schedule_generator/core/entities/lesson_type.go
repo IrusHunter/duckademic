@@ -24,18 +24,22 @@ type LessonTypeBinder interface {
 	//
 	// Returns an error if the week is already blocked.
 	BindWeek(*LessonType, int) error
-	UnbindWeeks() // Clears week binding.
+	// Clears week binding.
+	UnbindWeeks()
 	// Assigns a lesson type to a specific weekday.
 	//
 	// Returns an error if the weekday is already blocked.
 	BindWeekday(lt *LessonType, day, slots int) error
+	// COMMENT THIS
 	UnbindWeekday(lt *LessonType, day, slots int) error
+	// COMMENT THIS
 	GetReservedSlotsForLT(*LessonType) int
 	// Checks whether the given day matches the lesson type.
 	//
 	// Week binding has higher priority than weekday binding.
 	IsDayOfType(*LessonType, int) bool
-	GetTypeOfDay(int) *LessonType // Returns the lesson type for this day, or nil if there isn't one.
+	// Returns the lesson type for this day, or nil if there isn't one.
+	GetTypeOfDay(int) *LessonType
 }
 
 // NewLessonTypeBinder creates a new basic LessonTypeChecker instance.

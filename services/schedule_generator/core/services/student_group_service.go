@@ -26,6 +26,7 @@ type StudentGroupService interface {
 	GetInvalidLessonsByType() ([]responses.StudentGroupInvalidLesson, int)
 	// Clears week binding of student groups.
 	UnbindWeeks()
+	// COMMENT THIS
 	GetSlotDeficitOfReservedSlotsForLT() int
 }
 

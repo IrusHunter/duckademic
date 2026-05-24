@@ -72,6 +72,7 @@ func (c *Classroom) AddLesson(lesson *Lesson) error {
 	return nil
 }
 
+// COMMENT THIS
 func (c *Classroom) RemoveLesson(lesson *Lesson) error {
 	if lesson.Classroom != c {
 		return fmt.Errorf("invalid lesson for classroom")
@@ -87,6 +88,7 @@ func (c *Classroom) RemoveLesson(lesson *Lesson) error {
 	return nil
 }
 
+// COMMENT THIS
 func (c *Classroom) GetOverflowLessons() []*Lesson {
 	res := []*Lesson{}
 
@@ -99,6 +101,7 @@ func (c *Classroom) GetOverflowLessons() []*Lesson {
 	return res
 }
 
+// COMMENT THIS
 func (c *Classroom) GetLessonOverlapping() []LessonSlot {
 	return c.BusyGrid.GetLessonOverlapping(c.Lessons)
 }

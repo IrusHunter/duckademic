@@ -14,7 +14,9 @@ type StudyLoadService interface {
 	GetAll() []*entities.StudyLoad
 	// Returns the missing study hours and number of it.
 	GetHoursDeficit() ([]responses.StudyLoadHoursDeficit, int)
+	// COMMENT THIS
 	Find(entities.UnassignedLesson) *entities.StudyLoad // Returns a pointer to the teacher with the given data.
+	// COMMENT THIS
 	FindByID(uuid.UUID) *entities.StudyLoad
 }
 

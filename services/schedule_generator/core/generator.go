@@ -8,19 +8,6 @@ import (
 	externalEntities "github.com/IrusHunter/duckademic/services/schedule_generator/entities"
 )
 
-type GeneratorStep string
-
-const (
-	Setup                               GeneratorStep = "SETUP"
-	DayBlocking                         GeneratorStep = "DAY_BLOCKING"
-	BoneLessonBuilding                  GeneratorStep = "BONE_LESSON_BUILDING"
-	ToBoneLessonsClassroomAssigning     GeneratorStep = "TO_BONE_LESSONS_CLASSROOM_ASSIGNING"
-	LessonSkeletonBuilding              GeneratorStep = "LESSON_SKELETON_BUILDING"
-	FloatingLessonAdding                GeneratorStep = "FLOATING_LESSON_ADDING"
-	ToFloatingLessonsClassroomAssigning GeneratorStep = "TO_FLOATING_LESSONS_CLASSROOM_ASSIGNING"
-	Extraction                          GeneratorStep = "EXTRACTION"
-)
-
 type ScheduleGenerator struct {
 	steps.GeneratorContext
 	currentStep steps.PipelineStep

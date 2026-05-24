@@ -43,12 +43,13 @@ func (l *Lesson) SetClassroom(c *Classroom) error {
 	l.Classroom = c
 
 	if err := c.AddLesson(l); err != nil {
-		panic("pass the check before, but error accurse")
+		panic("pass the check before, but error accurse") // TODO: use unexpected error
 	}
 
 	return nil
 }
 
+// COMMENT THIS
 func (l *Lesson) RemoveClassroom() error {
 	if l.Classroom == nil {
 		return fmt.Errorf("lesson already without classroom")
@@ -57,7 +58,7 @@ func (l *Lesson) RemoveClassroom() error {
 	l.Classroom = nil
 
 	if err := l.Classroom.RemoveLesson(l); err != nil {
-		panic("tmp")
+		panic("tmp") // TODO: use unexpected error
 	}
 
 	return nil

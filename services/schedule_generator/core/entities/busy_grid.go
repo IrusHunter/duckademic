@@ -25,7 +25,7 @@ func NewBusyGrid(grid [][]float32) *BusyGrid {
 // GetFreeSlot returns optimal slot index of the day.
 //
 // If there are no free slots for both (bg and other) or the lengths are different, returns -1.
-// TODO: extract scoring logic and replace index-coupled slice API.
+// TODO: extract scoring logic and replace index-coupled slice API, unused
 func (bg *BusyGrid) GetOptimalFreeSlot(otherSlots []float32, day int) int {
 	if err := bg.CheckDay(day); err != nil {
 		return -1
@@ -52,7 +52,7 @@ func (bg *BusyGrid) GetOptimalFreeSlot(otherSlots []float32, day int) int {
 // GetFreeSlots returns filled free slots of the day.
 //
 // If day isn't within the grid, return an empty array.
-// WARNING: slots are represented as float32 values, not as a structure.
+// TODO: unused
 func (bg *BusyGrid) GetFreeSlots(day int) (slots []float32) {
 	if err := bg.CheckDay(day); err != nil {
 		return
@@ -115,7 +115,7 @@ func (bg *BusyGrid) BlockWeekDay(day int) error {
 	for week := 0; bg.CheckDay(day+week*7) == nil; week++ {
 		err := bg.BlockFullDay(day + week*7)
 		if err != nil {
-			panic(err)
+			panic(err) // TODO: use unexpected error
 		}
 	}
 
@@ -133,13 +133,14 @@ func (bg *BusyGrid) BlockFullDay(day int) error {
 	for i := range bg.Grid[day] {
 		err := bg.BlockSlot(NewLessonSlot(day, i))
 		if err != nil {
-			panic(err)
+			panic(err) // TODO: use unexpected error
 		}
 	}
 
 	return nil
 }
 
+// COMMENT THIS
 func (bg *BusyGrid) BlockWeekdaySlotForAllWeeks(slot LessonSlot) error {
 	if err := bg.CheckWeekDay(slot.Day); err != nil {
 		return err
@@ -316,6 +317,7 @@ func (bg *BusyGrid) IsBlocked(slot LessonSlot) bool {
 // =============================================== STATISTICS ===============================================
 // ==========================================================================================================
 
+// COMMENT THIS
 func (bg *BusyGrid) GetWindows() []LessonSlot {
 	result := []LessonSlot{}
 
@@ -355,7 +357,6 @@ func (bg *BusyGrid) CountLessonsOn(day int) (count int) {
 
 // GetWeekDaysPriority returns slices that contain 7 elements, each representing the priority for the weekdays.
 // Priority is calculated as the average slots coefficient on the weekdays.
-// WARNING: complex logic.
 func (bg *BusyGrid) GetWeekDaysPriority() (result []float32) {
 	result = make([]float32, 7)
 	for day := range 7 {
@@ -391,6 +392,7 @@ func (bg *BusyGrid) CountSlotsOnWeekday(day int) (count int) {
 	return
 }
 
+// COMMENT THIS
 func (bg *BusyGrid) CountSlotsOnDay(day int) int {
 	if err := bg.CheckDay(day); err != nil {
 		return 0
@@ -399,6 +401,7 @@ func (bg *BusyGrid) CountSlotsOnDay(day int) int {
 	return len(bg.Grid[day])
 }
 
+// COMMENT THIS
 func (bg *BusyGrid) GetLessonOverlapping(lessons []*Lesson) []LessonSlot {
 	res := []LessonSlot{}
 
@@ -449,6 +452,7 @@ func (bg *BusyGrid) GetAverageSlotCountOnWeekday(weekday int) (result int) {
 }
 
 // GetOptimalWeekdayCount returns the number of weekdays with a priority of at least 0.9.
+// TODO: unused
 func (bg *BusyGrid) GetOptimalWeekdayCount() (result int) {
 	dayPriorities := bg.GetWeekDaysPriority()
 	for _, dp := range dayPriorities {
