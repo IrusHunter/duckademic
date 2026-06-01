@@ -19,7 +19,7 @@ const setAccessToken = (token: string | null): void => {
   if (token) {
     localStorage.setItem('access_token', token)
   } else {
-   // localStorage.removeItem('access_token')
+   localStorage.removeItem('access_token')
   }
 }
 const getRefreshPromise = (): Promise<string> | null => window.__refreshPromise ?? null
@@ -33,6 +33,9 @@ const doRefreshRequest = (): Promise<string> => {
   if (existing) return existing
 
   const refreshToken = localStorage.getItem('refresh_token') ?? ''
+  if (!refreshToken) {
+    return Promise.reject(new Error('No refresh token'))
+  }
   const accessToken = getAccessToken() ?? ''
 
   const promise = refreshAxios  // ← не axios, а refreshAxios

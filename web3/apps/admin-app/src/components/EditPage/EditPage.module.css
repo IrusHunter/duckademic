@@ -1,0 +1,110 @@
+.wrapper {
+    padding: 24px;
+}
+
+.subtitle {
+    color: #4B5563;
+    font-size: 13px;
+    margin-bottom: 24px;
+}
+
+.recordInfo {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.recordInfoTitle {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #4B5563;
+}
+
+.recordInfoRow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.recordInfoLabel {
+    color: #4B5563;
+    min-width: 140px;
+}
+
+.recordInfoValue {
+    color: #111827;
+}
+
+.fieldsWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.fieldLabel {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4B5563;
+    margin-bottom: 8px;
+}
+
+.fieldInput {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #E4E4E7;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.buttonSave {
+    padding: 8px 24px;
+    background: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.buttonSave:hover {
+    background: #1E40AF;
+    transition: all 0.25s ease;
+}
+
+.buttonSave:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.buttonCancel {
+    padding: 8px 24px;
+    background: white;
+    color: #666;
+    border: 1px solid #E4E4E7;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.buttonCancel:hover {
+    background: #61708C;
+    border-color: #61708C;
+    color: #fff;
+    transition: all 0.25s ease;
+}
+
+.errorMessage {
+    color: red;
+    margin-top: 12px;
+    font-size: 13px;
+}

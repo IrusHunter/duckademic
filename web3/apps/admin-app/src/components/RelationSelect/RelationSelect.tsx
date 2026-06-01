@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { makeApi, normalizeArray, getServiceByKey } from '../../api/makeApi'
 import type { FieldDef } from '../../types/admin'
+import css from './RelationSelect.module.css'
 
 type Props = {
   field: FieldDef
@@ -27,10 +28,10 @@ export function RelationSelect({ field, value, onChange }: Props) {
 
   return (
     <select
+      className={css.select}
       value={value}
       onChange={e => onChange(e.target.value)}
       required={field.required}
-      style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc', width: 194 }}
     >
       <option value="">— select —</option>
       {isLoading && <option disabled>Loading...</option>}

@@ -19,6 +19,15 @@ export default defineConfig({
     })
   ],
   build: { target: 'esnext' },
-  server: { port: 5001 },
+  server: {
+  port: 5001,
+  proxy: {
+    '/api/auth': {
+      target: 'http://localhost:10000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api/, ''),
+    }
+  }
+},
   preview: { port: 5001 }
 })

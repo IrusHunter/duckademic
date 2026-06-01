@@ -1,0 +1,8 @@
+.wrapper {
+    padding: 24px;
+    flex: 1;
+}
+
+.error {
+    color: red;
+}

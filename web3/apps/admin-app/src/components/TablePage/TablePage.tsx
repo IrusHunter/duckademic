@@ -6,6 +6,7 @@ import { AddForm } from '../AddForm/AddForm'
 import { DataTable } from '../DataTable/DataTable'
 import type { ServiceDef, TableDef } from '../../types/admin'
 import css from '../App/App.module.css'
+import tableCss from './TablePage.module.css'
 
 type Props = {
   service: ServiceDef
@@ -56,7 +57,7 @@ export function TablePage({ service, table }: Props) {
   const canDelete = !table.readOnly && table.fields.length > 0
 
   return (
-    <div style={{ padding: 24, flex: 1 }}>
+    <div className={tableCss.wrapper}>
       <button onClick={() => navigate(`/admin/${service.key}`)} className={css.buttonBack}>
         <LiaLongArrowAltLeftSolid size={20} /> <span className={css.spanBack}>Back</span>
       </button>
@@ -67,7 +68,7 @@ export function TablePage({ service, table }: Props) {
       )}
 
       {isLoading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>Error loading data</p>}
+      {error && <p className={tableCss.error}>Error loading data</p>}
       {!isLoading && !error && (
         <DataTable
           data={data}

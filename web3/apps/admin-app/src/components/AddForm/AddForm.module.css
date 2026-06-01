@@ -1,0 +1,75 @@
+.wrapper {
+    margin-bottom: 24px;
+}
+
+.toggleButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 8px 20px;
+    background: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.toggleButton:hover {
+    background: #1E40AF;
+    transition: all 0.25s ease;
+}
+
+.form {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.label {
+    font-size: 12px;
+    color: #111827;
+}
+
+.input {
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #E4E4E7;
+    width: 180px;
+    font-size: 14px;
+}
+
+.actions {
+    display: flex;
+    align-items: flex-end;
+}
+
+.submitButton {
+    padding: 8px 20px;
+    background: #18181B;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.submitButton:hover {
+    background: #61708C;
+    transition: all 0.25s ease;
+}

@@ -6,7 +6,8 @@ import { makeApi } from '../../api/makeApi'
 import { formatCell } from '../../utils/formatters'
 import { RelationSelect } from '../RelationSelect/RelationSelect'
 import type { ServiceDef, TableDef } from '../../types/admin'
-import css from '../App/App.module.css'
+import css from './EditPage.module.css'
+import appCss from '../App/App.module.css'
 
 type Props = {
   service: ServiceDef
@@ -64,11 +65,11 @@ export function EditPage({ service, table }: Props) {
 
   return (
     <div className={css.wrapper}>
-      <button onClick={() => navigate(-1)} className={css.buttonBack}>
+      <button onClick={() => navigate(-1)} className={appCss.buttonBack}>
         <LiaLongArrowAltLeftSolid size={20} />Back
       </button>
-      <h2 className={css.itemTitle}>Edit — {table.label}</h2>
-      <p style={{ color: '#999', fontSize: 13, marginBottom: 24 }}>
+      <h2 className={appCss.itemTitle}>Edit — {table.label}</h2>
+      <p className={css.subtitle}>
         {service.label} · {service.baseURL}{table.itemEndpoint}/{itemId}
       </p>
 
@@ -76,24 +77,24 @@ export function EditPage({ service, table }: Props) {
 
       {!isLoading && raw && (
         <>
-          <div style={{ marginBottom: 24, padding: 16, background: '#f9f9f9', borderRadius: 8, fontSize: 13 }}>
-            <p style={{ fontWeight: 600, marginBottom: 8, color: '#555' }}>Record info</p>
+          <div className={css.recordInfo}>
+            <p className={css.recordInfoTitle}>Record info</p>
             {table.columns
               .filter(col => !editFields.find(f => f.key === col.key))
               .map(col => (
-                <div key={col.key} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-                  <span style={{ color: '#999', minWidth: 140 }}>{col.label}:</span>
-                  <span style={{ color: '#333' }}>{formatCell(raw[col.key], col.format)}</span>
+                <div key={col.key} className={css.recordInfoRow}>
+                  <span className={css.recordInfoLabel}>{col.label}:</span>
+                  <span className={css.recordInfoValue}>{formatCell(raw[col.key], col.format)}</span>
                 </div>
               ))
             }
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+            <div className={css.fieldsWrapper}>
               {editFields.map(field => (
                 <div key={field.key}>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#444', marginBottom: 6 }}>
+                  <label className={css.fieldLabel}>
                     {field.label}{field.required && ' *'}
                   </label>
                   {field.relation ? (
@@ -104,35 +105,35 @@ export function EditPage({ service, table }: Props) {
                     />
                   ) : (
                     <input
+                      className={css.fieldInput}
                       value={values[field.key] ?? ''}
                       onChange={e => setValues(prev => ({ ...prev, [field.key]: e.target.value }))}
                       required={field.required}
-                      style={{ padding: '8px 12px', borderRadius: 4, border: '1px solid #ccc', width: '100%', boxSizing: 'border-box', fontSize: 14 }}
                     />
                   )}
                 </div>
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div className={css.actions}>
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
-                style={{ padding: '8px 24px', background: '#4A6CF7', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 14 }}
+                className={css.buttonSave}
               >
                 {updateMutation.isPending ? 'Saving...' : '✓ Save'}
               </button>
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                style={{ padding: '8px 24px', background: 'white', color: '#666', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 14 }}
+                className={css.buttonCancel}
               >
                 Cancel
               </button>
             </div>
 
             {updateMutation.isError && (
-              <p style={{ color: 'red', marginTop: 12, fontSize: 13 }}>
+              <p className={css.errorMessage}>
                 Error: {(updateMutation.error as any)?.response?.data?.error || 'Unknown error'}
               </p>
             )}

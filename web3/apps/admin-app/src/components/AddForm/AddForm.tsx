@@ -1,6 +1,8 @@
-import { useState } from 'react'
-import type { FieldDef } from '../../types/admin'
-import { RelationSelect } from '../RelationSelect/RelationSelect'
+import { BiPlus, BiX } from "react-icons/bi";
+import { useState } from 'react';
+import type { FieldDef } from '../../types/admin';
+import { RelationSelect } from '../RelationSelect/RelationSelect';
+import styles from './AddForm.module.css';
 
 type Props = {
   fields: FieldDef[]
@@ -19,18 +21,22 @@ export function AddForm({ fields, onSubmit }: Props) {
   }
 
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div className={styles.wrapper}>
       <button
         onClick={() => setOpen(!open)}
-        style={{ padding: '6px 16px', background: '#4A6CF7', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', marginBottom: 10 }}
+        className={styles.toggleButton}
       >
-        {open ? '✕ Cancel' : '+ Add'}
+        {open ? (
+          <><BiX size={20} /> Cancel</>
+        ) : (
+          <><BiPlus size={20} /> Add</>
+        )}
       </button>
       {open && (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: 16, background: '#f9f9f9', borderRadius: 8 }}>
+        <form onSubmit={handleSubmit} className={styles.form}>
           {fields.map(field => (
-            <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <label style={{ fontSize: 12, color: '#666' }}>{field.label}{field.required && ' *'}</label>
+            <div key={field.key} className={styles.field}>
+              <label className={styles.label}>{field.label}{field.required && ' *'}</label>
               {field.relation ? (
                 <RelationSelect
                   field={field}
@@ -42,13 +48,13 @@ export function AddForm({ fields, onSubmit }: Props) {
                   value={values[field.key] ?? ''}
                   onChange={e => setValues(prev => ({ ...prev, [field.key]: e.target.value }))}
                   required={field.required}
-                  style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc', width: 180 }}
+                  className={styles.input}
                 />
               )}
             </div>
           ))}
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button type="submit" style={{ padding: '6px 16px', background: '#333', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+          <div className={styles.actions}>
+            <button type="submit" className={styles.submitButton}>
               Save
             </button>
           </div>

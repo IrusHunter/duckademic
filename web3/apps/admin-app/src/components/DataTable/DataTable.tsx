@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BiCheck } from "react-icons/bi";
 import type { FieldDef } from '../../types/admin'
 import { formatCell } from '../../utils/formatters'
 import { ActionSelect } from '../ActionSelect/ActionSelect'
@@ -45,23 +46,26 @@ export function DataTable({ data, columns, editFields, onDelete, onEditClick, re
           onGo={handleGo}
         />
       )}
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+      <div className={css.wrapper}>
+        <table className={css.table}>
           <thead>
             <tr className={css.tr}>
-              {canDelete && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', width: 40 }} />}
+              {canDelete && <th className={css.thCheckbox} />}
               {columns.map(col => (
-                <th key={col.key} style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '2px solid #e0e0e0', color: '#555', whiteSpace: 'nowrap' }}>
+                <th key={col.key} className={css.th}>
                   {col.label}
                 </th>
               ))}
-              {showActions && <th style={{ padding: '8px 12px', borderBottom: '2px solid #e0e0e0', color: '#555' }}>Actions</th>}
+              {showActions && <th className={css.th}>Actions</th>}
             </tr>
           </thead>
           <tbody>
             {data.length === 0 && (
               <tr>
-                <td colSpan={columns.length + (showActions ? 1 : 0) + (canDelete ? 1 : 0)} style={{ padding: 24, textAlign: 'center', color: '#aaa' }}>
+                <td
+                  colSpan={columns.length + (showActions ? 1 : 0) + (canDelete ? 1 : 0)}
+                  className={css.tdEmpty}
+                >
                   No data
                 </td>
               </tr>
@@ -70,31 +74,37 @@ export function DataTable({ data, columns, editFields, onDelete, onEditClick, re
               const id = String(row.id ?? '')
               const rowKey = id || `row-${idx}`
               return (
-                <tr key={rowKey} style={{ background: selected.includes(id) ? '#e8f0fe' : 'white' }}>
+                <tr
+                  key={rowKey}
+                  className={selected.includes(id) ? css.rowSelected : css.rowDefault}
+                  onClick={() => toggleSelect(id)}
+                >
                   {canDelete && (
-                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>
-                      <input type="checkbox" checked={selected.includes(id)} onChange={() => toggleSelect(id)} />
+                    <td className={css.tdCheckbox}>
+                      <div className={`${css.checkbox} ${selected.includes(id) ? css.checkboxChecked : ''}`}>
+                        {selected.includes(id) && <BiCheck className={css.checkboxIcon} />}
+                      </div>
                     </td>
                   )}
                   {columns.map(col => (
-                    <td key={col.key} style={{ padding: '8px 12px', borderBottom: '1px solid #eee', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td key={col.key} className={css.td}>
                       {formatCell(row[col.key], col.format)}
                     </td>
                   ))}
                   {showActions && (
-                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee', whiteSpace: 'nowrap' }}>
+                    <td className={css.tdActions}>
                       {editFields.length > 0 && (
                         <button
-                          onClick={() => onEditClick(id)}
-                          style={{ padding: '3px 10px', color: '#4A6CF7', border: '1px solid #4A6CF7', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 13, marginRight: 6 }}
+                          onClick={(e) => { e.stopPropagation(); onEditClick(id) }}
+                          className={css.btnEdit}
                         >
                           Edit
                         </button>
                       )}
                       {canDelete && (
                         <button
-                          onClick={() => onDelete(id)}
-                          style={{ padding: '3px 10px', color: 'red', border: '1px solid red', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 13 }}
+                          onClick={(e) => { e.stopPropagation(); onDelete(id) }}
+                          className={css.btnDelete}
                         >
                           Delete
                         </button>

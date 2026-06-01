@@ -1,8 +1,8 @@
 .div {
-    margin-bottom: 24px; 
+    margin-bottom: 24px;
     display: flex;
     gap: 20px;
-    align-items: center;  
+    align-items: center;
 }
 
 .span {
@@ -28,16 +28,136 @@
     align-items: center;
     justify-content: center;
     padding: 12px 8px;
-        width: 426px;
-        border-radius: 6px;
-        border: 1px solid #E4E4E7;
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 16px;
-        background-color: #fff;
+    width: 426px;
+    border-radius: 6px;
+    border: 1px solid #E4E4E7;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    background-color: #fff;
 }
 
 .tr {
     background-color: #E4E4E7;
-    
+}
+
+.wrapper {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid #E4E4E7;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 16px;
+    color: #111827;
+}
+
+.thCheckbox {
+    padding: 12px;
+    width: 40px;
+}
+
+.th {
+    padding: 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.tdEmpty {
+    padding: 24px;
+    text-align: center;
+    color: #F9FAFB;
+}
+
+.rowDefault,
+.rowSelected {
+    cursor: pointer;
+}
+
+.rowDefault:nth-child(even) {
+    background: #F9FAFB;
+}
+
+.rowDefault:nth-child(odd) {
+    background: #FFFFFF;
+}
+
+.rowSelected {
+    background: #EFF6FF;
+    color: #1D4ED8;
+}
+
+.td {
+    padding: 12px;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tdActions {
+    padding: 8px 12px;
+    white-space: nowrap;
+}
+
+.tdCheckbox {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #E4E4E7;
+    background-color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.checkboxIcon {
+    width: 16px;
+    height: 16px;
+    color: #111827;
+}
+
+.btnEdit {
+    padding: 3.6px 12px;
+    color: #2563EB;
+    border: 1px solid #2563EB;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    margin-right: 8px;
+}
+
+.btnEdit:hover {
+    background: #2563EB;
+    color: #fff;
+    transition: all 0.25s ease;
+}
+
+.btnDelete {
+    padding: 3.6px 12px;
+    color: #F95E33;
+    border: 1px solid #F95E33;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btnDelete:hover {
+    background: #F95E33;
+    color: #fff;
+    transition: all 0.25s ease;
 }
