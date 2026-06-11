@@ -65,7 +65,6 @@ type lessonOccurrenceRepository struct {
 type LessonOccurrenceFlat struct {
 	ID           uuid.UUID  `db:"id"`
 	Date         time.Time  `db:"date"`
-	ClassroomID  *uuid.UUID `db:"classroom_id"`
 	Status       string     `db:"status"`
 	MovedToID    *uuid.UUID `db:"moved_to_id"`
 	MovedFromID  *uuid.UUID `db:"moved_from_id"`
@@ -82,9 +81,29 @@ type LessonOccurrenceFlat struct {
 	DisciplineName   string    `db:"discipline_name"`
 	LessonTypeID     uuid.UUID `db:"lesson_type_id"`
 	LessonTypeName   string    `db:"lesson_type_name"`
+
+	ClassroomID        *uuid.UUID `db:"classroom_id"`
+	ClassroomSlug      string     `db:"classroom_slug"`
+	ClassroomNumber    string     `db:"classroom_number"`
+	ClassroomCapacity  int        `db:"classroom_capacity"`
+	ClassroomCreatedAt time.Time  `db:"classroom_created_at"`
+	ClassroomUpdatedAt time.Time  `db:"classroom_updated_at"`
 }
 
 func (f *LessonOccurrenceFlat) Convert() entities.LessonOccurrence {
+	var classroom *entities.Classroom
+
+	if f.ClassroomID != nil {
+		classroom = &entities.Classroom{
+			ID:        *f.ClassroomID,
+			Slug:      f.ClassroomSlug,
+			Number:    f.ClassroomNumber,
+			Capacity:  f.ClassroomCapacity,
+			CreatedAt: f.ClassroomCreatedAt,
+			UpdatedAt: f.ClassroomUpdatedAt,
+		}
+	}
+
 	return entities.LessonOccurrence{
 		ID:           f.ID,
 		Date:         f.Date,
@@ -107,6 +126,7 @@ func (f *LessonOccurrenceFlat) Convert() entities.LessonOccurrence {
 			LessonTypeID:     f.LessonTypeID,
 			LessonTypeName:   f.LessonTypeName,
 		},
+		Classroom: classroom,
 	}
 }
 
@@ -135,15 +155,23 @@ func (r *lessonOccurrenceRepository) GetLessonsForTeacher(
 			sl.discipline_id,
 			sl.discipline_name,
 			sl.lesson_type_id,
-			sl.lesson_type_name
+			sl.lesson_type_name,
+
+			c.id as classroom_id,
+			c.slug as classroom_slug,
+			c.number as classroom_number,
+			c.capacity as classroom_capacity,
+			c.created_at as classroom_created_at,
+			c.updated_at as classroom_updated_at
 
 		FROM %s lo
 		JOIN %s sl ON lo.study_load_id = sl.id
+		LEFT JOIN %s c ON lo.classroom_id = c.id
 
-		WHERE sl.teacher_id = $1
+		WHERE lo.teacher_id = $1
 		  AND lo.date BETWEEN $2 AND $3
 		ORDER BY lo.date;
-	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName())
+	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName(), entities.Classroom{}.TableName())
 
 	var flats []LessonOccurrenceFlat
 	if err := r.db.SelectContext(ctx, &flats, query, teacherID, startTime, endTime); err != nil {
@@ -196,15 +224,23 @@ func (r *lessonOccurrenceRepository) GetLessonsForStudentGroups(
 			sl.discipline_id,
 			sl.discipline_name,
 			sl.lesson_type_id,
-			sl.lesson_type_name
+			sl.lesson_type_name,
+
+			c.id as classroom_id,
+			c.slug as classroom_slug,
+			c.number as classroom_number,
+			c.capacity as classroom_capacity,
+			c.created_at as classroom_created_at,
+			c.updated_at as classroom_updated_at
 
 		FROM %s lo
 		JOIN %s sl ON lo.study_load_id = sl.id
+		LEFT JOIN %s c ON lo.classroom_id = c.id
 
 		WHERE sl.student_group_id IN (?)
 		  AND lo.date BETWEEN ? AND ?
 		ORDER BY lo.date;
-	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName()),
+	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName(), entities.Classroom{}.TableName()),
 		studentGroupIDs,
 		startTime,
 		endTime,

@@ -84,3 +84,11 @@ func (s *studentService) ExternalUpdate(
 		fmt.Sprintf("%s successfully updated", updatedS), logger.ServiceOperationSuccess)
 	return updatedS, nil
 }
+
+// type GeneralStudentStatistic struct {
+// 	CourseCount         int
+// 	AssignmentsDueCount int
+// 	LessonsToday        int
+// }
+
+// func (s *studentService) GetGeneralStatistic()

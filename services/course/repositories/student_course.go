@@ -15,6 +15,7 @@ import (
 type StudentCourseRepository interface {
 	platform.BaseRepository[entities.StudentCourse]
 	GetCoursesForStudent(ctx context.Context, studentID uuid.UUID) ([]entities.Course, error)
+	GetStudentsForCourse(ctx context.Context, courseID uuid.UUID) ([]entities.Student, error)
 }
 
 func NewStudentCourseRepository(db *sqlx.DB) StudentCourseRepository {
@@ -72,4 +73,36 @@ func (r *studentCourseRepository) GetCoursesForStudent(ctx context.Context, stud
 	}
 
 	return courses, nil
+}
+
+func (r *studentCourseRepository) GetStudentsForCourse(ctx context.Context, courseID uuid.UUID) ([]entities.Student, error) {
+	query := fmt.Sprintf(`
+		SELECT
+			s.id,
+			s.slug,
+			s.name,
+			s.created_at,
+			s.updated_at
+		FROM %s sc
+		JOIN %s s ON sc.student_id = s.id
+		WHERE sc.course_id = ?
+		ORDER BY s.name;
+	`,
+		entities.StudentCourse{}.TableName(),
+		entities.Student{}.TableName(),
+	)
+
+	query = r.db.Rebind(query)
+
+	var students []entities.Student
+	if err := r.db.SelectContext(ctx, &students, query, courseID); err != nil {
+		return nil, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetStudentsForCourse",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	return students, nil
 }

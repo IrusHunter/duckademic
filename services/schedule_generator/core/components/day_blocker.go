@@ -22,7 +22,7 @@ func NewDayBlocker(w int, lfr float64) WeekdayAllocator {
 // Extension of group (store data to not calculate every time)
 type groupExtension struct {
 	group         *entities.StudentGroup // Original StudentGroup
-	dayPriorities []float32              // Bigger number - better day for lessons (<0.99 if day is uncomfortable) (length - 7)
+	dayPriorities []float32              // Bigger number - better day for lessons (length - 7)
 	freeDayCount  int                    // count of free (comfortable) days
 }
 

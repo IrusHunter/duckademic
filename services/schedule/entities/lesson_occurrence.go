@@ -32,6 +32,7 @@ type LessonOccurrence struct {
 	UpdatedAt      time.Time              `json:"updated_at" db:"updated_at"`
 
 	StudyLoad *StudyLoad `json:"study_load,omitempty" db:"study_load"`
+	Classroom *Classroom `json:"classroom" db:"classroom"`
 }
 
 func (l LessonOccurrence) String() string {

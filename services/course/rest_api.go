@@ -68,6 +68,10 @@ func (ra *restapi) Run(port int) error {
 		http.MethodPut: ra.NewDefaultHandlerWithAuth(ra.courseHandler.Update, []string{"course.course"}),
 	})
 
+	ra.NewRoute("/courses/student", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.courseHandler.GetStudentCoursePage, []string{""}),
+	})
+
 	ra.NewRoute("/student-courses", map[string]platform.HandlerFunc{
 		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.studentCourseHandler.GetAll, []string{"course.student_course"}),
 		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.studentCourseHandler.Add, []string{"course.student_course"}),
