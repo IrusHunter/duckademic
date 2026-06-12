@@ -1,9 +1,10 @@
 import { Suspense, lazy, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import ProtectedRoute from './components/ProtectedRoute'
 import RoleBasedRedirect from './components/RoleBasedRedirect'
 import Header from './components/header/Header'
+import Sidebar from './components/sidebar/Sidebar'
 import { initAuth } from './utils/initAuth'
 import { tokenManager } from './auth/tokenManager'
 import { isTokenExpired, setAuthCookies } from './utils/cookies'
@@ -90,6 +91,33 @@ function Routes_() {
   )
 }
 
+// Каркас shell: Header зверху, Sidebar зліва (для student/teacher), контент справа.
+function Layout() {
+  const { isAuthenticated, user } = useAuthStore()
+  const location = useLocation()
+
+  // Сторінки без бічної навігації
+  const noChrome =
+    location.pathname === '/login' || location.pathname === '/unauthorized'
+
+  // Сайдбар лише для залогінених student/teacher.
+  // У admin власний сайдбар усередині admin-app, тому тут його не дублюємо.
+  const showSidebar =
+    isAuthenticated && !noChrome && user?.role !== 'admin'
+
+  return (
+    <div className={css.container}>
+      <Header />
+      <div className={css.body}>
+        {showSidebar && user && <Sidebar role={user.role} />}
+        <main className={css.main}>
+          <Routes_ />
+        </main>
+      </div>
+    </div>
+  )
+}
+
 function App() {
   useEffect(() => {
     const handleVisibility = () => {
@@ -101,11 +129,11 @@ function App() {
       }
     }
     const handleOnline = () => {
-  const token = tokenManager.get()
-  if (isTokenExpired(token)) {
-    tokenManager.refresh().catch(() => {})
-  }
-}
+      const token = tokenManager.get()
+      if (isTokenExpired(token)) {
+        tokenManager.refresh().catch(() => {})
+      }
+    }
     const handleLogout = () => { tokenManager.logout() }
 
     initAuth().finally(() => {
@@ -124,12 +152,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className={css.container}>
-        <Header />
-        <main className={css.main}>
-          <Routes_ />
-        </main>
-      </div>
+      <Layout />
     </BrowserRouter>
   )
 }

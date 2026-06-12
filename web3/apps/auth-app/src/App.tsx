@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
+import css from './App.module.css'
 
 type User = {
   id: string
@@ -66,14 +67,16 @@ export default function App({ onLoginSuccess }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>Вхід</h1>
-      <input name="login" type="text" placeholder="Логін" required />
-      <input name="password" type="password" placeholder="Пароль" required />
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? 'Завантаження...' : 'Увійти'}
-      </button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </form>
+    <div className={css.page}>
+      <form onSubmit={handleSubmit} className={css.form}>
+        <h1 className={css.title}>Вхід</h1>
+        <input className={css.input} name="login" type="text" placeholder="Логін" required />
+        <input className={css.input} name="password" type="password" placeholder="Пароль" required />
+        <button className={css.button} type="submit" disabled={isLoading}>
+          {isLoading ? 'Завантаження...' : 'Увійти'}
+        </button>
+        {error && <p className={css.error}>{error}</p>}
+      </form>
+    </div>
   )
 }

@@ -36,6 +36,14 @@
     margin: 0 auto;
 }
 
+/* Рядок під Header: [ Sidebar | контент ] */
+.body {
+    display: flex;
+    padding: 80px 70px 0; /* очищаємо простір під fixed Header */
+}
+
+/* Контентна область — займає весь простір праворуч від сайдбара */
 .main {
-    padding-top: 80px;
+    flex: 1;
+    min-width: 0;
 }

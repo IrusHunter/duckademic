@@ -18,17 +18,15 @@
 .logo {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     font-weight: 700;
-    font-size: 20px;
+    font-size: 24px;
     line-height: 22px;
     color: #111827;
     text-decoration: none;
     white-space: nowrap;
-}
-
-.logoIcon {
-    font-size: 22px;
+    letter-spacing: 0em;
 }
 
 /* ── Пошук ── */

@@ -1,0 +1,31 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fef2f2;
+}
+
+.text {
+    color: #b91c1c;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.retry {
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: 1px solid #ef4444;
+    background: #fff;
+    color: #b91c1c;
+    font-size: 13px;
+    transition: background 150ms ease, color 150ms ease;
+}
+
+.retry:hover {
+    background: #ef4444;
+    color: #fff;
+}

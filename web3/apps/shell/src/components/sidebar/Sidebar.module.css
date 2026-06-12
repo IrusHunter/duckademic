@@ -1,0 +1,56 @@
+/* Стилістика повторює web/src/css/sidebar.css */
+
+.sidebar {
+    flex-shrink: 0;
+    width: 225px;
+    position: sticky;
+    top: 80px; /* нижче за fixed Header */
+    align-self: flex-start;
+    height: calc(100vh - 80px);
+    padding: 16px 24px 16px 0;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 225px;
+}
+
+.item {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 16px;
+}
+
+.link {
+    padding: 16px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 21px;
+    color: #374151;
+    text-decoration: none;
+    transition: 100ms ease-in-out;
+}
+
+/* Активний пункт — світлий фон, права рамка, синій текст */
+.link.active {
+    background-color: #eff6ff;
+    border-right: 1.6px solid #1d4ed8;
+    color: #1d4ed8;
+}
+
+/* Hover на неактивному — насичений синій із білим текстом */
+.link:not(.active):hover,
+.link:not(.active):focus {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.icon {
+    display: flex;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
