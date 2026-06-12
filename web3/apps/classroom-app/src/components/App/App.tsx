@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
-import { getCoursesProgress, getUpcomingEvents } from '../../services/courseService'
+import { getStudentCourses } from '../../services/courseService'
 import CourseCard from '../CourseCard/CourseCard'
 import type { CourseCardData } from '../CourseCard/CourseCard'
 import Loader from '../Loader/Loader'
@@ -14,42 +14,22 @@ const queryClient = new QueryClient({
 const COLORS = ['cardBlue', 'cardMint', 'cardRose'] as const
 
 function Courses() {
-  const startTime = useMemo(() => new Date().toISOString(), [])
-
-  // Список моїх курсів — дозволений студенту ендпоінт
-  const progress = useQuery({ queryKey: ['courses-progress'], queryFn: getCoursesProgress })
-  // Мої завдання — для assignments/дедлайнів (best-effort зіставлення за курсом)
-  const upcoming = useQuery({
-    queryKey: ['upcoming', startTime],
-    queryFn: () => getUpcomingEvents(50, startTime),
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['student-courses'],
+    queryFn: getStudentCourses,
   })
 
   const cards: CourseCardData[] = useMemo(() => {
-    const list = progress.data ?? []
-    const tasks = upcoming.data ?? []
-    const now = Date.now()
-
-    return list.map((c, i) => {
-      // Зіставляємо завдання з курсом за course_id (best-effort)
-      const courseTasks = tasks.filter((t) => t.course_id === c.id)
-      const hasTasks = courseTasks.length > 0
-
-      const upcomingDeadlines = courseTasks
-        .map((t) => t.deadline)
-        .filter((d) => new Date(d).getTime() >= now)
-        .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-
-      return {
-        id: c.id,
-        title: c.name,
-        ratePercent: Math.round((c.complete_rate ?? 0) * 100),
-        accuracyPercent: Math.round((c.complete_accuracy ?? 0) * 100),
-        assignments: hasTasks ? courseTasks.length : undefined,
-        nearestDeadline: upcomingDeadlines[0],
-        colorClass: COLORS[i % COLORS.length],
-      }
-    })
-  }, [progress.data, upcoming.data])
+    return (data ?? []).map((c, i) => ({
+      id: c.id,
+      title: c.name,
+      ratePercent: 0,
+      accuracyPercent: Math.round(c.average_mark),
+      assignments: c.assignments_count,
+      nearestDeadline: c.upcoming_deadline || undefined,
+      colorClass: COLORS[i % COLORS.length],
+    }))
+  }, [data])
 
   return (
     <main className={css.page}>
@@ -58,9 +38,9 @@ function Courses() {
         <p className={css.subtitle}>Manage your enrolled courses</p>
       </div>
 
-      {progress.isLoading && <Loader label="Loading courses…" />}
-      {progress.isError && <ErrorMessage onRetry={() => progress.refetch()} />}
-      {progress.data && cards.length === 0 && (
+      {isLoading && <Loader label="Loading courses…" />}
+      {isError && <ErrorMessage onRetry={() => refetch()} />}
+      {data && cards.length === 0 && (
         <p className={css.state}>You are not enrolled in any courses yet.</p>
       )}
 

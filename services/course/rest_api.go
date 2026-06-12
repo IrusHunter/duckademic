@@ -69,7 +69,7 @@ func (ra *restapi) Run(port int) error {
 	})
 
 	ra.NewRoute("/courses/student", map[string]platform.HandlerFunc{
-		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.courseHandler.GetStudentCoursePage, []string{""}),
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.courseHandler.GetStudentCoursePage, []string{}),
 	})
 
 	ra.NewRoute("/student-courses", map[string]platform.HandlerFunc{
@@ -91,22 +91,22 @@ func (ra *restapi) Run(port int) error {
 	})
 
 	ra.NewRoute("/tasks", map[string]platform.HandlerFunc{
-		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskHandler.GetAll, []string{"course.task"}),
-		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.taskHandler.Add, []string{"course.task"}),
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskHandler.GetAll, []string{}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.taskHandler.Add, []string{}),
 	})
 	ra.NewRoute("/task/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.taskHandler.Find, []string{"course.task"}),
-		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskHandler.Delete, []string{"course.task"}),
-		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.taskHandler.Update, []string{"course.task"}),
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.taskHandler.Find, []string{}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskHandler.Delete, []string{}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.taskHandler.Update, []string{}),
 	})
 
 	ra.NewRoute("/task-students", map[string]platform.HandlerFunc{
-		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.GetAll, []string{"course.task_student"}),
-		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Add, []string{"course.task_student"}),
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.GetAll, []string{}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Add, []string{}),
 	})
 	ra.NewRoute("/task-student/{id}", map[string]platform.HandlerFunc{
-		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Find, []string{"course.task_student"}),
-		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Delete, []string{"course.task_student"}),
+		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Find, []string{}),
+		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Delete, []string{}),
 	})
 
 	ra.NewRoute("/get-upcoming-events", map[string]platform.HandlerFunc{
