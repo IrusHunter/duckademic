@@ -1,4 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -11,6 +13,8 @@ import { isTokenExpired, setAuthCookies } from './utils/cookies'
 import css from './App.module.css'
 import { setupAxiosInterceptor } from './auth/axiosInterceptor'
 import axios from 'axios'
+
+const queryClient = new QueryClient()
 
 axios.defaults.withCredentials = true
 setupAxiosInterceptor()
@@ -151,9 +155,12 @@ function App() {
   }, [])
 
   return (
-    <BrowserRouter>
-      <Layout />
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Layout />
+      </BrowserRouter>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   )
 }
 

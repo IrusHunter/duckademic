@@ -23,10 +23,12 @@ function Courses() {
     return (data ?? []).map((c, i) => ({
       id: c.id,
       title: c.name,
-      ratePercent: 0,
-      accuracyPercent: Math.round(c.average_mark),
+      teacher: c.teacher_name,
+      description: c.description,
       assignments: c.assignments_count,
-      nearestDeadline: c.upcoming_deadline || undefined,
+      students: c.student_count,
+      averageMark: c.average_mark,
+      nearestDeadline: c.upcoming_deadline && !c.upcoming_deadline.startsWith('0001-') ? c.upcoming_deadline : undefined,
       colorClass: COLORS[i % COLORS.length],
     }))
   }, [data])

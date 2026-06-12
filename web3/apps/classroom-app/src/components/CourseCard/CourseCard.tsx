@@ -4,9 +4,11 @@ import css from '../App/App.module.css'
 export interface CourseCardData {
   id: string
   title: string
-  ratePercent: number        // 0..100 — проходження
-  accuracyPercent: number    // 0..100 — точність
-  assignments?: number       // лише якщо вдалося зіставити завдання з курсом
+  teacher: string
+  description: string
+  assignments: number
+  students: number
+  averageMark: number
   nearestDeadline?: string   // ISO або undefined
   colorClass: 'cardBlue' | 'cardMint' | 'cardRose'
 }
@@ -19,45 +21,49 @@ const DEADLINE_CLASS = {
 
 export default function CourseCard({ course }: { course: CourseCardData }) {
   const level = course.nearestDeadline ? deadlineLevel(course.nearestDeadline) : null
-  const goodAccuracy = course.accuracyPercent >= 80
 
   return (
     <li className={`${css.card} ${css[course.colorClass]}`}>
       <div className={css.cardHeader}>
         <div>
           <h2 className={css.courseTitle}>{course.title}</h2>
+          <p className={css.teacher}>{course.teacher}</p>
         </div>
-        <span className={`${css.grade} ${goodAccuracy ? css.gradeGreen : ''}`}>
-          {course.accuracyPercent}%
+        <span className={css.grade}>
+          {course.averageMark.toFixed(1)}
         </span>
       </div>
 
-      <p className={css.description}>{course.ratePercent}% complete</p>
+      <p className={css.description}>{course.description}</p>
 
-      {/* Прогрес-бар (реальний complete_rate студента) */}
-      <div className={css.progressBar} aria-label={`${course.title} progress`}>
-        <div className={css.progressBarFill} style={{ width: `${course.ratePercent}%` }} />
-      </div>
+      <ul className={css.meta}>
+        <li className={css.metaItem}>
+          <svg className={css.metaIcon} width="16" height="16" aria-hidden="true">
+            <use href="/img/icons.svg#icon-SVG-5" />
+          </svg>
+          <span className={css.metaText}>{course.assignments} assignments</span>
+        </li>
+        <li className={css.metaItem}>
+          <svg className={css.metaIcon} width="16" height="16" aria-hidden="true">
+            <use href="/img/icons.svg#icon-SVG-9" />
+          </svg>
+          <span className={css.metaText}>{course.students} students</span>
+        </li>
+      </ul>
 
-      {(course.assignments !== undefined || course.nearestDeadline) && (
-        <ul className={css.meta}>
-          {course.assignments !== undefined && (
-            <li className={css.metaItem}>
-              <svg className={css.metaIcon} width="16" height="16" aria-hidden="true">
-                <use href="/img/icons.svg#icon-SVG-5" />
-              </svg>
-              <span className={css.metaText}>{course.assignments} assignments</span>
-            </li>
-          )}
-        </ul>
-      )}
-
-      {course.nearestDeadline && level && (
+      {level ? (
         <div className={`${css.deadline} ${DEADLINE_CLASS[level]}`}>
           <svg className={css.metaIcon} width="16" height="16" aria-hidden="true" style={{ color: 'inherit' }}>
             <use href="/img/icons.svg#icon-SVG-11" />
           </svg>
-          <p className={css.deadlineText}>Deadline: {formatDeadline(course.nearestDeadline)}</p>
+          <p className={css.deadlineText}>Deadline: {formatDeadline(course.nearestDeadline!)}</p>
+        </div>
+      ) : (
+        <div className={css.deadlineNone}>
+          <svg width="16" height="16" aria-hidden="true" style={{ color: 'inherit' }}>
+            <use href="/img/icons.svg#icon-SVG-11" />
+          </svg>
+          <p className={css.deadlineText}>No deadline</p>
         </div>
       )}
 

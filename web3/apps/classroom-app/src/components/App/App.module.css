@@ -81,14 +81,23 @@
     z-index: 0;
 }
 
-.cardBlue::before { background-color: #eff6ff; }
-.cardMint::before { background-color: #dcfce7; }
-.cardRose::before { background-color: #fee2e2; }
+.cardBlue::before {
+    background-color: #eff6ff;
+}
+
+.cardMint::before {
+    background-color: #dcfce7;
+}
+
+.cardRose::before {
+    background-color: #fee2e2;
+}
 
 .cardHeader,
 .description,
 .meta,
 .deadline,
+.deadlineNone,
 .actions {
     position: relative;
     z-index: 1;
@@ -134,6 +143,9 @@
     line-height: 143%;
     color: #374151;
     margin-bottom: 12px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 /* Метадані */
@@ -176,9 +188,25 @@
     color: inherit;
 }
 
-.deadlineWarning { color: #ea7f0c; }
-.deadlineInfo { color: #2563eb; }
-.deadlineDanger { color: #ef4444; }
+.deadlineWarning {
+    color: #ea7f0c;
+}
+
+.deadlineInfo {
+    color: #2563eb;
+}
+
+.deadlineDanger {
+    color: #ef4444;
+}
+
+.deadlineNone {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #9ca3af;
+}
 
 /* Кнопки */
 .actions {
