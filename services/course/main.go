@@ -53,7 +53,8 @@ func main() {
 
 	studentService := services.NewStudentService(studentRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
-	courseService := services.NewCourseService(courseRepository, teacherRepository, eventBus)
+	courseService := services.NewCourseService(courseRepository, teacherRepository, taskStudentRepository,
+		studentCourseRepository, eventBus)
 	studentCourseService := services.NewStudentCourseService(studentCourseRepository, studentRepository, courseRepository,
 		taskStudentRepository)
 	teacherCourseService := services.NewTeacherCourseService(teacherCourseRepository, teacherRepository, courseRepository)

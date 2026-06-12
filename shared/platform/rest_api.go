@@ -179,7 +179,11 @@ func (rh *RESTAPIHelper) NewDefaultHandler(h HandlerFunc) HandlerFunc {
 }
 
 func (rh *RESTAPIHelper) NewDefaultHandlerWithAuth(h HandlerFunc, requiredPermissions []string) HandlerFunc {
-	return rh.NewHandler(h, rh.TraceMiddleware, rh.LoggingMiddleware, rh.NewAuthMiddleware(requiredPermissions))
+	return rh.NewHandler(h,
+		rh.TraceMiddleware,
+		rh.LoggingMiddleware,
+		rh.NewAuthMiddleware(requiredPermissions),
+	)
 }
 
 // NewRoute registers a set of HTTP methods and their corresponding handlers for a given path.
