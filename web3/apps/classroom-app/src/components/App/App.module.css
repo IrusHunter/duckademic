@@ -1,0 +1,253 @@
+/* ============================================================
+   Courses page — стилі перенесені з web/src/css/courses-info.css
+   ============================================================ */
+
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: #f3f4f6;
+    flex: 1;
+    padding: 20px 0 20px 20px;
+    min-height: calc(100vh - 80px);
+}
+
+/* Сірий фон праворуч поверх білого padding контейнера shell (як у web) */
+.page::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -70px;
+    bottom: 0;
+    width: 70px;
+    background-color: #f3f4f6;
+    pointer-events: none;
+}
+
+.header {
+    margin-bottom: 20px;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #111827;
+    line-height: 133%;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 150%;
+    color: #4b5563;
+}
+
+/* Сітка карток */
+.list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* Базова картка */
+.card {
+    position: relative;
+    overflow: hidden;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e4e4e7;
+    padding: 24px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 250ms ease-in-out, transform 250ms ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.05);
+    transform: translateY(-4px);
+}
+
+/* Кольорова смужка зверху */
+.cardBlue::before,
+.cardMint::before,
+.cardRose::before {
+    content: "";
+    position: absolute;
+    inset: 20px 0 0 0;
+    height: 30px;
+    z-index: 0;
+}
+
+.cardBlue::before { background-color: #eff6ff; }
+.cardMint::before { background-color: #dcfce7; }
+.cardRose::before { background-color: #fee2e2; }
+
+.cardHeader,
+.description,
+.meta,
+.deadline,
+.actions {
+    position: relative;
+    z-index: 1;
+}
+
+/* Верх картки */
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.courseTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    line-height: 150%;
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+}
+
+.teacher {
+    font-size: 14px;
+    line-height: 143%;
+    color: #374151;
+    margin-bottom: 12px;
+}
+
+.grade {
+    min-width: 36px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 14px;
+    color: #18181b;
+    text-align: center;
+    background-color: #ffffff;
+}
+
+.description {
+    font-size: 14px;
+    line-height: 143%;
+    color: #374151;
+    margin-bottom: 12px;
+}
+
+/* Метадані */
+.meta {
+    display: flex;
+    gap: 48px;
+    font-size: 13px;
+    color: #4b5563;
+    margin-bottom: 19px;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.metaIcon {
+    color: #4b5563;
+}
+
+.metaText {
+    font-size: 14px;
+    line-height: 16px;
+    color: #4b5563;
+}
+
+/* Дедлайн */
+.deadline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.deadlineText {
+    font-size: 14px;
+    line-height: 16px;
+    color: inherit;
+}
+
+.deadlineWarning { color: #ea7f0c; }
+.deadlineInfo { color: #2563eb; }
+.deadlineDanger { color: #ef4444; }
+
+/* Кнопки */
+.actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 20px;
+}
+
+.btn {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 16px;
+    border: none;
+}
+
+.btnPrimary {
+    background-color: #111827;
+    color: #ffffff;
+    transition: 250ms ease-in-out;
+}
+
+.btnPrimary:hover {
+    background-color: #61708c;
+}
+
+.btnSecondary {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #e4e4e7;
+    padding: 9px 12px;
+    transition: 250ms ease-in-out;
+}
+
+.btnSecondary:hover {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #eff6ff;
+}
+
+/* Стани */
+.state {
+    padding: 24px 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Зелений бейдж точності (висока) */
+.gradeGreen {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+/* Прогрес-бар (complete_rate студента) */
+.progressBar {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.progressBarFill {
+    height: 100%;
+    background-color: #2563eb;
+    border-radius: 99px 0 0 99px;
+}

@@ -3,7 +3,8 @@ import { clearUserCookie } from '../../utils/cookies'
 import { useNavigate } from 'react-router-dom'
 import css from './Header.module.css'
 import { LuSearch, LuBell } from 'react-icons/lu'
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom'
+import Avatar from '../avatar/Avatar'
 
 export default function Header() {
   const { isAuthenticated, user } = useAuthStore()
@@ -46,13 +47,11 @@ export default function Header() {
 
           <div className={css.userInfo}>
             <span className={css.userEmail}>{user?.email}</span>
-            <div className={css.avatar}>
-              {user?.email?.[0]?.toUpperCase() ?? '?'}
-            </div>
+            <Avatar name={user?.email ?? '?'} size={48} />
           </div>
 
           <button className={css.logoutBtn} onClick={handleLogout}>
-            Вийти
+            Log out
           </button>
         </div>
 
