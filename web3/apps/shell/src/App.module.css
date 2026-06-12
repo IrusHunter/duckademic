@@ -9,6 +9,17 @@
     padding: 0;
 }
 
+:global(html) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+:global(html::-webkit-scrollbar) {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
 :global(body) {
     font-family: 'Geist', sans-serif;
     font-size: 14px;
@@ -25,6 +36,13 @@
     cursor: pointer;
 }
 
+:global(button),
+:global(input),
+:global(select),
+:global(textarea) {
+    font: inherit;
+}
+
 :global(ul),
 :global(ol) {
     list-style: none;
@@ -39,7 +57,8 @@
 /* Рядок під Header: [ Sidebar | контент ] */
 .body {
     display: flex;
-    padding: 80px 70px 0; /* очищаємо простір під fixed Header */
+    padding: 80px 70px 0;
+    /* очищаємо простір під fixed Header */
 }
 
 /* Контентна область — займає весь простір праворуч від сайдбара */

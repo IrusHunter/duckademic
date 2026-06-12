@@ -16,13 +16,12 @@ export default function Upcoming({ tasks }: UpcomingProps) {
       </div>
 
       {tasks.length === 0 ? (
-        <p className={css.sectionEmpty}>Найближчих подій немає</p>
+        <p className={css.sectionEmpty}>No upcoming events</p>
       ) : (
         <ul className={css.upcomingList}>
           {tasks.map((task) => (
             <li className={css.upcomingItem} key={task.id}>
               <h3 className={css.title}>{task.title}</h3>
-              {/* Завдання = Assignment → помаранчевий час, без бейджа типу */}
               <div className={`${css.timeContainer} ${css.timeAssignment}`}>
                 <p>{formatDeadline(task.deadline)}</p>
               </div>

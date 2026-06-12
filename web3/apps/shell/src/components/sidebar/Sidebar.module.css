@@ -2,7 +2,6 @@
 
 .sidebar {
     flex-shrink: 0;
-    width: 225px;
     position: sticky;
     top: 80px; /* нижче за fixed Header */
     align-self: flex-start;
@@ -34,14 +33,12 @@
     transition: 100ms ease-in-out;
 }
 
-/* Активний пункт — світлий фон, права рамка, синій текст */
 .link.active {
     background-color: #eff6ff;
     border-right: 1.6px solid #1d4ed8;
     color: #1d4ed8;
 }
 
-/* Hover на неактивному — насичений синій із білим текстом */
 .link:not(.active):hover,
 .link:not(.active):focus {
     background-color: #2563eb;

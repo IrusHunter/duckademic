@@ -1,22 +1,22 @@
 import Icon from '../Icon/Icon'
+import Avatar from '../Avatar/Avatar'
 import css from '../App/App.module.css'
 
 interface ProfileCardProps {
   name: string
   role: string
-  avatar: string
   courses: number | string
   assignments: number | string
   groups: number | string
 }
 
 export default function ProfileCard({
-  name, role, avatar, courses, assignments, groups,
+  name, role, courses, assignments, groups,
 }: ProfileCardProps) {
   return (
     <article className={css.profileCard}>
       <span className={css.profileAvatarLink}>
-        <img src={avatar} alt={name} />
+        <Avatar name={name} size={80} />
       </span>
 
       <h3 className={css.name}>{name}</h3>

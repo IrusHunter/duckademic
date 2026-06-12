@@ -12,13 +12,12 @@
     min-height: calc(100vh - 80px);
 }
 
-/* Фікс сірого фону праворуч: домальовуємо 70px сірого
-   поверх білого padding-right контейнера shell (як web .sidebar-space::after) */
 .dashboard::after {
     content: "";
     position: absolute;
     top: 0;
-    right: -70px;          /* = padding-right у .body shell */
+    right: -70px;
+    /* = padding-right у .body shell */
     bottom: 0;
     width: 70px;
     background-color: #f3f4f6;
@@ -38,7 +37,6 @@
     min-width: 0;
 }
 
-/* Заголовки блоків */
 .title {
     font-weight: 600;
     font-size: 14px;
@@ -98,7 +96,7 @@
     gap: 16px;
 }
 
-.profileCard .stats > div {
+.profileCard .stats>div {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -263,6 +261,7 @@
 .postHeaderInfo .author {
     font-weight: 600;
     font-size: 16px;
+    line-height: 24px;
     color: #111827;
 }
 
@@ -347,21 +346,29 @@
     stroke: #6b7280;
 }
 
-.likeInput:checked ~ .likeIcon {
+.likeInput:checked~.likeIcon {
     opacity: 0;
     transform: scale(0.6);
 }
 
-.likeInput:checked ~ .likeIconActive {
+.likeInput:checked~.likeIconActive {
     opacity: 1;
     transform: scale(1);
     animation: heart-pop 0.3s ease forwards;
 }
 
 @keyframes heart-pop {
-    0% { transform: scale(0.8); }
-    50% { transform: scale(1.4); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(0.8);
+    }
+
+    50% {
+        transform: scale(1.4);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .likes,

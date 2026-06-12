@@ -31,20 +31,16 @@ function Dashboard() {
   const tasks = upcoming.data ?? []
   const courses = progress.data ?? []
 
-  // Лічильники профілю — з реальних даних (де можливо)
   const coursesCount = progress.isLoading ? '—' : courses.length
   const assignmentsCount = upcoming.isLoading ? '—' : tasks.length
-  // Окремого ендпоінта "мої навчальні групи" в бекенді поки немає → показуємо прочерк
-  const groupsCount = '—'
+  const groupsCount = '—' // окремого ендпоінта "мої групи" в бекенді поки немає
 
   return (
     <main className={css.dashboard}>
-      {/* ── Ліва колонка ── */}
       <div className={css.left}>
         <ProfileCard
-          name={user?.email ?? 'Користувач'}
+          name={user?.email ?? 'User'}
           role={roleLabel(user?.role)}
-          avatar="/img/profile_pic.png"
           courses={coursesCount}
           assignments={assignmentsCount}
           groups={groupsCount}
@@ -52,12 +48,10 @@ function Dashboard() {
         <QuickActions />
       </div>
 
-      {/* ── Центр: стрічка (моки) ── */}
       <div className={css.center}>
         <Feed />
       </div>
 
-      {/* ── Права колонка: реальні дані ── */}
       <div className={css.right}>
         <Upcoming tasks={tasks} />
         <CourseProgress items={courses} />

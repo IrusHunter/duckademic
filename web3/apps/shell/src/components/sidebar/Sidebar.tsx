@@ -14,18 +14,14 @@ interface NavItem {
   roles: Role[]
 }
 
-// Пункти навігації між модулями (стилістика — з оригінального web).
-// Показуються лише дозволені поточній ролі.
-// Щоб додати модуль — підключіть його як remote у shell/vite.config.ts,
-// додайте <Route> в App.tsx і допишіть пункт сюди.
 const NAV: NavItem[] = [
-  { to: '/home', label: 'Головна', icon: <LuHouse />, end: true, roles: ['student', 'teacher'] },
-  { to: '/classroom', label: 'Заняття', icon: <LuBookOpen />, roles: ['student', 'teacher'] },
-  // Приклади з web — розкоментуйте, коли відповідний remote підключено:
-  // { to: '/courses',   label: 'Мої курси',    icon: <LuBookCopy />,      roles: ['student', 'teacher'] },
-  // { to: '/messaging', label: 'Повідомлення', icon: <LuMessageSquare />, roles: ['student', 'teacher'] },
-  // { to: '/schedule',  label: 'Розклад',      icon: <LuCalendar />,      roles: ['student', 'teacher'] },
-  // { to: '/grades',    label: 'Оцінки',       icon: <LuGraduationCap />, roles: ['student'] },
+  { to: '/home', label: 'Home', icon: <LuHouse />, end: true, roles: ['student', 'teacher'] },
+  { to: '/classroom', label: 'Classroom', icon: <LuBookOpen />, roles: ['student', 'teacher'] },
+  // Add modules here once their remote is wired in shell/vite.config.ts:
+  // { to: '/courses',   label: 'My Courses', icon: <LuBookCopy />,      roles: ['student', 'teacher'] },
+  // { to: '/messaging', label: 'Messaging',  icon: <LuMessageSquare />, roles: ['student', 'teacher'] },
+  // { to: '/schedule',  label: 'Schedule',   icon: <LuCalendar />,      roles: ['student', 'teacher'] },
+  // { to: '/grades',    label: 'Grades',     icon: <LuGraduationCap />, roles: ['student'] },
 ]
 
 interface SidebarProps {

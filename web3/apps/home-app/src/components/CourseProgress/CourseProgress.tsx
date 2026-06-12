@@ -15,7 +15,7 @@ export default function CourseProgress({ items }: CourseProgressProps) {
       </div>
 
       {items.length === 0 ? (
-        <p className={css.sectionEmpty}>Курсів поки немає</p>
+        <p className={css.sectionEmpty}>No courses yet</p>
       ) : (
         <ul>
           {items.map((c) => {
