@@ -1,15 +1,11 @@
 import { useMemo } from 'react'
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { getStudentCourses } from '../../services/courseService'
 import CourseCard from '../CourseCard/CourseCard'
 import type { CourseCardData } from '../CourseCard/CourseCard'
 import Loader from '../Loader/Loader'
 import ErrorMessage from '../ErrorMessage/ErrorMessage'
 import css from './App.module.css'
-
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
-})
 
 const COLORS = ['cardBlue', 'cardMint', 'cardRose'] as const
 
@@ -58,9 +54,5 @@ function Courses() {
 }
 
 export default function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Courses />
-    </QueryClientProvider>
-  )
+  return <Courses />
 }

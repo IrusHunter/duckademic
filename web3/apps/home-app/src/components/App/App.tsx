@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { getUpcomingEvents, getCoursesProgress } from '../../services/courseService'
 import { getAuthUser, roleLabel } from '../../utils/user'
 import { nowISO } from '../../utils/datetime'
@@ -9,10 +9,6 @@ import Feed from '../Feed/Feed'
 import Upcoming from '../Upcoming/Upcoming'
 import CourseProgress from '../CourseProgress/CourseProgress'
 import css from './App.module.css'
-
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
-})
 
 function Dashboard() {
   const user = useMemo(() => getAuthUser(), [])
@@ -61,9 +57,5 @@ function Dashboard() {
 }
 
 export default function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Dashboard />
-    </QueryClientProvider>
-  )
+  return <Dashboard />
 }
