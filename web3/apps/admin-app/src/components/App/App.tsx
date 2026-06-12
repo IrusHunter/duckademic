@@ -1,17 +1,21 @@
+import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SERVICES } from '../../config/services'
 import { Sidebar } from '../Sidebar/Sidebar'
 import { ServiceHome } from '../ServiceHome/ServiceHome'
 import { DynamicServiceRoute } from '../DynamicServiceRoute/DynamicServiceRoute'
+import { ScheduleGenerator } from '../ScheduleGenerator/ScheduleGenerator'
 import css from './App.module.css'
 
 const queryClient = new QueryClient()
 
 function AdminLayout() {
+  const [generatorOpen, setGeneratorOpen] = useState(false)
+
   return (
-    <div style={{ display: 'flex'}}>
-      <Sidebar />
+    <div style={{ display: 'flex' }}>
+      <Sidebar onOpenGenerator={() => setGeneratorOpen(true)} />
       <div style={{ flex: 1 }} className={css.mainDiv}>
         <Routes>
           <Route path="/" element={<ServiceHome service={SERVICES[0]} />} />
@@ -20,6 +24,10 @@ function AdminLayout() {
           <Route path=":serviceKey/:tableKey/edit/:itemId" element={<DynamicServiceRoute />} />
         </Routes>
       </div>
+
+      {generatorOpen && (
+        <ScheduleGenerator onClose={() => setGeneratorOpen(false)} />
+      )}
     </div>
   )
 }

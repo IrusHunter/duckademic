@@ -148,3 +148,27 @@
     align-items: center;
     justify-content: center;
 }
+/* Кнопка "Schedule Generation" під списком сервісів */
+.generatorButton {
+    margin: 12px 0 0 0;
+    padding: 16px;
+    width: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 16px;
+    transition: background-color 150ms ease;
+}
+
+.generatorButton:hover,
+.generatorButton:focus {
+    background-color: #1d4ed8;
+}
+
+.generatorButton .serviceIcon {
+    margin-right: 21px;
+}

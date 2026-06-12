@@ -1,4 +1,4 @@
-import { LuUser, LuBookCopy, LuGraduationCap, LuUsers, LuNotebookText, LuUniversity, LuSheet } from 'react-icons/lu'
+import { LuUser, LuBookCopy, LuGraduationCap, LuUsers, LuNotebookText, LuUniversity, LuSheet, LuBookOpen } from 'react-icons/lu'
 import type { ServiceDef } from '../types/admin'
 
 export const SERVICES: ServiceDef[] = [
@@ -694,6 +694,176 @@ export const SERVICES: ServiceDef[] = [
           { key: 'updated_at', label: 'Updated At' },
         ],
         fields: [],
+      },
+    ],
+  },
+  // ── COURSE ────────────────────────────────────────────────────────────────
+  {
+    key: 'course',
+    label: 'Course Service',
+    icon: <LuBookOpen />,
+    baseURL: '/api/course',
+    tables: [
+      {
+        key: 'courses',
+        label: 'Courses',
+        listEndpoint: '/courses',
+        itemEndpoint: '/course',
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'description', label: 'Description' },
+          { key: 'manager_id', label: 'Manager ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [
+          { key: 'name', label: 'Name', required: true },
+          { key: 'slug', label: 'Slug', required: true },
+          { key: 'description', label: 'Description' },
+          {
+            key: 'manager_id', label: 'Manager (Teacher)',
+            relation: { serviceKey: 'course', tableKey: 'teachers', labelKey: 'name' },
+          },
+        ],
+      },
+      {
+        key: 'teachers',
+        label: 'Teachers',
+        listEndpoint: '/teachers',
+        itemEndpoint: '/teacher',
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [
+          { key: 'name', label: 'Name', required: true },
+          { key: 'slug', label: 'Slug', required: true },
+        ],
+      },
+      {
+        key: 'students',
+        label: 'Students',
+        listEndpoint: '/students',
+        itemEndpoint: '/student',
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'name', label: 'Name' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [
+          { key: 'name', label: 'Name', required: true },
+          { key: 'slug', label: 'Slug', required: true },
+        ],
+      },
+      {
+        key: 'tasks',
+        label: 'Tasks',
+        listEndpoint: '/tasks',
+        itemEndpoint: '/task',
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'course_id', label: 'Course ID' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'title', label: 'Title' },
+          { key: 'description', label: 'Description' },
+          { key: 'max_mark', label: 'Max Mark' },
+          { key: 'deadline', label: 'Deadline' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        numericKeys: ['max_mark'],
+        fields: [
+          {
+            key: 'course_id', label: 'Course', required: true,
+            relation: { serviceKey: 'course', tableKey: 'courses', labelKey: 'name' },
+          },
+          { key: 'title', label: 'Title', required: true },
+          { key: 'slug', label: 'Slug', required: true },
+          { key: 'description', label: 'Description' },
+          { key: 'max_mark', label: 'Max Mark', required: true },
+          { key: 'deadline', label: 'Deadline', required: true },
+        ],
+      },
+      {
+        key: 'student-courses',
+        label: 'Student Courses',
+        listEndpoint: '/student-courses',
+        itemEndpoint: '/student-course',
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'course_id', label: 'Course ID' },
+          { key: 'student_id', label: 'Student ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [
+          {
+            key: 'course_id', label: 'Course', required: true,
+            relation: { serviceKey: 'course', tableKey: 'courses', labelKey: 'name' },
+          },
+          {
+            key: 'student_id', label: 'Student', required: true,
+            relation: { serviceKey: 'course', tableKey: 'students', labelKey: 'name' },
+          },
+        ],
+      },
+      {
+        key: 'teacher-courses',
+        label: 'Teacher Courses',
+        listEndpoint: '/teacher-courses',
+        itemEndpoint: '/teacher-course',
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'course_id', label: 'Course ID' },
+          { key: 'teacher_id', label: 'Teacher ID' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        fields: [
+          {
+            key: 'course_id', label: 'Course', required: true,
+            relation: { serviceKey: 'course', tableKey: 'courses', labelKey: 'name' },
+          },
+          {
+            key: 'teacher_id', label: 'Teacher', required: true,
+            relation: { serviceKey: 'course', tableKey: 'teachers', labelKey: 'name' },
+          },
+        ],
+      },
+      {
+        key: 'task-students',
+        label: 'Task Students',
+        listEndpoint: '/task-students',
+        itemEndpoint: '/task-student',
+        columns: [
+          { key: 'id', label: 'ID' },
+          { key: 'task_id', label: 'Task ID' },
+          { key: 'student_id', label: 'Student ID' },
+          { key: 'mark', label: 'Mark' },
+          { key: 'submission_time', label: 'Submission Time' },
+          { key: 'created_at', label: 'Created At' },
+          { key: 'updated_at', label: 'Updated At' },
+        ],
+        numericKeys: ['mark'],
+        fields: [
+          {
+            key: 'task_id', label: 'Task', required: true,
+            relation: { serviceKey: 'course', tableKey: 'tasks', labelKey: 'title' },
+          },
+          {
+            key: 'student_id', label: 'Student', required: true,
+            relation: { serviceKey: 'course', tableKey: 'students', labelKey: 'name' },
+          },
+          { key: 'mark', label: 'Mark' },
+          { key: 'submission_time', label: 'Submission Time' },
+        ],
       },
     ],
   },
