@@ -14,7 +14,7 @@
 }
 
 .servicesList {
-    width: 224px;
+    width: 225px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -27,30 +27,30 @@
     border-radius: 6px;
     display: flex;
     align-items: center;
-    border-right: 2px solid transparent;
+    border-right: 1.6px solid transparent;
     background-color: transparent;
-    color: #333;
+    color: #374151;
     transition: all 0.25s ease;
     cursor: pointer;
     border: none;
 }
 
 .active {
-    background-color: #EFF6FF;
-    color: #4A6CF7;
-    border-right: 2px solid #1D4ED8;
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border-right: 1.6px solid #1d4ed8;
 }
 
 .button:not(.active):hover,
 .button:not(.active):focus {
-    background-color: #1D4ED8;
+    background-color: #2563eb;
     color: #fff;
 }
 
 .serviceIcon {
     width: 16px;
     height: 16px;
-    margin-right: 20px;
+    margin-right: 21px;
 }
 
 .serviceTitle {

@@ -1,89 +1,75 @@
 import { useMemo } from 'react'
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query'
-import { getPersonalSchedule } from '../../services/scheduleService'
-import { getUpcomingEvents } from '../../services/courseService'
-import { addDays, startOfToday } from '../../utils/datetime'
-import ScheduleList from '../ScheduleList/ScheduleList'
-import UpcomingEvents from '../UpcomingEvents/UpcomingEvents'
-import Loader from '../Loader/Loader'
-import ErrorMessage from '../ErrorMessage/ErrorMessage'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { getUpcomingEvents, getCoursesProgress } from '../../services/courseService'
+import { getAuthUser, roleLabel } from '../../utils/user'
+import { nowISO } from '../../utils/datetime'
+import ProfileCard from '../ProfileCard/ProfileCard'
+import QuickActions from '../QuickActions/QuickActions'
+import Feed from '../Feed/Feed'
+import Upcoming from '../Upcoming/Upcoming'
+import CourseProgress from '../CourseProgress/CourseProgress'
 import css from './App.module.css'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
 })
 
-function Home() {
-  // Тиждень: від початку сьогоднішнього дня до +7 днів.
-  const range = useMemo(() => {
-    const start = startOfToday()
-    return {
-      startISO: start.toISOString(),
-      endISO: addDays(start, 7).toISOString(),
-    }
-  }, [])
+function Dashboard() {
+  const user = useMemo(() => getAuthUser(), [])
+  const startTime = useMemo(() => nowISO(), [])
 
-  const schedule = useQuery({
-    queryKey: ['personal-schedule', range.startISO, range.endISO],
-    queryFn: () =>
-      getPersonalSchedule({ startTime: range.startISO, endTime: range.endISO }),
+  const upcoming = useQuery({
+    queryKey: ['upcoming', startTime],
+    queryFn: () => getUpcomingEvents(5, startTime),
   })
 
-  const events = useQuery({
-    queryKey: ['upcoming-events', range.startISO],
-    queryFn: () => getUpcomingEvents({ count: 5, startTime: range.startISO }),
+  const progress = useQuery({
+    queryKey: ['courses-progress'],
+    queryFn: () => getCoursesProgress(),
   })
+
+  const tasks = upcoming.data ?? []
+  const courses = progress.data ?? []
+
+  // Лічильники профілю — з реальних даних (де можливо)
+  const coursesCount = progress.isLoading ? '—' : courses.length
+  const assignmentsCount = upcoming.isLoading ? '—' : tasks.length
+  // Окремого ендпоінта "мої навчальні групи" в бекенді поки немає → показуємо прочерк
+  const groupsCount = '—'
 
   return (
-    <div className={css.page}>
-      <div className={css.inner}>
-        <header className={css.header}>
-          <h1 className={css.heading}>Головна</h1>
-          <p className={css.subheading}>Розклад на тиждень і найближчі дедлайни</p>
-        </header>
-
-        <div className={css.grid}>
-          {/* Основна колонка — розклад */}
-          <section className={css.main}>
-            <h2 className={css.sectionTitle}>Мій розклад</h2>
-            {schedule.isLoading && <Loader label="Завантаження розкладу…" />}
-            {schedule.isError && (
-              <ErrorMessage
-                message="Не вдалося завантажити розклад."
-                onRetry={() => schedule.refetch()}
-              />
-            )}
-            {schedule.data && <ScheduleList lessons={schedule.data} />}
-          </section>
-
-          {/* Бічна колонка — дедлайни */}
-          <aside className={css.aside}>
-            <h2 className={css.sectionTitle}>Найближчі події</h2>
-            {events.isLoading && <Loader label="Завантаження подій…" />}
-            {events.isError && (
-              <ErrorMessage
-                message="Не вдалося завантажити події."
-                onRetry={() => events.refetch()}
-              />
-            )}
-            {events.data && <UpcomingEvents tasks={events.data} />}
-          </aside>
-        </div>
+    <main className={css.dashboard}>
+      {/* ── Ліва колонка ── */}
+      <div className={css.left}>
+        <ProfileCard
+          name={user?.email ?? 'Користувач'}
+          role={roleLabel(user?.role)}
+          avatar="/img/profile_pic.png"
+          courses={coursesCount}
+          assignments={assignmentsCount}
+          groups={groupsCount}
+        />
+        <QuickActions />
       </div>
-    </div>
+
+      {/* ── Центр: стрічка (моки) ── */}
+      <div className={css.center}>
+        <Feed />
+      </div>
+
+      {/* ── Права колонка: реальні дані ── */}
+      <div className={css.right}>
+        <Upcoming tasks={tasks} />
+        <CourseProgress items={courses} />
+      </div>
+    </main>
   )
 }
 
-// QueryClientProvider всередині App — щоб працювало і всередині shell,
-// і при ізольованому запуску модуля (як в admin-app).
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Home />
+      <Dashboard />
     </QueryClientProvider>
   )
 }

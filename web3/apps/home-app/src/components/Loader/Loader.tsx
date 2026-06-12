@@ -1,14 +1,10 @@
 import css from './Loader.module.css'
 
-interface LoaderProps {
-  label?: string
-}
-
-export default function Loader({ label = 'Завантаження…' }: LoaderProps) {
+export default function Loader({ label = 'Завантаження…' }: { label?: string }) {
   return (
-    <div className={css.wrapper} role="status" aria-live="polite">
+    <div className={css.wrapper} role="status">
       <span className={css.spinner} aria-hidden="true" />
-      <span className={css.text}>{label}</span>
+      <span>{label}</span>
     </div>
   )
 }

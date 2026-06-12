@@ -1,64 +1,453 @@
-.page {
-    min-height: calc(100vh - 80px); /* екран мінус Header shell-а */
-    background: #f3f4f6;
+/* ============================================================
+   Dashboard — стилі перенесені з web (layout.css + main.css)
+   ============================================================ */
+
+/* Корінь сторінки = web .dashboard.sidebar-space */
+.dashboard {
+    position: relative;
+    display: flex;
+    gap: 20px;
+    padding: 20px 0 20px 20px;
+    background-color: #f3f4f6;
+    min-height: calc(100vh - 80px);
 }
 
-.inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 32px 24px 64px;
+/* Фікс сірого фону праворуч: домальовуємо 70px сірого
+   поверх білого padding-right контейнера shell (як web .sidebar-space::after) */
+.dashboard::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -70px;          /* = padding-right у .body shell */
+    bottom: 0;
+    width: 70px;
+    background-color: #f3f4f6;
+    pointer-events: none;
 }
 
-.header {
-    margin-bottom: 28px;
+/* Колонки */
+.left,
+.right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.heading {
-    font-size: 28px;
+.center {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Заголовки блоків */
+.title {
     font-weight: 600;
-    color: #111827;
-    line-height: 32px;
-}
-
-.subheading {
-    margin-top: 6px;
     font-size: 14px;
-    color: #6b7280;
+    letter-spacing: -0.02em;
+    line-height: 20px;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 24px;
-    align-items: start;
+.hiddenTitle {
+    display: none;
 }
 
-.main,
-.aside {
-    background: #fff;
+.titleContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===================== Profile ===================== */
+.profileCard {
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 315px;
+    background-color: #ffffff;
+    border-radius: 6px;
     border: 1px solid #e4e4e7;
-    border-radius: 12px;
+}
+
+.profileAvatarLink {
+    display: flex;
+    margin-bottom: 16px;
+}
+
+.profileAvatarLink img {
+    width: 80px;
+    height: 80px;
+    border-radius: 99px;
+    border: 1px solid #e4e4e7;
+}
+
+.profileCard .name {
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 28px;
+}
+
+.profileCard .role {
+    line-height: 20px;
+    color: #4b5563;
+}
+
+.profileCard .stats {
+    display: flex;
+    margin-top: 16px;
+    justify-content: center;
+    gap: 16px;
+}
+
+.profileCard .stats > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: calc((100% - (16px * 2)) / 3);
+}
+
+.profileCard .stats svg {
+    margin-bottom: 4px;
+    color: #2563eb;
+}
+
+.profileCard .stats h4 {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 28px;
+}
+
+.paragraf {
+    font-size: 12px;
+    line-height: 16px;
+    color: #4b5563;
+}
+
+/* ===================== Quick Actions ===================== */
+.quickActions {
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e4e4e7;
+}
+
+.quickActions ul {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.quickActions ul li button {
+    padding: 10px 12px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    background-color: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 4px;
+    font-weight: 500;
+    line-height: 16px;
+    color: #09090b;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quickActions ul li button:hover,
+.quickActions ul li button:focus {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.quickActions ul li button:hover svg,
+.quickActions ul li button:focus svg {
+    color: #ffffff;
+}
+
+/* ===================== Upcoming ===================== */
+.upcoming {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 315px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e4e4e7;
+}
+
+.upcomingList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.upcomingItem {
+    background-color: #f9fafb;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.upcomingItem .title {
+    font-weight: 500;
+    color: #111827;
+}
+
+.timeContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    color: #4b5563;
+    line-height: 16px;
+    font-size: 12px;
+}
+
+.timeAssignment {
+    color: #ea7f0c;
+}
+
+.type {
+    margin-top: 8px;
+    margin-right: auto;
+    padding: 5px 11px;
+    background-color: #ffffff;
+    border-radius: 99px;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 12px;
+    color: #18181b;
+}
+
+.typeLecture {
+    background-color: #18181b;
+    color: #ffffff;
+}
+
+/* ===================== Feed ===================== */
+.feed {
+    min-width: 315px;
+}
+
+.post {
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e4e4e7;
     padding: 24px;
 }
 
-.aside {
-    position: sticky;
-    top: 96px; /* нижче за fixed-Header (80px) + відступ */
+.post:not(:last-child) {
+    margin-bottom: 16px;
 }
 
-.sectionTitle {
-    font-size: 16px;
-    font-weight: 600;
-    color: #111827;
+.post img {
+    width: 48px;
+    height: 48px;
+    border-radius: 99px;
+    border: 1px solid #e4e4e7;
+}
+
+.postHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 20px;
 }
 
-/* Адаптив: на вузьких екранах колонки стають одна під одною */
-@media (max-width: 880px) {
-    .grid {
-        grid-template-columns: 1fr;
-    }
-    .aside {
-        position: static;
-    }
+.postHeaderInfo .author {
+    font-weight: 600;
+    font-size: 16px;
+    color: #111827;
+}
+
+.postHeaderInfo .role {
+    line-height: 143%;
+    color: #4b5563;
+}
+
+.postHeaderInfo .time {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 133%;
+    color: #6b7280;
+}
+
+.content {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 162%;
+    color: #1f2937;
+    margin-bottom: 20px;
+}
+
+.postStats {
+    border-top: 1px solid #f3f4f6;
+}
+
+.postStats ul {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.postStats ul li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 143%;
+    color: #4b5563;
+    padding: 12px;
+}
+
+/* Лайки */
+.likeItem {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.likeCheckbox {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.likeInput {
+    display: none;
+}
+
+.likeIcon,
+.likeIconActive {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.25s ease;
+}
+
+.likeIcon {
+    opacity: 1;
+    transform: scale(1);
+    fill: none;
+    stroke: #6b7280;
+}
+
+.likeInput:checked ~ .likeIcon {
+    opacity: 0;
+    transform: scale(0.6);
+}
+
+.likeInput:checked ~ .likeIconActive {
+    opacity: 1;
+    transform: scale(1);
+    animation: heart-pop 0.3s ease forwards;
+}
+
+@keyframes heart-pop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+.likes,
+.comments,
+.shares {
+    display: inline-block;
+    width: 3ch;
+    text-align: left;
+}
+
+/* ===================== Course Progress ===================== */
+.courseProgress {
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 315px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e4e4e7;
+}
+
+.courseProgress ul {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.courseProgress ul li {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.courseHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.courseHeader h3 {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 143%;
+    color: #09090b;
+}
+
+.courseHeader p {
+    background-color: #dbeafe;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 133%;
+    text-align: center;
+    color: #1d4ed8;
+}
+
+.green {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+.progressBar {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.progressBarCompleted {
+    height: 100%;
+    background-color: #2563eb;
+    border-radius: 4px 0 0 4px;
+}
+
+.progressDescription {
+    font-size: 12px;
+    line-height: 133%;
+    color: #4b5563;
+}
+
+/* Стани секцій */
+.sectionEmpty {
+    font-size: 13px;
+    color: #9ca3af;
+    padding: 8px 0;
 }
