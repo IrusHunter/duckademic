@@ -51,7 +51,7 @@ func (r *taskStudentRepository) GetUpcomingTasksFor(
 	count int,
 ) ([]entities.Task, error) {
 	query := fmt.Sprintf(`
-		SELECT 
+		SELECT
 			t.id,
 			t.course_id,
 			t.slug,
@@ -61,15 +61,21 @@ func (r *taskStudentRepository) GetUpcomingTasksFor(
 			t.deadline,
 			t.created_at,
 			t.updated_at
-		FROM %s ts
-		JOIN %s t ON ts.task_id = t.id AND ts.submission_time IS NULL
-		WHERE ts.student_id = ?
+		FROM %s t
+		JOIN %s sc ON t.course_id = sc.course_id
+		WHERE sc.student_id = ?
 		  AND t.deadline >= ?
+		  AND NOT EXISTS (
+		    SELECT 1 FROM %s ts
+		    WHERE ts.task_id = t.id
+		      AND ts.student_id = sc.student_id
+		  )
 		ORDER BY t.deadline
 		LIMIT ?;
 	`,
-		entities.TaskStudent{}.TableName(),
 		entities.Task{}.TableName(),
+		entities.StudentCourse{}.TableName(),
+		entities.TaskStudent{}.TableName(),
 	)
 
 	query = r.db.Rebind(query)

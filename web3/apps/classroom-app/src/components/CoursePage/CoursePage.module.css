@@ -101,33 +101,33 @@
 /* ===== Tabs ===== */
 .tabs {
   background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #E4E4E7;
   display: flex;
   padding: 0 28px;
   margin-left: 20px;
-  gap: 0;
+  gap: 32px;
 }
 
 .tabBtn {
-  padding: 14px 20px;
+  padding: 20px 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #6b7280;
+  line-height: 16px;
+  color: #4B5563;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
-  margin-bottom: -1px;
 }
 
-.tabBtn:hover {
+.tabBtn:not(.tabActive):hover {
   color: #374151;
 }
 
 .tabActive {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+  color: #2563EB;
+  border-bottom-color: #2563EB;
 }
 
 /* ===== Body layout ===== */
@@ -245,26 +245,26 @@
 .postCard {
   background-color: #ffffff;
   border-radius: 8px;
-  border: 1px solid #e4e4e7;
-  padding: 20px 24px;
+  border: 1px solid #E4E4E7;
+  padding: 24px;
 }
 
 .postHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .postAuthor {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -278,54 +278,57 @@
 }
 
 .authorName {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
   color: #111827;
-  line-height: 1.2;
+  line-height: 24px;
 }
 
 .authorTime {
-  font-size: 12px;
-  color: #9ca3af;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6B7280;
 }
 
 .postTitle {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .postDesc {
-  font-size: 14px;
-  color: #4b5563;
-  line-height: 1.5;
-  margin-bottom: 14px;
+  font-size: 16px;
+  color: #374151;
+  line-height: 24px;
+  margin-bottom: 16px;
 }
 
 .postMeta {
   display: flex;
-  align-items: center;
+  flex-direction: row;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid #f3f4f6;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
 }
 
 .postMetaLeft {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .metaBadge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  color: #6b7280;
+  font-weight: 500;
+  font-size: 14px;
+  color: #111827;
+  line-height: 18px;
+  gap: 4px;
 }
 
 .badgeAvailable {
@@ -419,10 +422,11 @@
 .postFooter {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 14px;
-  color: #9ca3af;
-  font-size: 13px;
+  font-weight: 500;
+  gap: 12px;
+  margin-top: 12px;
+  color: #4B5563;
+  font-size: 14px;
 }
 
 /* ===== Empty state ===== */

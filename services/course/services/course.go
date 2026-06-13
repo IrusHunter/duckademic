@@ -185,6 +185,11 @@ func (s *courseService) formStudentCoursePages(
 	now := time.Now()
 
 	for _, course := range courses {
+		tasks, err := s.taskRepository.GetTasksByCourseID(ctx, course.ID)
+		if err != nil {
+			return nil, err
+		}
+
 		taskStudents, err := s.taskStudentRepository.GetTasksForStudentInCourse(ctx, studentID, course.ID)
 		if err != nil {
 			return nil, err
@@ -200,27 +205,29 @@ func (s *courseService) formStudentCoursePages(
 			page.TeacherName = course.Manager.Name
 		}
 
-		page.AssignmentsCount = len(taskStudents)
+		page.AssignmentsCount = len(tasks)
 
+		submittedIDs := make(map[uuid.UUID]struct{}, len(taskStudents))
 		var (
-			marksSum    float64
-			marksCount  int
-			nearestTime *time.Time
+			marksSum   float64
+			marksCount int
 		)
-
 		for _, ts := range taskStudents {
 			if ts.Mark != nil {
 				marksSum += *ts.Mark
 				marksCount++
 			}
+			submittedIDs[ts.TaskID] = struct{}{}
+		}
 
-			if ts.Task != nil &&
-				ts.Task.Deadline.After(now) {
-
-				if nearestTime == nil ||
-					ts.Task.Deadline.Before(*nearestTime) {
-
-					deadline := ts.Task.Deadline
+		var nearestTime *time.Time
+		for _, t := range tasks {
+			if _, submitted := submittedIDs[t.ID]; submitted {
+				continue
+			}
+			if t.Deadline.After(now) {
+				if nearestTime == nil || t.Deadline.Before(*nearestTime) {
+					deadline := t.Deadline
 					nearestTime = &deadline
 				}
 			}

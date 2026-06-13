@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LuArrowLeft } from "react-icons/lu";
+import { LuArrowLeft, LuStar } from "react-icons/lu";
 import {
   getTasksByCourse,
   getMySubmissionsForCourse,
@@ -196,10 +196,10 @@ export default function CoursePage() {
   // upcoming tasks sorted by deadline
   const upcoming = useMemo(() =>
     [...tasks]
-      .filter(t => !isOverdue(t.deadline))
+      .filter(t => !isOverdue(t.deadline) && !submissionMap.has(t.id))
       .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
       .slice(0, 3),
-    [tasks]
+    [tasks, submissionMap]
   )
 
   // stream: sorted newest first
@@ -247,8 +247,8 @@ export default function CoursePage() {
 
             <div className={css.postMeta}>
               <div className={css.postMetaLeft}>
-                <span className={css.metaBadge}>📅 Deadline: {fmtDeadline(task.deadline)}</span>
-                <span className={css.metaBadge}>⭐ {task.max_mark} pts</span>
+                <span className={css.metaBadge}>Deadline: {fmtDeadline(task.deadline)}</span>
+                <span className={css.metaBadge}><LuStar /> {task.max_mark} pts</span>
                 {!isTeacher && !submission && !overdue && (
                   <span className={css.badgeAvailable}>available</span>
                 )}
@@ -278,9 +278,7 @@ export default function CoursePage() {
                     >
                       Unsubmit
                     </button>
-                  ) : (
-                    <span className={css.badgeGraded}>Graded</span>
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>
