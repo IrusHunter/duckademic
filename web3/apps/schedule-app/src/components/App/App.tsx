@@ -1,13 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  getLessonOccurrences,
-  getLessonSlots,
-  getTeachers,
-  getClassrooms,
-  getStudentGroups,
-} from '../../services/scheduleService'
-import { nsToTime } from '../../utils/time'
+import { getPersonalSchedule, getAllPersonalSchedule } from '../../services/scheduleService'
 import css from './App.module.css'
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -16,13 +9,56 @@ type ViewOption = (typeof VIEW_OPTIONS)[number]
 
 const ROW_COLORS = [css.rowBlue, css.rowGreen, css.rowRose, css.rowAmber]
 
+const LESSON_DURATION_MS = 80 * 60 * 1000
+const DATE_RANGE_GAP_MS = 10 * 24 * 60 * 60 * 1000
+
 function cx(...parts: Array<string | false | undefined | null>) {
   return parts.filter(Boolean).join(' ')
 }
 
 function todayIndex(): number {
-  const d = new Date().getDay() // 0=Sun, 1=Mon … 6=Sat
-  return d === 0 ? 0 : d - 1   // Mon→0 … Sat→5; Sun defaults to Mon
+  const d = new Date().getDay()
+  return d === 0 ? 0 : d - 1
+}
+
+function utcTimeRange(iso: string): string {
+  const start = new Date(iso)
+  const end = new Date(start.getTime() + LESSON_DURATION_MS)
+  const fmt = (d: Date) =>
+    `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`
+  return `${fmt(start)} – ${fmt(end)}`
+}
+
+function fmtDate(d: Date): string {
+  return `${String(d.getUTCDate()).padStart(2, '0')}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`
+}
+
+function computeDateRanges(isoStrings: string[]): string {
+  if (isoStrings.length === 0) return ''
+  const dates = isoStrings
+    .map((s) => new Date(s))
+    .sort((a, b) => a.getTime() - b.getTime())
+
+  const ranges: [Date, Date][] = []
+  let start = dates[0]
+  let end = dates[0]
+
+  for (let i = 1; i < dates.length; i++) {
+    if (dates[i].getTime() - dates[i - 1].getTime() <= DATE_RANGE_GAP_MS) {
+      end = dates[i]
+    } else {
+      ranges.push([start, end])
+      start = dates[i]
+      end = dates[i]
+    }
+  }
+  ranges.push([start, end])
+
+  return ranges
+    .map(([s, e]) =>
+      s.getTime() === e.getTime() ? fmtDate(s) : `${fmtDate(s)}–${fmtDate(e)}`,
+    )
+    .join(', ')
 }
 
 export default function App() {
@@ -30,37 +66,32 @@ export default function App() {
   const [view, setView] = useState<ViewOption>('General')
   const [viewOpen, setViewOpen] = useState(false)
 
-  const occurrences = useQuery({ queryKey: ['lesson-occurrences'], queryFn: getLessonOccurrences })
-  const slots = useQuery({ queryKey: ['lesson-slots'], queryFn: getLessonSlots })
-  const teachers = useQuery({ queryKey: ['schedule-teachers'], queryFn: getTeachers })
-  const classrooms = useQuery({ queryKey: ['schedule-classrooms'], queryFn: getClassrooms })
-  const groups = useQuery({ queryKey: ['schedule-groups'], queryFn: getStudentGroups })
+  const schedule = useQuery({ queryKey: ['personal-schedule'], queryFn: getPersonalSchedule })
+  const fullSchedule = useQuery({ queryKey: ['all-personal-schedule'], queryFn: getAllPersonalSchedule })
 
-  const slotMap = useMemo(
-    () => Object.fromEntries((slots.data ?? []).map((s) => [s.id, s])),
-    [slots.data],
-  )
-  const teacherMap = useMemo(
-    () => Object.fromEntries((teachers.data ?? []).map((t) => [t.id, t])),
-    [teachers.data],
-  )
-  const classroomMap = useMemo(
-    () => Object.fromEntries((classrooms.data ?? []).map((c) => [c.id, c])),
-    [classrooms.data],
-  )
-  const groupMap = useMemo(
-    () => Object.fromEntries((groups.data ?? []).map((g) => [g.id, g])),
-    [groups.data],
-  )
-
-  // API weekday is 1-based (1=Mon … 6=Sat)
+  // dayIndex 0=Mon … 5=Sat  →  getUTCDay() 1=Mon … 6=Sat
   const weekday = dayIndex + 1
 
   const dayLessons = useMemo(() => {
-    return (occurrences.data ?? [])
-      .filter((o) => slotMap[o.lesson_slot_id]?.weekday === weekday)
-      .sort((a, b) => (slotMap[a.lesson_slot_id]?.slot ?? 0) - (slotMap[b.lesson_slot_id]?.slot ?? 0))
-  }, [occurrences.data, slotMap, weekday])
+    return (schedule.data ?? [])
+      .filter((o) => new Date(o.date).getUTCDay() === weekday)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  }, [schedule.data, weekday])
+
+  // study_load_id → formatted date ranges across full semester
+  const dateRangesMap = useMemo(() => {
+    const groups = new Map<string, string[]>()
+    for (const occ of fullSchedule.data ?? []) {
+      const arr = groups.get(occ.study_load_id) ?? []
+      arr.push(occ.date)
+      groups.set(occ.study_load_id, arr)
+    }
+    const result = new Map<string, string>()
+    for (const [id, dates] of groups) {
+      result.set(id, computeDateRanges(dates))
+    }
+    return result
+  }, [fullSchedule.data])
 
   useEffect(() => {
     function onDocClick() { setViewOpen(false) }
@@ -73,8 +104,7 @@ export default function App() {
     }
   }, [])
 
-  const isLoading = occurrences.isLoading || slots.isLoading
-  const isError = occurrences.isError || slots.isError
+  const isDate = view === 'Date'
 
   return (
     <main className={css.page}>
@@ -155,7 +185,7 @@ export default function App() {
           </header>
 
           <ul className={css.classes}>
-            {isLoading && (
+            {schedule.isLoading && (
               <li className={css.classRow}>
                 <div className={css.classTime} />
                 <article className={css.classCard}>
@@ -164,7 +194,7 @@ export default function App() {
               </li>
             )}
 
-            {isError && (
+            {schedule.isError && (
               <li className={css.classRow}>
                 <div className={css.classTime} />
                 <article className={css.classCard}>
@@ -173,7 +203,7 @@ export default function App() {
               </li>
             )}
 
-            {!isLoading && !isError && dayLessons.length === 0 && (
+            {!schedule.isLoading && !schedule.isError && dayLessons.length === 0 && (
               <li className={css.classRow}>
                 <div className={css.classTime} />
                 <article className={css.classCard}>
@@ -183,37 +213,40 @@ export default function App() {
             )}
 
             {dayLessons.map((occ, idx) => {
-              const slot = slotMap[occ.lesson_slot_id]
-              const teacher = teacherMap[occ.teacher_id]
-              const classroom = classroomMap[occ.classroom_id]
-              const group = groupMap[occ.student_group_id]
-
-              const startTime = slot ? nsToTime(slot.start_time) : '—'
-              const endTime = slot ? nsToTime(slot.start_time + slot.duration) : '—'
               const colorClass = ROW_COLORS[idx % ROW_COLORS.length]
+              const dateRanges = dateRangesMap.get(occ.study_load_id)
 
               return (
                 <li key={occ.id} className={cx(css.classRow, colorClass)}>
-                  <div className={css.classTime}>{startTime} – {endTime}</div>
+                  <div className={css.classTime}>{utcTimeRange(occ.date)}</div>
 
                   <article className={css.classCard}>
                     <header className={css.classCardHeader}>
                       <h2 className={css.classTitle}>
-                        {teacher?.name ?? `Slot ${slot?.slot ?? '—'}`}
+                        {occ.study_load?.discipline_name ?? '—'}
                       </h2>
-                      {slot && <span className={css.classTag}>#{slot.slot}</span>}
+                      {occ.study_load?.lesson_type_name && (
+                        <span className={css.classTag}>{occ.study_load.lesson_type_name}</span>
+                      )}
                     </header>
 
-                    {group && <p className={css.classTeacher}>{group.name}</p>}
+                    {occ.study_load?.teacher_name && (
+                      <p className={css.classTeacher}>{occ.study_load.teacher_name}</p>
+                    )}
 
                     <div className={css.classMeta}>
-                      {classroom && (
+                      {occ.classroom && (
                         <div className={css.classMetaItem}>
-                          Room {classroom.number}
+                          Room {occ.classroom.number}
                         </div>
                       )}
-                      {view === 'Date' && occ.date && (
-                        <div className={css.classMetaDates}>{occ.date}</div>
+                      {occ.study_load?.student_group_name && (
+                        <div className={css.classMetaItem}>
+                          {occ.study_load.student_group_name}
+                        </div>
+                      )}
+                      {isDate && dateRanges && (
+                        <div className={css.classMetaDates}>{dateRanges}</div>
                       )}
                     </div>
                   </article>

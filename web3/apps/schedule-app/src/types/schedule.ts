@@ -1,36 +1,29 @@
-export interface LessonSlot {
+export interface StudyLoadInfo {
   id: string
-  slot: number
-  weekday: number     // 1 = Mon … 6 = Sat
-  start_time: number  // nanoseconds since midnight
-  duration: number    // nanoseconds
+  teacher_id: string
+  teacher_name: string
+  student_group_id: string
+  student_group_name: string
+  discipline_id: string
+  discipline_name: string
+  lesson_type_id: string
+  lesson_type_name: string
+}
+
+export interface ClassroomInfo {
+  id: string
+  slug: string
+  number: string
+  capacity: number
 }
 
 export interface LessonOccurrence {
   id: string
   study_load_id: string
-  teacher_id: string
-  student_group_id: string
   lesson_slot_id: string
-  classroom_id: string
-  date: string   // "YYYY-MM-DD"
+  date: string  // ISO timestamp e.g. "2025-01-20T08:00:00Z"
+  classroom_id?: string
   status: string
-}
-
-export interface Teacher {
-  id: string
-  slug: string
-  name: string
-}
-
-export interface Classroom {
-  id: string
-  slug: string
-  number: string
-}
-
-export interface StudentGroup {
-  id: string
-  slug: string
-  name: string
+  study_load?: StudyLoadInfo
+  classroom?: ClassroomInfo
 }

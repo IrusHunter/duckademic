@@ -21,6 +21,8 @@ type LessonOccurrenceRepository interface {
 	GetLessonsForTeacher(ctx context.Context, tID uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
 	GetLessonsForStudentGroups(
 		ctx context.Context, sgIDs []uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
+	GetAllLessonsForTeacher(ctx context.Context, teacherID uuid.UUID) ([]entities.LessonOccurrence, error)
+	GetAllLessonsForStudentGroups(ctx context.Context, sgIDs []uuid.UUID) ([]entities.LessonOccurrence, error)
 	GetLessonsCountForGroups(context.Context, *sqlx.Tx, []uuid.UUID, time.Time) (int, error)
 
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
@@ -273,6 +275,140 @@ func (r *lessonOccurrenceRepository) GetLessonsForStudentGroups(
 
 	return result, nil
 }
+func (r *lessonOccurrenceRepository) GetAllLessonsForTeacher(
+	ctx context.Context,
+	teacherID uuid.UUID,
+) ([]entities.LessonOccurrence, error) {
+	query := fmt.Sprintf(`
+		SELECT
+			lo.id,
+			lo.date,
+			lo.classroom_id,
+			lo.status,
+			lo.moved_to_id,
+			lo.study_load_id,
+			lo.lesson_slot_id,
+			lo.moved_from_id,
+			lo.created_at,
+			lo.updated_at,
+
+			sl.teacher_id,
+			sl.teacher_name,
+			sl.student_group_id,
+			sl.student_group_name,
+			sl.discipline_id,
+			sl.discipline_name,
+			sl.lesson_type_id,
+			sl.lesson_type_name,
+
+			c.id as classroom_id,
+			c.slug as classroom_slug,
+			c.number as classroom_number,
+			c.capacity as classroom_capacity,
+			c.created_at as classroom_created_at,
+			c.updated_at as classroom_updated_at
+
+		FROM %s lo
+		JOIN %s sl ON lo.study_load_id = sl.id
+		LEFT JOIN %s c ON lo.classroom_id = c.id
+
+		WHERE lo.teacher_id = $1
+		ORDER BY lo.date;
+	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName(), entities.Classroom{}.TableName())
+
+	var flats []LessonOccurrenceFlat
+	if err := r.db.SelectContext(ctx, &flats, query, teacherID); err != nil {
+		return nil, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetAllLessonsForTeacher",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	result := make([]entities.LessonOccurrence, 0, len(flats))
+	for i := range flats {
+		result = append(result, flats[i].Convert())
+	}
+
+	return result, nil
+}
+
+func (r *lessonOccurrenceRepository) GetAllLessonsForStudentGroups(
+	ctx context.Context,
+	studentGroupIDs []uuid.UUID,
+) ([]entities.LessonOccurrence, error) {
+	if len(studentGroupIDs) == 0 {
+		return []entities.LessonOccurrence{}, nil
+	}
+
+	query, args, err := sqlx.In(fmt.Sprintf(`
+		SELECT
+			lo.id,
+			lo.date,
+			lo.classroom_id,
+			lo.status,
+			lo.moved_to_id,
+			lo.study_load_id,
+			lo.lesson_slot_id,
+			lo.moved_from_id,
+			lo.created_at,
+			lo.updated_at,
+
+			sl.teacher_id,
+			sl.teacher_name,
+			sl.student_group_id,
+			sl.student_group_name,
+			sl.discipline_id,
+			sl.discipline_name,
+			sl.lesson_type_id,
+			sl.lesson_type_name,
+
+			c.id as classroom_id,
+			c.slug as classroom_slug,
+			c.number as classroom_number,
+			c.capacity as classroom_capacity,
+			c.created_at as classroom_created_at,
+			c.updated_at as classroom_updated_at
+
+		FROM %s lo
+		JOIN %s sl ON lo.study_load_id = sl.id
+		LEFT JOIN %s c ON lo.classroom_id = c.id
+
+		WHERE sl.student_group_id IN (?)
+		ORDER BY lo.date;
+	`, entities.LessonOccurrence{}.TableName(), entities.StudyLoad{}.TableName(), entities.Classroom{}.TableName()),
+		studentGroupIDs,
+	)
+	if err != nil {
+		return nil, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetAllLessonsForStudentGroups",
+			err,
+			logger.RepositoryQueryFailed,
+		)
+	}
+
+	query = r.db.Rebind(query)
+
+	var flats []LessonOccurrenceFlat
+	if err := r.db.SelectContext(ctx, &flats, query, args...); err != nil {
+		return nil, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetAllLessonsForStudentGroups",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	result := make([]entities.LessonOccurrence, 0, len(flats))
+	for i := range flats {
+		result = append(result, flats[i].Convert())
+	}
+
+	return result, nil
+}
+
 func (r *lessonOccurrenceRepository) GetLessonsCountForGroups(
 	ctx context.Context,
 	tx *sqlx.Tx,

@@ -23,6 +23,8 @@ type LessonOccurrenceService interface {
 		ctx context.Context, teacherID uuid.UUID, startTime, endTime time.Time) ([]entities.LessonOccurrence, error)
 	GetLessonsForStudent(
 		ctx context.Context, studentID uuid.UUID, startDate, endDate time.Time) ([]entities.LessonOccurrence, error)
+	GetAllLessonsForTeacher(ctx context.Context, teacherID uuid.UUID) ([]entities.LessonOccurrence, error)
+	GetAllLessonsForStudent(ctx context.Context, studentID uuid.UUID) ([]entities.LessonOccurrence, error)
 }
 
 func NewLessonOccurrenceService(
@@ -225,6 +227,53 @@ func (s *lessonOccurrenceService) GetLessonsForStudent(
 		return nil, s.GetLogger().LogAndReturnError(
 			contextutil.GetTraceID(ctx),
 			"GetLessonsForStudent",
+			err,
+			logger.ServiceRepositoryFailed,
+		)
+	}
+
+	return lessons, nil
+}
+
+func (s *lessonOccurrenceService) GetAllLessonsForTeacher(
+	ctx context.Context,
+	teacherID uuid.UUID,
+) ([]entities.LessonOccurrence, error) {
+	lessons, err := s.repository.GetAllLessonsForTeacher(ctx, teacherID)
+	if err != nil {
+		return nil, s.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetAllLessonsForTeacher",
+			err,
+			logger.ServiceRepositoryFailed,
+		)
+	}
+	return lessons, nil
+}
+
+func (s *lessonOccurrenceService) GetAllLessonsForStudent(
+	ctx context.Context,
+	studentID uuid.UUID,
+) ([]entities.LessonOccurrence, error) {
+	studentGroupIDs, err := s.groupMemberRepository.GetByStudentID(ctx, studentID)
+	if err != nil {
+		return nil, s.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetAllLessonsForStudent",
+			err,
+			logger.ServiceRepositoryFailed,
+		)
+	}
+
+	if len(studentGroupIDs) == 0 {
+		return []entities.LessonOccurrence{}, nil
+	}
+
+	lessons, err := s.repository.GetAllLessonsForStudentGroups(ctx, studentGroupIDs)
+	if err != nil {
+		return nil, s.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetAllLessonsForStudent",
 			err,
 			logger.ServiceRepositoryFailed,
 		)

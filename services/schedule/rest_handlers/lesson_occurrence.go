@@ -20,6 +20,7 @@ import (
 type LessonOccurrenceHandler interface {
 	platform.BaseHandler[entities.LessonOccurrence]
 	GetPersonalSchedule(context.Context, http.ResponseWriter, *http.Request)
+	GetAllPersonalSchedule(context.Context, http.ResponseWriter, *http.Request)
 }
 
 // NewLessonOccurrenceHandler creates a new LessonOccurrenceHandler instance.
@@ -87,6 +88,42 @@ func (h *lessonOccurrenceHandler) GetPersonalSchedule(ctx context.Context, w htt
 				logger.HandlerInternalError,
 			),
 		)
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, http.StatusOK, lessons)
+}
+
+func (h *lessonOccurrenceHandler) GetAllPersonalSchedule(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	claims := contextutil.GetAccessClaims(ctx)
+	if claims == nil {
+		jsonutil.ResponseWithError(w, http.StatusUnauthorized, h.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx),
+			"GetAllPersonalSchedule", fmt.Errorf("failed to get user claims"), logger.HandlerBadRequest))
+		return
+	}
+
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusUnauthorized, h.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx),
+			"GetAllPersonalSchedule", fmt.Errorf("failed to parse user id: %w", err), logger.HandlerBadRequest))
+		return
+	}
+
+	var lessons []entities.LessonOccurrence
+	switch claims.Role {
+	case "student":
+		lessons, err = h.service.GetAllLessonsForStudent(ctx, userID)
+	case "teacher":
+		lessons, err = h.service.GetAllLessonsForTeacher(ctx, userID)
+	default:
+		jsonutil.ResponseWithError(w, http.StatusBadRequest, h.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx),
+			"GetAllPersonalSchedule", fmt.Errorf("unknown role %q", claims.Role), logger.HandlerBadRequest))
+		return
+	}
+
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError,
+			h.GetLogger().LogAndReturnError(contextutil.GetTraceID(ctx), "GetAllPersonalSchedule", err, logger.HandlerInternalError))
 		return
 	}
 
