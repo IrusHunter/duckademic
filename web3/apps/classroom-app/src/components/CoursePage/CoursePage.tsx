@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { LuArrowLeft } from "react-icons/lu";
 import {
   getTasksByCourse,
   getMySubmissionsForCourse,
@@ -188,7 +189,9 @@ export default function CoursePage() {
   const slug = course.name.toUpperCase().replace(/\s+/g, '').slice(0, 6)
 
   const BANNER_CLASSES = [css.bannerBlue, css.bannerGreen, css.bannerPink]
-  const bannerClass = BANNER_CLASSES[hashStr(course.id) % 3]
+  const bannerClass = BANNER_CLASSES[
+    course.colorIndex !== undefined ? course.colorIndex % 3 : hashStr(course.id) % 3
+  ]
 
   // upcoming tasks sorted by deadline
   const upcoming = useMemo(() =>
@@ -345,7 +348,8 @@ export default function CoursePage() {
       {/* Banner */}
       <div className={`${css.banner} ${bannerClass}`}>
         <button className={css.backLink} onClick={() => navigate(-1)}>
-          ← Back to Courses
+          <LuArrowLeft />
+          Back to Courses
         </button>
         <div className={css.bannerContent}>
           <h1 className={css.courseName}>{course.name}</h1>

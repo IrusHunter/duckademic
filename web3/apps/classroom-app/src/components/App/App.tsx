@@ -36,9 +36,9 @@ function StudentCourses() {
 
   const courseInfoMap = useMemo(() => {
     const m = new Map<string, CourseInfo>()
-    for (const c of data ?? []) {
-      m.set(c.id, { id: c.id, name: c.name, description: c.description, teacher_name: c.teacher_name })
-    }
+    ;(data ?? []).forEach((c, i) => {
+      m.set(c.id, { id: c.id, name: c.name, description: c.description, teacher_name: c.teacher_name, colorIndex: i })
+    })
     return m
   }, [data])
 
@@ -95,9 +95,9 @@ function TeacherCourses() {
 
   const courseInfoMap = useMemo(() => {
     const m = new Map<string, CourseInfo>()
-    for (const c of data ?? []) {
-      m.set(c.id, { id: c.id, name: c.name, description: c.description })
-    }
+    ;(data ?? []).forEach((c, i) => {
+      m.set(c.id, { id: c.id, name: c.name, description: c.description, colorIndex: i })
+    })
     return m
   }, [data])
 

@@ -23,6 +23,7 @@ export interface CourseInfo {
   description: string
   teacher_name?: string
   slug?: string
+  colorIndex?: number 
 }
 
 export interface Task {
