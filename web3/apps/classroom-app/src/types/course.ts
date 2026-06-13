@@ -16,3 +16,34 @@ export interface TeacherCoursePage {
   student_count: number
   assignments_count: number
 }
+
+export interface CourseInfo {
+  id: string
+  name: string
+  description: string
+  teacher_name?: string
+  slug?: string
+}
+
+export interface Task {
+  id: string
+  course_id: string
+  slug: string
+  title: string
+  description: string
+  max_mark: number
+  deadline: string
+  created_at: string
+  updated_at: string
+}
+
+export interface TaskStudent {
+  id: string
+  task_id: string
+  student_id: string
+  mark?: number
+  submission_time?: string
+  created_at: string
+  updated_at: string
+  task?: Task
+}

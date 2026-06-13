@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getStudentCourses, getTeacherCourses } from '../../services/courseService'
 import { getAuthUser } from '../../utils/user'
@@ -6,11 +7,14 @@ import CourseCard from '../CourseCard/CourseCard'
 import type { CourseCardData } from '../CourseCard/CourseCard'
 import Loader from '../Loader/Loader'
 import ErrorMessage from '../ErrorMessage/ErrorMessage'
+import CoursePage from '../CoursePage/CoursePage'
 import css from './App.module.css'
+import type { CourseInfo } from '../../types/course'
 
 const COLORS = ['cardBlue', 'cardMint', 'cardRose'] as const
 
 function StudentCourses() {
+  const navigate = useNavigate()
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['student-courses'],
     queryFn: getStudentCourses,
@@ -30,6 +34,14 @@ function StudentCourses() {
     }))
   }, [data])
 
+  const courseInfoMap = useMemo(() => {
+    const m = new Map<string, CourseInfo>()
+    for (const c of data ?? []) {
+      m.set(c.id, { id: c.id, name: c.name, description: c.description, teacher_name: c.teacher_name })
+    }
+    return m
+  }, [data])
+
   return (
     <main className={css.page}>
       <div className={css.header}>
@@ -46,7 +58,11 @@ function StudentCourses() {
       {cards.length > 0 && (
         <ul className={css.list}>
           {cards.map((c) => (
-            <CourseCard key={c.id} course={c} />
+            <CourseCard
+              key={c.id}
+              course={c}
+              onOpen={() => navigate(c.id, { state: courseInfoMap.get(c.id) })}
+            />
           ))}
         </ul>
       )}
@@ -55,6 +71,7 @@ function StudentCourses() {
 }
 
 function TeacherCourses() {
+  const navigate = useNavigate()
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['teacher-courses'],
     queryFn: getTeacherCourses,
@@ -76,6 +93,14 @@ function TeacherCourses() {
     }))
   }, [data])
 
+  const courseInfoMap = useMemo(() => {
+    const m = new Map<string, CourseInfo>()
+    for (const c of data ?? []) {
+      m.set(c.id, { id: c.id, name: c.name, description: c.description })
+    }
+    return m
+  }, [data])
+
   return (
     <main className={css.page}>
       <div className={css.header}>
@@ -92,7 +117,11 @@ function TeacherCourses() {
       {cards.length > 0 && (
         <ul className={css.list}>
           {cards.map((c) => (
-            <CourseCard key={c.id} course={c} />
+            <CourseCard
+              key={c.id}
+              course={c}
+              onOpen={() => navigate(c.id, { state: courseInfoMap.get(c.id) })}
+            />
           ))}
         </ul>
       )}
@@ -100,7 +129,16 @@ function TeacherCourses() {
   )
 }
 
-export default function App() {
+function CourseList() {
   const user = getAuthUser()
   return user?.role === 'teacher' ? <TeacherCourses /> : <StudentCourses />
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route index element={<CourseList />} />
+      <Route path=":courseId" element={<CoursePage />} />
+    </Routes>
+  )
 }

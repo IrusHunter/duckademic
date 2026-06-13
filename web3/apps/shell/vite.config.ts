@@ -13,6 +13,8 @@ export default defineConfig({
         homeApp: 'http://localhost:5006/assets/remoteEntry.js',
         adminApp: 'http://localhost:5010/assets/remoteEntry.js',
         messengerApp: 'http://localhost:5007/assets/remoteEntry.js',
+        scheduleApp: 'http://localhost:5008/assets/remoteEntry.js',
+        gradesApp: 'http://localhost:5004/assets/remoteEntry.js',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.0.0' } as any,

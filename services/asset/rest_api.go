@@ -58,6 +58,6 @@ func (ra *restapi) Run(port int) error {
 
 func BuildAccessPermissions() []events.AccessPermissionRE {
 	return []events.AccessPermissionRE{
-		{Name: "auth.classroom"},
+		{Name: "asset.classroom"},
 	}
 }

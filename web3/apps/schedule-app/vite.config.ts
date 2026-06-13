@@ -9,12 +9,17 @@ export default defineConfig({
       name: 'scheduleApp',
       filename: 'remoteEntry.js',
       exposes: {
-        './ScheduleApp': './src/App.tsx'
+        './ScheduleApp': './src/components/App/App.tsx',
       },
-      shared: ['react', 'react-dom']
-    })
+      shared: {
+        react: { singleton: true, requiredVersion: '^19.0.0' } as any,
+        'react-dom': { singleton: true, requiredVersion: '^19.0.0' } as any,
+        '@tanstack/react-query': { singleton: true } as any,
+        axios: { singleton: true } as any,
+      },
+    }),
   ],
   build: { target: 'esnext' },
   server: { port: 5008 },
-  preview: { port: 5008 }
+  preview: { port: 5008 },
 })

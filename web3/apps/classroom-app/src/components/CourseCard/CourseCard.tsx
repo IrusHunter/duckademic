@@ -21,7 +21,7 @@ const DEADLINE_CLASS = {
   danger: css.deadlineDanger,
 } as const
 
-export default function CourseCard({ course }: { course: CourseCardData }) {
+export default function CourseCard({ course, onOpen }: { course: CourseCardData; onOpen?: () => void }) {
   const level = course.nearestDeadline ? deadlineLevel(course.nearestDeadline) : null
 
   return (
@@ -72,7 +72,7 @@ export default function CourseCard({ course }: { course: CourseCardData }) {
       ))}
 
       <div className={css.actions}>
-        <button className={`${css.btn} ${css.btnPrimary}`} type="button">
+        <button className={`${css.btn} ${css.btnPrimary}`} type="button" onClick={onOpen}>
           Open Course
         </button>
         <button className={`${css.btn} ${css.btnSecondary}`} type="button">

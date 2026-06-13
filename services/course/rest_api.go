@@ -67,6 +67,12 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.courseHandler.Find, []string{"course.course"}),
 		http.MethodPut: ra.NewDefaultHandlerWithAuth(ra.courseHandler.Update, []string{"course.course"}),
 	})
+	ra.NewRoute("/course/{id}/tasks", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.taskHandler.GetByCourseID, []string{}),
+	})
+	ra.NewRoute("/course/{id}/student-tasks", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.GetForStudentInCourse, []string{}),
+	})
 
 	ra.NewRoute("/courses/student", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.courseHandler.GetStudentCoursePage, []string{}),
@@ -111,6 +117,7 @@ func (ra *restapi) Run(port int) error {
 	ra.NewRoute("/task-student/{id}", map[string]platform.HandlerFunc{
 		http.MethodGet:    ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Find, []string{}),
 		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Delete, []string{}),
+		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.Update, []string{}),
 	})
 
 	ra.NewRoute("/get-upcoming-events", map[string]platform.HandlerFunc{

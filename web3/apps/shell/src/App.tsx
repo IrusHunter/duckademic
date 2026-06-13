@@ -24,6 +24,8 @@ const ClassroomApp = lazy(() => import('classroomApp/ClassroomApp'))
 const HomeApp = lazy(() => import('homeApp/HomeApp'))
 const AdminApp = lazy(() => import('adminApp/AdminApp'))
 const MessengerApp = lazy(() => import('messengerApp/MessengerApp'))
+const ScheduleApp = lazy(() => import('scheduleApp/ScheduleApp'))
+const GradesApp = lazy(() => import('gradesApp/GradesApp'))
 
 function Routes_() {
   const navigate = useNavigate()
@@ -97,6 +99,24 @@ function Routes_() {
           element={
             <ProtectedRoute requiredRoles={['student', 'teacher']}>
               <MessengerApp />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/schedule"
+          element={
+            <ProtectedRoute requiredRoles={['student', 'teacher']}>
+              <ScheduleApp />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/grades"
+          element={
+            <ProtectedRoute requiredRoles={['student', 'teacher']}>
+              <GradesApp />
             </ProtectedRoute>
           }
         />

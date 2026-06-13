@@ -18,6 +18,7 @@ import (
 type TaskStudentService interface {
 	platform.BaseService[entities.TaskStudent]
 	GetUpcomingTasksFor(context.Context, uuid.UUID, time.Time, int) ([]entities.Task, error)
+	GetForStudentInCourse(context.Context, uuid.UUID, uuid.UUID) ([]entities.TaskStudent, error)
 }
 
 func NewTaskStudentService(
@@ -123,6 +124,10 @@ func (s *taskStudentService) Seed(ctx context.Context) error {
 	)
 
 	return lastError
+}
+
+func (s *taskStudentService) GetForStudentInCourse(ctx context.Context, studentID, courseID uuid.UUID) ([]entities.TaskStudent, error) {
+	return s.repository.GetTasksForStudentInCourse(ctx, studentID, courseID)
 }
 
 func (s *taskStudentService) GetUpcomingTasksFor(

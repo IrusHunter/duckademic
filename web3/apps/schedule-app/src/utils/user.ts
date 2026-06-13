@@ -1,7 +1,8 @@
 export interface AuthUser {
   id: string
-  role: 'admin' | 'teacher' | 'student'
   email: string
+  role: 'admin' | 'teacher' | 'student'
+  is_default_password?: boolean
 }
 
 export function getAuthUser(): AuthUser | null {

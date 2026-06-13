@@ -18,6 +18,7 @@ import (
 
 type TaskService interface {
 	platform.BaseService[entities.Task]
+	GetByCourseID(context.Context, uuid.UUID) ([]entities.Task, error)
 }
 
 func NewTaskService(
@@ -50,6 +51,10 @@ type taskService struct {
 	repository repositories.TaskRepository
 	courseRepo repositories.CourseRepository
 	logger     logger.Logger
+}
+
+func (s *taskService) GetByCourseID(ctx context.Context, courseID uuid.UUID) ([]entities.Task, error) {
+	return s.repository.GetTasksByCourseID(ctx, courseID)
 }
 
 func (s *taskService) onAddPrepare(ctx context.Context, t *entities.Task) error {
