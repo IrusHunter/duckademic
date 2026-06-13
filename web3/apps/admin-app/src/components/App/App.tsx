@@ -14,7 +14,7 @@ function AdminLayout() {
   const [generatorOpen, setGeneratorOpen] = useState(false)
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className={css.layout}>
       <Sidebar onOpenGenerator={() => setGeneratorOpen(true)} />
       <div style={{ flex: 1 }} className={css.mainDiv}>
         <Routes>
