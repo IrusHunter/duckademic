@@ -255,6 +255,11 @@
     text-align: center;
 }
 
+.classTagLight {
+    background-color: #ffffff;
+    color: #18181B;
+}
+
 /* викладач */
 
 .classTeacher {

@@ -29,6 +29,12 @@ function utcTimeRange(iso: string): string {
   return `${fmt(start)} – ${fmt(end)}`
 }
 
+function isLecture(typeName?: string): boolean {
+  if (!typeName) return true
+  const n = typeName.toLowerCase()
+  return n.includes('лекц') || n.includes('lecture')
+}
+
 function fmtDate(d: Date): string {
   return `${String(d.getUTCDate()).padStart(2, '0')}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`
 }
@@ -226,7 +232,9 @@ export default function App() {
                         {occ.study_load?.discipline_name ?? '—'}
                       </h2>
                       {occ.study_load?.lesson_type_name && (
-                        <span className={css.classTag}>{occ.study_load.lesson_type_name}</span>
+                        <span className={cx(css.classTag, !isLecture(occ.study_load.lesson_type_name) && css.classTagLight)}>
+                          {occ.study_load.lesson_type_name}
+                        </span>
                       )}
                     </header>
 
