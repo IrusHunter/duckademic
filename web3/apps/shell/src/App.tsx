@@ -23,6 +23,7 @@ const AuthApp = lazy(() => import('authApp/AuthApp'))
 const ClassroomApp = lazy(() => import('classroomApp/ClassroomApp'))
 const HomeApp = lazy(() => import('homeApp/HomeApp'))
 const AdminApp = lazy(() => import('adminApp/AdminApp'))
+const MessengerApp = lazy(() => import('messengerApp/MessengerApp'))
 
 function Routes_() {
   const navigate = useNavigate()
@@ -87,6 +88,15 @@ function Routes_() {
           element={
             <ProtectedRoute requiredRoles={['student', 'teacher']}>
               <ClassroomApp />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/messenger"
+          element={
+            <ProtectedRoute requiredRoles={['student', 'teacher']}>
+              <MessengerApp />
             </ProtectedRoute>
           }
         />

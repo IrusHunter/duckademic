@@ -9,12 +9,15 @@ export default defineConfig({
       name: 'messengerApp',
       filename: 'remoteEntry.js',
       exposes: {
-        './MessengerApp': './src/App.tsx'
+        './MessengerApp': './src/components/App/App.tsx',
       },
-      shared: ['react', 'react-dom']
-    })
+      shared: {
+        react: { singleton: true, requiredVersion: '^19.0.0' } as any,
+        'react-dom': { singleton: true, requiredVersion: '^19.0.0' } as any,
+      },
+    }),
   ],
   build: { target: 'esnext' },
   server: { port: 5007 },
-  preview: { port: 5007 }
+  preview: { port: 5007 },
 })

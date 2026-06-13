@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LuHouse, LuBookOpen } from 'react-icons/lu'
+import { LuHouse, LuBookOpen, LuMessageSquare } from 'react-icons/lu'
 import type { ReactNode } from 'react'
 import type { User } from '../../store/authStore'
 import css from './Sidebar.module.css'
@@ -17,11 +17,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: '/home', label: 'Home', icon: <LuHouse />, end: true, roles: ['student', 'teacher'] },
   { to: '/classroom', label: 'Classroom', icon: <LuBookOpen />, roles: ['student', 'teacher'] },
-  // Add modules here once their remote is wired in shell/vite.config.ts:
-  // { to: '/courses',   label: 'My Courses', icon: <LuBookCopy />,      roles: ['student', 'teacher'] },
-  // { to: '/messaging', label: 'Messaging',  icon: <LuMessageSquare />, roles: ['student', 'teacher'] },
-  // { to: '/schedule',  label: 'Schedule',   icon: <LuCalendar />,      roles: ['student', 'teacher'] },
-  // { to: '/grades',    label: 'Grades',     icon: <LuGraduationCap />, roles: ['student'] },
+  { to: '/messenger', label: 'Messaging', icon: <LuMessageSquare />, roles: ['student', 'teacher'] },
 ]
 
 interface SidebarProps {
