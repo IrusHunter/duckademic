@@ -138,9 +138,12 @@
 }
 
 .logLine { color: #cbd5e1; }
-.run { color: #93c5fd; }
-.ok { color: #86efac; }
-.fail { color: #fca5a5; }
+.run   { color: #93c5fd; }
+.ok    { color: #86efac; }
+.fail  { color: #fca5a5; }
+.warn  { color: #fde68a; }
+.error { color: #fca5a5; }
+.info  { color: #94a3b8; }
 
 .footer {
     display: flex;
@@ -174,3 +177,207 @@
 
 .generate:hover:not(:disabled) { background: #1d4ed8; }
 .generate:disabled, .cancel:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.secondary {
+    padding: 9px 18px;
+    border-radius: 6px;
+    border: 1px solid #e4e4e7;
+    background: #fff;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 150ms ease;
+}
+.secondary:hover:not(:disabled) { background: #f3f4f6; }
+.secondary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Pipeline phase ── */
+.stepProgress {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.errorMsg {
+    font-size: 13px;
+    color: #ef4444;
+}
+
+.pipelinePhase {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stepCard {
+    padding: 16px;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    background: #f9fafb;
+}
+
+.stepCardHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stepBadge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stepName {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.stepMethod {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* ── Step result ── */
+.result {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid #d1fae5;
+    border-radius: 8px;
+    background: #f0fdf4;
+}
+
+.resultRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.resultLabel { font-size: 13px; color: #374151; }
+.resultValue { font-size: 13px; font-weight: 600; color: #15803d; }
+.resultWarn  { color: #b45309; }
+
+/* ── Warnings ── */
+.warningBox {
+    padding: 12px 14px;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    background: #fffbeb;
+}
+
+.warningTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 6px;
+}
+
+.warningList {
+    list-style: disc;
+    padding-left: 16px;
+    font-size: 12px;
+    color: #78350f;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* ── Export phase ── */
+.exportPhase {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.exportTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.exportHint {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.exportSteps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.exportStep {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid #e4e4e7;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #374151;
+}
+
+.exportStepDone {
+    border-color: #d1fae5;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.exportStepNum {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.exportCheck {
+    margin-left: auto;
+    font-weight: 700;
+}
+
+/* ── Done phase ── */
+.donePhase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 0;
+}
+
+.doneIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #d1fae5;
+    color: #15803d;
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.doneText {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+}

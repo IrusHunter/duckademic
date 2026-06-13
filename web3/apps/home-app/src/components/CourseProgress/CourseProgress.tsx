@@ -18,15 +18,15 @@ export default function CourseProgress({ items }: CourseProgressProps) {
         <p className={css.sectionEmpty}>No courses yet</p>
       ) : (
         <ul>
-          {items.map((c) => {
+          {[...items].sort((a, b) => a.name.localeCompare(b.name)).map((c) => {
             const percent = Math.round((c.complete_rate ?? 0) * 100)
             const accuracy = Math.round((c.complete_accuracy ?? 0) * 100)
-            const good = accuracy >= 80
+            const accuracyClass = accuracy >= 90 ? css.green : accuracy >= 60 ? '' : css.red
             return (
               <li key={c.id}>
                 <div className={css.courseHeader}>
                   <h3>{c.name}</h3>
-                  <p className={good ? css.green : ''}>{accuracy}%</p>
+                  <p className={accuracyClass}>{accuracy}%</p>
                 </div>
                 <div className={css.progressBar} aria-label={`${c.name} progress`}>
                   <div

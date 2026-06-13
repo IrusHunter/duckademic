@@ -432,6 +432,11 @@
     color: #166534 !important;
 }
 
+.red {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+}
+
 .progressBar {
     width: 100%;
     height: 8px;
