@@ -1,11 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   loadDataIntoGenerator,
   loadClassroomsIntoGenerator,
   submitAndGo,
   processStep,
-  extractWorkloadsFromGenerator,
   extractDataFromGenerator,
+  fetchSemesters,
+  fetchClassrooms,
+  initGenerator,
+  type Semester,
+  type Classroom,
 } from '../../api/generatorApi'
 import css from './ScheduleGenerator.module.css'
 
@@ -28,8 +32,8 @@ const PIPELINE: PipelineStep[] = [
 ]
 
 type Phase = 'setup' | 'pipeline' | 'export' | 'done'
-type StepSub = 'idle' | 'processing' | 'processed' | 'advancing' | 'warning'
-type ExportSub = 'idle' | 'busy' | 'workloads-done' | 'done'
+type StepSub = 'idle' | 'processing' | 'processed' | 'advancing'
+type ExportSub = 'idle' | 'busy' | 'done'
 
 interface StepConfig { enabled: boolean; method: string }
 interface LogLine { text: string; kind: 'run' | 'ok' | 'warn' | 'error' | 'info' }
@@ -38,9 +42,6 @@ function initConfigs(): Record<string, StepConfig> {
   return Object.fromEntries(PIPELINE.map(s => [s.id, { enabled: true, method: s.methods[0] ?? '' }]))
 }
 
-function parseIds(raw: string): string[] {
-  return raw.split(/[\s,]+/).map(x => x.trim()).filter(Boolean)
-}
 
 function isEnabled(step: PipelineStep, configs: Record<string, StepConfig>): boolean {
   return !step.optional || configs[step.id].enabled
@@ -108,22 +109,52 @@ function StepResult({ data, type }: { data: unknown; type: PipelineStep['resultT
   return null
 }
 
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const DEFAULT_SLOT_PREFERENCE: number[][] = [
+  [],
+  [1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1],
+  [],
+]
+const SLOTS_PER_DAY = 7
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
-  const [semesters,   setSemesters]   = useState('')
-  const [classrooms,  setClassrooms]  = useState('')
-  const [startTime,   setStartTime]   = useState('')
-  const [configs,     setConfigs]     = useState<Record<string, StepConfig>>(initConfigs)
+  const [semesterList,         setSemesterList]         = useState<Semester[]>([])
+  const [classroomList,        setClassroomList]        = useState<Classroom[]>([])
+  const [loadingOptions,       setLoadingOptions]       = useState(true)
+  const [selectedSemesterIds,  setSelectedSemesterIds]  = useState<string[]>([])
+  const [selectedClassroomIds, setSelectedClassroomIds] = useState<string[]>([])
+  const [genStartDate,         setGenStartDate]         = useState('')
+  const [genEndDate,           setGenEndDate]           = useState('')
+  const [slotPreference,       setSlotPreference]       = useState<number[][]>(DEFAULT_SLOT_PREFERENCE)
+  const [maxDailyLoad,         setMaxDailyLoad]         = useState(4)
+  const [lessonFillRate,       setLessonFillRate]       = useState(0.8)
+  const [classroomOccupancy,   setClassroomOccupancy]   = useState(0.8)
+  const [startTime,            setStartTime]            = useState('')
+  const [configs,              setConfigs]              = useState<Record<string, StepConfig>>(initConfigs)
 
   const [phase,       setPhase]       = useState<Phase>('setup')
   const [stepIdx,     setStepIdx]     = useState(0)
   const [sub,         setSub]         = useState<StepSub>('idle')
   const [stepResult,  setStepResult]  = useState<unknown>(null)
-  const [warnings,    setWarnings]    = useState<string[]>([])
   const [exportSub,   setExportSub]   = useState<ExportSub>('idle')
   const [setupError,  setSetupError]  = useState<string | null>(null)
   const [log,         setLog]         = useState<LogLine[]>([])
+
+  useEffect(() => {
+    Promise.all([fetchSemesters(), fetchClassrooms()])
+      .then(([semRes, clsRes]) => {
+        setSemesterList(semRes.data ?? [])
+        setClassroomList(clsRes.data ?? [])
+      })
+      .catch(() => {})
+      .finally(() => setLoadingOptions(false))
+  }, [])
 
   const addLog = (text: string, kind: LogLine['kind']) =>
     setLog(prev => [...prev, { text, kind }])
@@ -136,18 +167,32 @@ export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
   // ── Setup → Pipeline ───────────────────────────────────────────────────────
 
   async function handleStart() {
-    const semIds = parseIds(semesters)
-    if (semIds.length === 0) { setSetupError('Provide at least one curriculum semester ID'); return }
-    if (!startTime)          { setSetupError('Provide a schedule start time'); return }
+    if (selectedSemesterIds.length === 0)         { setSetupError('Select at least one curriculum semester'); return }
+    if (!genStartDate)                             { setSetupError('Provide a generator start date'); return }
+    if (!genEndDate)                               { setSetupError('Provide a generator end date'); return }
+    if (new Date(genEndDate) <= new Date(genStartDate)) { setSetupError('End date must be after start date'); return }
+    if (slotPreference.every(d => d.length === 0)) { setSetupError('Select at least one active day'); return }
+    if (!startTime)                                { setSetupError('Provide a schedule start time'); return }
     setSetupError(null)
     setSub('advancing')
 
     try {
-      addLog(`Loading data (${semIds.length} semester(s))…`, 'run')
-      await loadDataIntoGenerator(semIds)
+      addLog('Initializing generator…', 'run')
+      await initGenerator({
+        start_date: new Date(genStartDate).toISOString(),
+        end_date: new Date(genEndDate).toISOString(),
+        slot_preference: slotPreference,
+        max_daily_student_load: maxDailyLoad,
+        lesson_fill_rate: lessonFillRate,
+        classroom_occupancy: classroomOccupancy,
+      })
+      addLog('Generator initialized ✓', 'ok')
+
+      addLog(`Loading data (${selectedSemesterIds.length} semester(s))…`, 'run')
+      await loadDataIntoGenerator(selectedSemesterIds)
       addLog('Data loaded ✓', 'ok')
 
-      const clsIds = parseIds(classrooms)
+      const clsIds = selectedClassroomIds
       if (clsIds.length > 0) {
         addLog(`Loading classrooms (${clsIds.length})…`, 'run')
         await loadClassroomsIntoGenerator(clsIds)
@@ -194,22 +239,12 @@ export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
 
   // ── Advance to next step ───────────────────────────────────────────────────
 
-  async function handleNext(force = false) {
+  async function handleNext() {
     setSub('advancing')
 
     try {
-      addLog(`Submit & go${force ? ' (forced)' : ''}…`, 'run')
-      const res = await submitAndGo(force)
-      const warns = res.data?.warnings ?? []
-
-      if (warns.length > 0 && !force) {
-        setWarnings(warns)
-        addLog(`Warnings (${warns.length}) — review before continuing`, 'warn')
-        setSub('warning')
-        return
-      }
-
-      setWarnings([])
+      addLog('Submit & go…', 'run')
+      await submitAndGo(true)
       addLog('Step submitted ✓', 'ok')
       await advanceStepIdx()
     } catch (e) {
@@ -255,34 +290,20 @@ export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
 
   // ── Export ─────────────────────────────────────────────────────────────────
 
-  async function handleExportWorkloads() {
+  async function handleExport() {
     setExportSub('busy')
     try {
-      addLog('Exporting workloads…', 'run')
-      await extractWorkloadsFromGenerator()
-      addLog('Workloads exported ✓', 'ok')
-      setExportSub('workloads-done')
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      addLog(`Error: ${msg}`, 'error')
-      setExportSub('idle')
-    }
-  }
-
-  async function handleExportLessons() {
-    setExportSub('busy')
-    try {
-      addLog('Exporting lessons…', 'run')
+      addLog('Extracting data from generator…', 'run')
       const iso = new Date(startTime).toISOString()
       await extractDataFromGenerator(iso)
-      addLog('Lessons exported ✓', 'ok')
+      addLog('Data extracted ✓', 'ok')
       addLog('Schedule generated successfully ✓', 'ok')
       setExportSub('done')
       setPhase('done')
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       addLog(`Error: ${msg}`, 'error')
-      setExportSub('workloads-done')
+      setExportSub('idle')
     }
   }
 
@@ -311,17 +332,154 @@ export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
           {/* ── Setup ── */}
           {phase === 'setup' && (
             <>
-              <label className={css.field}>
+              <div className={css.field}>
                 <span className={css.label}>Curriculum semester IDs</span>
-                <textarea className={css.input} rows={2} placeholder="uuid, uuid, …"
-                  value={semesters} onChange={e => setSemesters(e.target.value)} />
-              </label>
+                {loadingOptions
+                  ? <span className={css.optHint}>Loading…</span>
+                  : semesterList.length === 0
+                    ? <span className={css.optHint}>No semesters found</span>
+                    : (
+                      <div className={css.multiSelect}>
+                        {semesterList.map(s => (
+                          <label key={s.id} className={css.optionRow}>
+                            <input
+                              type="checkbox"
+                              checked={selectedSemesterIds.includes(s.id)}
+                              onChange={e =>
+                                setSelectedSemesterIds(prev =>
+                                  e.target.checked ? [...prev, s.id] : prev.filter(id => id !== s.id)
+                                )
+                              }
+                            />
+                            <span>Semester {s.number} — {s.slug}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )
+                }
+              </div>
 
-              <label className={css.field}>
-                <span className={css.label}>Classroom IDs (optional)</span>
-                <textarea className={css.input} rows={2} placeholder="uuid, uuid, …"
-                  value={classrooms} onChange={e => setClassrooms(e.target.value)} />
-              </label>
+              <div className={css.field}>
+                <div className={css.labelRow}>
+                  <span className={css.label}>Classroom IDs (optional)</span>
+                  {!loadingOptions && classroomList.length > 0 && (
+                    <button type="button" className={css.selectAllBtn}
+                      onClick={() => setSelectedClassroomIds(
+                        selectedClassroomIds.length === classroomList.length
+                          ? []
+                          : classroomList.map(c => c.id)
+                      )}>
+                      {selectedClassroomIds.length === classroomList.length ? 'Deselect all' : 'Select all'}
+                    </button>
+                  )}
+                </div>
+                {loadingOptions
+                  ? <span className={css.optHint}>Loading…</span>
+                  : classroomList.length === 0
+                    ? <span className={css.optHint}>No classrooms found</span>
+                    : (
+                      <div className={css.multiSelect}>
+                        {classroomList.map(c => (
+                          <label key={c.id} className={css.optionRow}>
+                            <input
+                              type="checkbox"
+                              checked={selectedClassroomIds.includes(c.id)}
+                              onChange={e =>
+                                setSelectedClassroomIds(prev =>
+                                  e.target.checked ? [...prev, c.id] : prev.filter(id => id !== c.id)
+                                )
+                              }
+                            />
+                            <span>Room {c.number} (cap. {c.capacity})</span>
+                          </label>
+                        ))}
+                      </div>
+                    )
+                }
+              </div>
+
+              <div className={css.configSection}>
+                <p className={css.label}>Generator configuration</p>
+
+                <div className={css.dateRow}>
+                  <label className={css.field}>
+                    <span className={css.label}>Start date</span>
+                    <input className={css.input} type="datetime-local"
+                      value={genStartDate} onChange={e => setGenStartDate(e.target.value)} />
+                  </label>
+                  <label className={css.field}>
+                    <span className={css.label}>End date</span>
+                    <input className={css.input} type="datetime-local"
+                      value={genEndDate} onChange={e => setGenEndDate(e.target.value)} />
+                  </label>
+                </div>
+
+                <div className={css.field}>
+                  <span className={css.label}>Slot preferences by day</span>
+                  <div className={css.slotTable}>
+                    <div className={css.slotHeader}>
+                      <span className={css.slotDayCol} />
+                      {Array.from({ length: SLOTS_PER_DAY }, (_, i) => (
+                        <span key={i} className={css.slotNumCol}>S{i + 1}</span>
+                      ))}
+                    </div>
+                    {WEEKDAYS.map((day, dayIdx) => {
+                      const active = slotPreference[dayIdx].length > 0
+                      return (
+                        <div key={day} className={`${css.slotRow} ${active ? css.slotRowActive : ''}`}>
+                          <label className={css.slotDayCol}>
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              onChange={e => setSlotPreference(prev => {
+                                const next = prev.map(d => [...d])
+                                next[dayIdx] = e.target.checked ? Array<number>(SLOTS_PER_DAY).fill(1) : []
+                                return next
+                              })}
+                            />
+                            <span>{day.slice(0, 3)}</span>
+                          </label>
+                          {Array.from({ length: SLOTS_PER_DAY }, (_, slotIdx) => (
+                            <input
+                              key={slotIdx}
+                              className={css.slotInput}
+                              type="number"
+                              min={0.1}
+                              max={9.9}
+                              step={0.1}
+                              disabled={!active}
+                              value={active ? (slotPreference[dayIdx][slotIdx] ?? 1) : 1}
+                              onChange={e => setSlotPreference(prev => {
+                                const next = prev.map(d => [...d])
+                                next[dayIdx][slotIdx] = Number(e.target.value)
+                                return next
+                              })}
+                            />
+                          ))}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className={css.numRow}>
+                  <label className={css.field}>
+                    <span className={css.label}>Max daily student load</span>
+                    <input className={css.input} type="number" min={1} max={20}
+                      value={maxDailyLoad} onChange={e => setMaxDailyLoad(Number(e.target.value))} />
+                  </label>
+                  <label className={css.field}>
+                    <span className={css.label}>Lesson fill rate</span>
+                    <input className={css.input} type="number" min={0.01} max={1} step={0.01}
+                      value={lessonFillRate} onChange={e => setLessonFillRate(Number(e.target.value))} />
+                  </label>
+                  <label className={css.field}>
+                    <span className={css.label}>Classroom occupancy</span>
+                    <input className={css.input} type="number" min={0.01} max={1} step={0.01}
+                      value={classroomOccupancy} onChange={e => setClassroomOccupancy(Number(e.target.value))} />
+                  </label>
+                </div>
+              </div>
 
               <label className={css.field}>
                 <span className={css.label}>Schedule start time</span>
@@ -379,14 +537,6 @@ export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
                 <StepResult data={stepResult} type={currentStep.resultType} />
               )}
 
-              {sub === 'warning' && warnings.length > 0 && (
-                <div className={css.warningBox}>
-                  <p className={css.warningTitle}>Warnings from submit</p>
-                  <ul className={css.warningList}>
-                    {warnings.map((w, i) => <li key={i}>{w}</li>)}
-                  </ul>
-                </div>
-              )}
             </div>
           )}
 
@@ -394,18 +544,11 @@ export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
           {phase === 'export' && (
             <div className={css.exportPhase}>
               <p className={css.exportTitle}>Export Results</p>
-              <p className={css.exportHint}>Export workloads first, then the lesson schedule.</p>
+              <p className={css.exportHint}>Extract the generated schedule data into the database.</p>
               <div className={css.exportSteps}>
-                <div className={`${css.exportStep} ${exportSub !== 'idle' ? css.exportStepDone : ''}`}>
-                  <span className={css.exportStepNum}>1</span>
-                  <span>Workloads</span>
-                  {(exportSub === 'workloads-done' || exportSub === 'done') && (
-                    <span className={css.exportCheck}>✓</span>
-                  )}
-                </div>
                 <div className={`${css.exportStep} ${exportSub === 'done' ? css.exportStepDone : ''}`}>
-                  <span className={css.exportStepNum}>2</span>
-                  <span>Lessons</span>
+                  <span className={css.exportStepNum}>1</span>
+                  <span>Extract data from generator</span>
                   {exportSub === 'done' && <span className={css.exportCheck}>✓</span>}
                 </div>
               </div>
@@ -459,7 +602,7 @@ export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
               )}
 
               {sub === 'processed' && (
-                <button className={css.generate} onClick={() => handleNext(false)} disabled={busy}>
+                <button className={css.generate} onClick={handleNext} disabled={busy}>
                   Next Step
                 </button>
               )}
@@ -467,30 +610,16 @@ export function ScheduleGenerator({ onClose }: { onClose: () => void }) {
               {sub === 'advancing' && (
                 <button className={css.generate} disabled>Advancing…</button>
               )}
-
-              {sub === 'warning' && (
-                <>
-                  <button className={css.secondary} onClick={() => setSub('processed')} disabled={busy}>
-                    Back
-                  </button>
-                  <button className={css.generate} onClick={() => handleNext(true)} disabled={busy}>
-                    Force Continue
-                  </button>
-                </>
-              )}
             </>
           )}
 
           {phase === 'export' && (
             <>
               {exportSub === 'idle' && (
-                <button className={css.generate} onClick={handleExportWorkloads}>Export Workloads</button>
+                <button className={css.generate} onClick={handleExport}>Extract Data</button>
               )}
               {exportSub === 'busy' && (
-                <button className={css.generate} disabled>Exporting…</button>
-              )}
-              {exportSub === 'workloads-done' && (
-                <button className={css.generate} onClick={handleExportLessons}>Export Lessons</button>
+                <button className={css.generate} disabled>Extracting…</button>
               )}
             </>
           )}
