@@ -1,13 +1,12 @@
 import { useState, useMemo } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LuArrowLeft, LuStar } from "react-icons/lu";
+import { LuArrowLeft, LuStar, LuMegaphone } from "react-icons/lu";
 import {
   getTasksByCourse,
   getMySubmissionsForCourse,
   createTask,
-  submitTask,
-  unsubmitTask,
+  createAnnouncement,
   deleteTask,
 } from '../../services/courseService'
 import { getAuthUser } from '../../utils/user'
@@ -134,6 +133,55 @@ function AddTaskModal({ courseId, onClose }: AddTaskModalProps) {
   )
 }
 
+// ── Add-post modal ──────────────────────────────────────────────────────────
+
+function AddPostModal({ courseId, onClose }: { courseId: string; onClose: () => void }) {
+  const qc = useQueryClient()
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+
+  const mutation = useMutation({
+    mutationFn: () => createAnnouncement({
+      course_id: courseId,
+      title: title.trim(),
+      description: content.trim(),
+    }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['course-tasks', courseId] })
+      onClose()
+    },
+  })
+
+  return (
+    <div className={css.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className={css.modal}>
+        <h2 className={css.modalTitle}>Новий пост</h2>
+
+        <div className={css.formGroup}>
+          <label className={css.formLabel}>Заголовок</label>
+          <input className={css.formInput} value={title} onChange={e => setTitle(e.target.value)} placeholder="Заголовок поста" />
+        </div>
+
+        <div className={css.formGroup}>
+          <label className={css.formLabel}>Повідомлення</label>
+          <textarea className={css.formTextarea} value={content} onChange={e => setContent(e.target.value)} placeholder="Текст повідомлення або матеріали…" style={{ minHeight: 120 }} />
+        </div>
+
+        <div className={css.modalActions}>
+          <button className={css.btnSecondary} onClick={onClose}>Скасувати</button>
+          <button
+            className={css.btnAdd}
+            disabled={!title.trim() || mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? 'Публікуємо…' : 'Опублікувати'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 
 type Tab = 'stream' | 'classwork' | 'people' | 'grades'
@@ -149,6 +197,7 @@ export default function CoursePage() {
 
   const [activeTab, setActiveTab] = useState<Tab>('stream')
   const [showModal, setShowModal] = useState(false)
+  const [showPostModal, setShowPostModal] = useState(false)
 
   const qc = useQueryClient()
 
@@ -169,16 +218,6 @@ export default function CoursePage() {
     for (const s of submissions) m.set(s.task_id, s)
     return m
   }, [submissions])
-
-  const submitMutation = useMutation({
-    mutationFn: (taskId: string) => submitTask(taskId, user!.id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-submissions', courseId] }),
-  })
-
-  const unsubmitMutation = useMutation({
-    mutationFn: (submissionId: string) => unsubmitTask(submissionId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-submissions', courseId] }),
-  })
 
   const deleteTaskMutation = useMutation({
     mutationFn: (taskId: string) => deleteTask(taskId),
@@ -214,12 +253,24 @@ export default function CoursePage() {
     [tasks]
   )
 
+  function goToTask(taskId: string) {
+    navigate(`task/${taskId}`, { state: course })
+  }
+
   function renderTaskCard(task: Task, mode: 'stream' | 'classwork') {
     const submission = submissionMap.get(task.id)
-    const overdue = isOverdue(task.deadline)
+    const isAnnouncement = task.post_type === 'announcement'
+    const clickable = !isAnnouncement
 
     return (
-      <div key={task.id} className={mode === 'stream' ? css.postCard : css.classworkCard}>
+      <div
+        key={task.id}
+        className={`${mode === 'stream' ? css.postCard : css.classworkCard} ${clickable ? css.cardClickable : ''}`}
+        onClick={clickable ? () => goToTask(task.id) : undefined}
+        role={clickable ? 'button' : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onKeyDown={clickable ? (e) => e.key === 'Enter' && goToTask(task.id) : undefined}
+      >
         {mode === 'stream' ? (
           <>
             <div className={css.postHeader}>
@@ -233,7 +284,8 @@ export default function CoursePage() {
               {isTeacher && (
                 <button
                   className={css.btnDanger}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation()
                     if (confirm(`Delete "${task.title}"?`)) deleteTaskMutation.mutate(task.id)
                   }}
                 >
@@ -242,46 +294,32 @@ export default function CoursePage() {
               )}
             </div>
 
-            <div className={css.postTitle}>{task.title}</div>
-            {task.description && <div className={css.postDesc}>{task.description}</div>}
-
-            <div className={css.postMeta}>
-              <div className={css.postMetaLeft}>
-                <span className={css.metaBadge}>Deadline: {fmtDeadline(task.deadline)}</span>
-                <span className={css.metaBadge}><LuStar /> {task.max_mark} pts</span>
-                {!isTeacher && !submission && !overdue && (
-                  <span className={css.badgeAvailable}>available</span>
-                )}
-                {!isTeacher && submission && !submission.mark && (
-                  <span className={css.badgeSubmitted}>submitted</span>
-                )}
-                {!isTeacher && submission?.mark !== undefined && submission.mark !== null && (
-                  <span className={css.badgeGraded}>Score: {submission.mark}/{task.max_mark}</span>
-                )}
-              </div>
-
-              {!isTeacher && (
-                <div className={css.postMetaRight}>
-                  {!submission ? (
-                    <button
-                      className={css.btnSubmit}
-                      disabled={submitMutation.isPending || overdue}
-                      onClick={() => submitMutation.mutate(task.id)}
-                    >
-                      {overdue ? 'Overdue' : 'Submit'}
-                    </button>
-                  ) : !submission.mark ? (
-                    <button
-                      className={css.btnSecondary}
-                      disabled={unsubmitMutation.isPending}
-                      onClick={() => unsubmitMutation.mutate(submission.id)}
-                    >
-                      Unsubmit
-                    </button>
-                  ) : null}
+            {isAnnouncement ? (
+              <>
+                <div className={css.postTitle}>
+                  <LuMegaphone size={16} style={{ marginRight: 6, color: '#6b7280', verticalAlign: 'middle' }} />
+                  {task.title}
                 </div>
-              )}
-            </div>
+                {task.description && <div className={css.postDesc}>{task.description}</div>}
+              </>
+            ) : (
+              <>
+                <div className={css.postTitle}>{task.title}</div>
+                {task.description && <div className={css.postDesc}>{task.description}</div>}
+
+                <div className={css.postMeta}>
+                  <div className={css.postMetaLeft}>
+                    <span className={css.metaBadge}>Deadline: {fmtDeadline(task.deadline)}</span>
+                    <span className={css.metaBadge}><LuStar /> {task.max_mark} pts</span>
+                    {!isTeacher && !submission && <span className={css.badgeAvailable}>available</span>}
+                    {!isTeacher && submission && !submission.mark && <span className={css.badgeSubmitted}>Перевіряється</span>}
+                    {!isTeacher && submission?.mark !== undefined && submission.mark !== null && (
+                      <span className={css.badgeGraded}>Score: {submission.mark}/{task.max_mark}</span>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className={css.postFooter}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -299,42 +337,25 @@ export default function CoursePage() {
               <div className={css.classworkMeta}>
                 <span>Deadline: {fmtDeadline(task.deadline)}</span>
                 <span>{task.max_mark} pts</span>
-                {!isTeacher && submission && !submission.mark && <span style={{ color: '#2563eb' }}>Submitted</span>}
+                {!isTeacher && submission && !submission.mark && <span style={{ color: '#2563eb' }}>Перевіряється</span>}
                 {!isTeacher && submission?.mark !== undefined && submission.mark !== null && (
                   <span style={{ color: '#16a34a' }}>Score: {submission.mark}/{task.max_mark}</span>
                 )}
               </div>
             </div>
-            <div className={css.classworkActions}>
-              {!isTeacher && !submission && (
-                <button
-                  className={css.btnSubmit}
-                  disabled={submitMutation.isPending || overdue}
-                  onClick={() => submitMutation.mutate(task.id)}
-                >
-                  {overdue ? 'Overdue' : 'Submit'}
-                </button>
-              )}
-              {!isTeacher && submission && !submission.mark && (
-                <button
-                  className={css.btnSecondary}
-                  disabled={unsubmitMutation.isPending}
-                  onClick={() => unsubmitMutation.mutate(submission.id)}
-                >
-                  Unsubmit
-                </button>
-              )}
-              {isTeacher && (
+            {isTeacher && (
+              <div className={css.classworkActions}>
                 <button
                   className={css.btnDanger}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation()
                     if (confirm(`Delete "${task.title}"?`)) deleteTaskMutation.mutate(task.id)
                   }}
                 >
                   Delete
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -382,6 +403,9 @@ export default function CoursePage() {
                   <button className={css.btnAdd} onClick={() => setShowModal(true)}>
                     + Add Assignment
                   </button>
+                  <button className={css.btnAdd} onClick={() => setShowPostModal(true)}>
+                    <LuMegaphone size={14} /> Add Post
+                  </button>
                 </div>
               )}
               {streamTasks.length === 0
@@ -398,6 +422,9 @@ export default function CoursePage() {
                 <div className={css.actionBar}>
                   <button className={css.btnAdd} onClick={() => setShowModal(true)}>
                     + Add Assignment
+                  </button>
+                  <button className={css.btnAdd} onClick={() => setShowPostModal(true)}>
+                    <LuMegaphone size={14} /> Add Post
                   </button>
                 </div>
               )}
@@ -477,9 +504,11 @@ export default function CoursePage() {
         </div>
       </div>
 
-      {/* Add task modal */}
       {showModal && courseId && (
         <AddTaskModal courseId={courseId} onClose={() => setShowModal(false)} />
+      )}
+      {showPostModal && courseId && (
+        <AddPostModal courseId={courseId} onClose={() => setShowPostModal(false)} />
       )}
     </div>
   )

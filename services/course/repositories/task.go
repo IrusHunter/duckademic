@@ -23,8 +23,8 @@ func NewTaskRepository(db *sqlx.DB) TaskRepository {
 		"TaskRepository",
 		entities.Task{}.TableName(),
 		entities.Task{}.EntityName(),
-		[]string{"id", "course_id", "slug", "title", "description", "max_mark", "deadline"},
-		[]string{"title", "description", "max_mark", "deadline"},
+		[]string{"id", "course_id", "slug", "title", "description", "max_mark", "deadline", "post_type", "attachment_url"},
+		[]string{"title", "description", "max_mark", "deadline", "post_type", "attachment_url"},
 		[]string{"created_at", "updated_at"},
 	)
 

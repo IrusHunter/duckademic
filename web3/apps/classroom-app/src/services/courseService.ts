@@ -16,8 +16,18 @@ export async function getTasksByCourse(courseId: string): Promise<Task[]> {
   return asArray<Task>(res.data)
 }
 
+export async function getTask(taskId: string): Promise<Task> {
+  const res = await api.get(`/api/course/task/${taskId}`)
+  return res.data as Task
+}
+
 export async function getMySubmissionsForCourse(courseId: string): Promise<TaskStudent[]> {
   const res = await api.get(`/api/course/course/${courseId}/student-tasks`)
+  return asArray<TaskStudent>(res.data)
+}
+
+export async function getTaskSubmissions(taskId: string): Promise<TaskStudent[]> {
+  const res = await api.get(`/api/course/task/${taskId}/submissions`)
   return asArray<TaskStudent>(res.data)
 }
 
@@ -26,10 +36,43 @@ export async function createTask(task: Pick<Task, 'course_id' | 'title' | 'descr
   return res.data as Task
 }
 
-export async function submitTask(taskId: string, studentId: string): Promise<TaskStudent> {
+export async function createAnnouncement(data: Pick<Task, 'course_id' | 'title' | 'description'> & { attachment_url?: string }): Promise<Task> {
+  const res = await api.post('/api/course/tasks', {
+    ...data,
+    post_type: 'announcement',
+    max_mark: 0,
+    deadline: new Date(Date.now() + 365 * 86400000).toISOString(),
+  })
+  return res.data as Task
+}
+
+export async function submitTask(
+  taskId: string,
+  studentId: string,
+  fileUrl?: string,
+  linkUrl?: string,
+): Promise<TaskStudent> {
   const res = await api.post('/api/course/task-students', {
     task_id: taskId,
     student_id: studentId,
+    submission_time: new Date().toISOString(),
+    file_url: fileUrl ?? null,
+    link_url: linkUrl ?? null,
+  })
+  return res.data as TaskStudent
+}
+
+export async function updateSubmission(
+  submissionId: string,
+  data: { mark?: number; file_url?: string; link_url?: string },
+): Promise<TaskStudent> {
+  const res = await api.put(`/api/course/task-student/${submissionId}`, data)
+  return res.data as TaskStudent
+}
+
+export async function gradeSubmission(submissionId: string, mark: number): Promise<TaskStudent> {
+  const res = await api.put(`/api/course/task-student/${submissionId}`, {
+    mark,
     submission_time: new Date().toISOString(),
   })
   return res.data as TaskStudent
@@ -41,4 +84,13 @@ export async function unsubmitTask(submissionId: string): Promise<void> {
 
 export async function deleteTask(taskId: string): Promise<void> {
   await api.delete(`/api/course/task/${taskId}`)
+}
+
+export async function uploadFile(file: File): Promise<string> {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await api.post('/api/course/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return (res.data as { url: string }).url
 }

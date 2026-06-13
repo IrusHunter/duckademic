@@ -17,6 +17,8 @@ func Migrate(database *sqlx.DB) error {
 		teacherCourseMigrations,
 		taskMigrations,
 		taskStudentMigrations,
+		taskColumnsV2Migrations,
+		taskStudentColumnsV2Migrations,
 	}
 
 	for _, f := range migrationsF {
@@ -305,6 +307,32 @@ func taskMigrations(tx *sqlx.Tx) error {
 
 	return nil
 }
+func taskColumnsV2Migrations(tx *sqlx.Tx) error {
+	stmts := []string{
+		`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS post_type TEXT NOT NULL DEFAULT 'assignment';`,
+		`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS attachment_url TEXT;`,
+	}
+	for _, s := range stmts {
+		if _, err := tx.Exec(s); err != nil {
+			return fmt.Errorf("taskColumnsV2: %w", err)
+		}
+	}
+	return nil
+}
+
+func taskStudentColumnsV2Migrations(tx *sqlx.Tx) error {
+	stmts := []string{
+		`ALTER TABLE task_students ADD COLUMN IF NOT EXISTS file_url TEXT;`,
+		`ALTER TABLE task_students ADD COLUMN IF NOT EXISTS link_url TEXT;`,
+	}
+	for _, s := range stmts {
+		if _, err := tx.Exec(s); err != nil {
+			return fmt.Errorf("taskStudentColumnsV2: %w", err)
+		}
+	}
+	return nil
+}
+
 func taskStudentMigrations(tx *sqlx.Tx) error {
 	schema := `
 	CREATE TABLE IF NOT EXISTS task_students (

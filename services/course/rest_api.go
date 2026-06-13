@@ -1,12 +1,20 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
+	"github.com/google/uuid"
 	resthandlers "github.com/IrusHunter/duckademic/services/course/rest_handlers"
 	"github.com/IrusHunter/duckademic/shared/events"
+	"github.com/IrusHunter/duckademic/shared/jsonutil"
 	"github.com/IrusHunter/duckademic/shared/platform"
 )
 
@@ -109,6 +117,9 @@ func (ra *restapi) Run(port int) error {
 		http.MethodDelete: ra.NewDefaultHandlerWithAuth(ra.taskHandler.Delete, []string{}),
 		http.MethodPut:    ra.NewDefaultHandlerWithAuth(ra.taskHandler.Update, []string{}),
 	})
+	ra.NewRoute("/task/{id}/submissions", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.GetByTaskID, []string{}),
+	})
 
 	ra.NewRoute("/task-students", map[string]platform.HandlerFunc{
 		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.GetAll, []string{}),
@@ -127,6 +138,12 @@ func (ra *restapi) Run(port int) error {
 		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.studentCourseHandler.GetCourseProgress, []string{}),
 	})
 
+	ra.NewRoute("/upload", map[string]platform.HandlerFunc{
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.uploadFile, []string{}),
+	})
+
+	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("data/uploads"))))
+
 	http.HandleFunc("/seed", func(w http.ResponseWriter, r *http.Request) {
 		ra.NewDefaultHandler(ra.databaseHandler.Seed)(r.Context(), w, r)
 	})
@@ -137,6 +154,57 @@ func (ra *restapi) Run(port int) error {
 	log.Printf("Server start at port %d \n", port)
 
 	return http.ListenAndServe(":"+strconv.Itoa(port), nil)
+}
+
+const maxUploadSize = 10 << 20 // 10 MB
+
+var allowedExtensions = map[string]bool{
+	".pdf": true, ".doc": true, ".docx": true, ".txt": true,
+	".png": true, ".jpg": true, ".jpeg": true, ".gif": true,
+	".zip": true, ".pptx": true, ".xlsx": true,
+}
+
+func (ra *restapi) uploadFile(_ context.Context, w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+		jsonutil.ResponseWithError(w, http.StatusBadRequest, fmt.Errorf("file too large (max 10 MB)"))
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusBadRequest, fmt.Errorf("file field is required"))
+		return
+	}
+	defer file.Close()
+
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if !allowedExtensions[ext] {
+		jsonutil.ResponseWithError(w, http.StatusBadRequest, fmt.Errorf("file type %q is not allowed", ext))
+		return
+	}
+
+	if err := os.MkdirAll("data/uploads", 0755); err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("storage error"))
+		return
+	}
+
+	filename := uuid.New().String() + ext
+	dst, err := os.Create(filepath.Join("data/uploads", filename))
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("could not save file"))
+		return
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		jsonutil.ResponseWithError(w, http.StatusInternalServerError, fmt.Errorf("could not write file"))
+		return
+	}
+
+	jsonutil.ResponseWithJSON(w, http.StatusOK, map[string]string{
+		"url": "/uploads/" + filename,
+	})
 }
 
 func BuildAccessPermissions() []events.AccessPermissionRE {

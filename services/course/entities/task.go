@@ -10,15 +10,17 @@ import (
 )
 
 type Task struct {
-	ID          uuid.UUID `db:"id" json:"id"`
-	CourseID    uuid.UUID `db:"course_id" json:"course_id"`
-	Slug        string    `db:"slug" json:"slug"`
-	Title       string    `db:"title" json:"title"`
-	Description string    `db:"description" json:"description"`
-	MaxMark     float64   `db:"max_mark" json:"max_mark"`
-	Deadline    time.Time `db:"deadline" json:"deadline"`
-	CreatedAt   time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
+	ID            uuid.UUID `db:"id" json:"id"`
+	CourseID      uuid.UUID `db:"course_id" json:"course_id"`
+	Slug          string    `db:"slug" json:"slug"`
+	Title         string    `db:"title" json:"title"`
+	Description   string    `db:"description" json:"description"`
+	MaxMark       float64   `db:"max_mark" json:"max_mark"`
+	Deadline      time.Time `db:"deadline" json:"deadline"`
+	PostType      string    `db:"post_type" json:"post_type"`
+	AttachmentURL *string   `db:"attachment_url" json:"attachment_url,omitempty"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at" json:"updated_at"`
 }
 
 func (t Task) String() string {

@@ -15,10 +15,13 @@ type TaskStudent struct {
 	StudentID      uuid.UUID  `db:"student_id" json:"student_id"`
 	Mark           *float64   `db:"mark" json:"mark,omitempty"`
 	SubmissionTime *time.Time `db:"submission_time" json:"submission_time,omitempty"`
+	FileURL        *string    `db:"file_url" json:"file_url,omitempty"`
+	LinkURL        *string    `db:"link_url" json:"link_url,omitempty"`
 	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
 
-	Task *Task `db:"-" json:"task,omitempty"`
+	Task        *Task  `db:"-" json:"task,omitempty"`
+	StudentName string `db:"-" json:"student_name,omitempty"`
 }
 
 func (ts TaskStudent) String() string {

@@ -1,0 +1,446 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background-color: #f3f4f6;
+  min-height: calc(100vh - 80px);
+}
+
+/* ===== Header ===== */
+.header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e4e4e7;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.backBtn:hover { background-color: #f3f4f6; color: #111827; }
+
+.headerInfo { flex: 1; min-width: 0; }
+
+.taskTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.taskMeta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.metaItem { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ===== Body ===== */
+.body {
+  display: flex;
+  gap: 20px;
+  padding: 20px 28px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+/* ===== Task description card ===== */
+.descCard {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+  padding: 24px;
+  flex: 1;
+  min-width: 0;
+}
+
+.descTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.descText {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+/* ===== Sidebar submission panel ===== */
+.sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+  padding: 20px;
+}
+
+.panelTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* ===== Status badge ===== */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.statusLabel { font-size: 13px; color: #6b7280; }
+
+.badgePending {
+  background-color: #fef9c3;
+  color: #854d0e;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badgeChecking {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badgeGraded {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ===== Score ===== */
+.score {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.scoreLabel { font-size: 13px; color: #6b7280; text-align: center; margin-bottom: 16px; }
+
+/* ===== Form fields ===== */
+.formGroup { margin-bottom: 14px; }
+
+.formLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.fileInput { display: none; }
+
+.fileBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px dashed #d1d5db;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  font-size: 13px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.fileBtn:hover { border-color: #2563eb; background-color: #eff6ff; color: #2563eb; }
+
+.fileSelected {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.fileSizeHint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.linkInput {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: #111827;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.linkInput:focus { outline: none; border-color: #2563eb; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+.divider::before, .divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: #e5e7eb;
+}
+
+/* ===== Buttons ===== */
+.btnPrimary {
+  width: 100%;
+  background-color: #111827;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 4px;
+}
+.btnPrimary:hover { background-color: #374151; }
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btnSecondary {
+  width: 100%;
+  background-color: #ffffff;
+  color: #374151;
+  border: 1px solid #e4e4e7;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  margin-top: 8px;
+}
+.btnSecondary:hover { background-color: #f9fafb; }
+.btnSecondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== Submitted materials ===== */
+.materialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 6px 0;
+}
+.materialLink:hover { text-decoration: underline; }
+
+/* ===== Teacher: submissions list ===== */
+.submissionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submissionCard {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+  padding: 16px 20px;
+}
+
+.submissionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.studentName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.submissionStatus {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.statusNotSubmitted { background-color: #f3f4f6; color: #6b7280; }
+.statusSubmitted    { background-color: #dbeafe; color: #1d4ed8; }
+.statusGraded       { background-color: #dcfce7; color: #166534; }
+
+.submissionMaterials {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.gradeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.gradeInput {
+  width: 80px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 14px;
+  color: #111827;
+  background-color: #ffffff;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.gradeInput:focus { outline: none; border-color: #2563eb; }
+
+.gradeLabel { font-size: 13px; color: #6b7280; }
+
+.btnGrade {
+  background-color: #111827;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.btnGrade:hover { background-color: #374151; }
+.btnGrade:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.currentGrade { font-size: 14px; font-weight: 600; color: #16a34a; }
+
+/* ===== File preview modal ===== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 0;
+  width: 760px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.2);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.modalClose:hover { color: #111827; }
+
+.modalBody {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.previewFallback {
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.btnDownload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #111827;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 12px;
+}

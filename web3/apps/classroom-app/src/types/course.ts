@@ -34,6 +34,8 @@ export interface Task {
   description: string
   max_mark: number
   deadline: string
+  post_type: 'assignment' | 'announcement'
+  attachment_url?: string
   created_at: string
   updated_at: string
 }
@@ -44,7 +46,10 @@ export interface TaskStudent {
   student_id: string
   mark?: number
   submission_time?: string
+  file_url?: string
+  link_url?: string
   created_at: string
   updated_at: string
   task?: Task
+  student_name?: string
 }

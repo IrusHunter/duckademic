@@ -219,6 +219,7 @@
 .actionBar {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
   margin-bottom: 4px;
 }
 
@@ -247,6 +248,15 @@
   border-radius: 8px;
   border: 1px solid #E4E4E7;
   padding: 24px;
+}
+
+.cardClickable {
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cardClickable:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
 }
 
 .postHeader {

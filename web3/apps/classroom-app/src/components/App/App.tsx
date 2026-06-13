@@ -8,6 +8,7 @@ import type { CourseCardData } from '../CourseCard/CourseCard'
 import Loader from '../Loader/Loader'
 import ErrorMessage from '../ErrorMessage/ErrorMessage'
 import CoursePage from '../CoursePage/CoursePage'
+import TaskPage from '../TaskPage/TaskPage'
 import css from './App.module.css'
 import type { CourseInfo } from '../../types/course'
 
@@ -139,6 +140,7 @@ export default function App() {
     <Routes>
       <Route index element={<CourseList />} />
       <Route path=":courseId" element={<CoursePage />} />
+      <Route path=":courseId/task/:taskId" element={<TaskPage />} />
     </Routes>
   )
 }

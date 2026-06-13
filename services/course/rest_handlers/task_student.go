@@ -17,6 +17,7 @@ type TaskStudentHandler interface {
 	platform.BaseHandler[entities.TaskStudent]
 	GetUpcomingEvents(context.Context, http.ResponseWriter, *http.Request)
 	GetForStudentInCourse(context.Context, http.ResponseWriter, *http.Request)
+	GetByTaskID(context.Context, http.ResponseWriter, *http.Request)
 }
 
 func NewTaskStudentHandler(tss services.TaskStudentService) TaskStudentHandler {
@@ -59,6 +60,28 @@ func (h *taskStudentHandler) GetForStudentInCourse(ctx context.Context, w http.R
 		contextutil.GetTraceID(ctx),
 		"GetForStudentInCourse",
 		fmt.Sprintf("%d submissions found", len(submissions)),
+		logger.HandlerOperationSuccess,
+	)
+
+	jsonutil.ResponseWithJSON(w, 200, submissions)
+}
+
+func (h *taskStudentHandler) GetByTaskID(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	taskID, ok := h.ParseID(ctx, w, r, "GetByTaskID")
+	if !ok {
+		return
+	}
+
+	submissions, err := h.service.GetByTaskID(ctx, taskID)
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx), "GetByTaskID", err, logger.HandlerInternalError,
+		))
+		return
+	}
+
+	h.GetLogger().Log(contextutil.GetTraceID(ctx), "GetByTaskID",
+		fmt.Sprintf("%d submissions found for task", len(submissions)),
 		logger.HandlerOperationSuccess,
 	)
 

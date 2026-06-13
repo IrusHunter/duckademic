@@ -19,6 +19,7 @@ type TaskStudentService interface {
 	platform.BaseService[entities.TaskStudent]
 	GetUpcomingTasksFor(context.Context, uuid.UUID, time.Time, int) ([]entities.Task, error)
 	GetForStudentInCourse(context.Context, uuid.UUID, uuid.UUID) ([]entities.TaskStudent, error)
+	GetByTaskID(context.Context, uuid.UUID) ([]entities.TaskStudent, error)
 }
 
 func NewTaskStudentService(
@@ -128,6 +129,10 @@ func (s *taskStudentService) Seed(ctx context.Context) error {
 
 func (s *taskStudentService) GetForStudentInCourse(ctx context.Context, studentID, courseID uuid.UUID) ([]entities.TaskStudent, error) {
 	return s.repository.GetTasksForStudentInCourse(ctx, studentID, courseID)
+}
+
+func (s *taskStudentService) GetByTaskID(ctx context.Context, taskID uuid.UUID) ([]entities.TaskStudent, error) {
+	return s.repository.GetByTaskID(ctx, taskID)
 }
 
 func (s *taskStudentService) GetUpcomingTasksFor(
