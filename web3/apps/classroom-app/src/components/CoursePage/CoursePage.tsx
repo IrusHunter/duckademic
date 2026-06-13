@@ -186,7 +186,7 @@ export default function CoursePage() {
   })
 
   const teacherName = course.teacher_name ?? 'Instructor'
-  const slug = course.name.toUpperCase().replace(/\s+/g, '').slice(0, 6)
+  const slug = course.id.split('-')[0].toUpperCase()
 
   const BANNER_CLASSES = [css.bannerBlue, css.bannerGreen, css.bannerPink]
   const bannerClass = BANNER_CLASSES[
