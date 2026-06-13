@@ -187,6 +187,9 @@ export default function CoursePage() {
   const teacherName = course.teacher_name ?? 'Instructor'
   const slug = course.name.toUpperCase().replace(/\s+/g, '').slice(0, 6)
 
+  const BANNER_CLASSES = [css.bannerBlue, css.bannerGreen, css.bannerPink]
+  const bannerClass = BANNER_CLASSES[hashStr(course.id) % 3]
+
   // upcoming tasks sorted by deadline
   const upcoming = useMemo(() =>
     [...tasks]
@@ -340,8 +343,7 @@ export default function CoursePage() {
   return (
     <div className={css.page}>
       {/* Banner */}
-      <div className={css.banner}>
-        <div className={css.bannerWaves} />
+      <div className={`${css.banner} ${bannerClass}`}>
         <button className={css.backLink} onClick={() => navigate(-1)}>
           ← Back to Courses
         </button>

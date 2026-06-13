@@ -116,6 +116,10 @@
     color: #374151;
     line-height: 150%;
     letter-spacing: -0.03em;
+    margin-bottom: 4px;
+}
+
+.courseTitleTeacher {
     margin-bottom: 12px;
 }
 

@@ -28,7 +28,7 @@ export default function CourseCard({ course, onOpen }: { course: CourseCardData;
     <li className={`${css.card} ${css[course.colorClass]}`}>
       <div className={css.cardHeader}>
         <div>
-          <h2 className={css.courseTitle}>{course.title}</h2>
+          <h2 className={`${css.courseTitle} ${course.hideGrade ? css.courseTitleTeacher : ''}`}>{course.title}</h2>
           {course.teacher && <p className={css.teacher}>{course.teacher}</p>}
         </div>
         {!course.hideGrade && (
