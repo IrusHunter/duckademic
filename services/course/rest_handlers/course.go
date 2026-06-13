@@ -15,6 +15,7 @@ import (
 type CourseHandler interface {
 	platform.BaseHandler[entities.Course]
 	GetStudentCoursePage(ctx context.Context, w http.ResponseWriter, r *http.Request)
+	GetTeacherCoursePage(ctx context.Context, w http.ResponseWriter, r *http.Request)
 }
 
 func NewCourseHandler(cs services.CourseService) CourseHandler {
@@ -52,6 +53,33 @@ func (h *courseHandler) GetStudentCoursePage(ctx context.Context, w http.Respons
 		contextutil.GetTraceID(ctx),
 		"GetStudentCoursePage",
 		"student course pages fetched successfully",
+		logger.HandlerOperationSuccess,
+	)
+
+	jsonutil.ResponseWithJSON(w, 200, coursePages)
+}
+
+func (h *courseHandler) GetTeacherCoursePage(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	teacherID, ok := h.GetUserIDFromContext(ctx, w, "GetTeacherCoursePage")
+	if !ok {
+		return
+	}
+
+	coursePages, err := h.service.GetTeacherCoursePage(ctx, teacherID)
+	if err != nil {
+		jsonutil.ResponseWithError(w, 500, h.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetTeacherCoursePage",
+			err,
+			logger.HandlerInternalError,
+		))
+		return
+	}
+
+	h.GetLogger().Log(
+		contextutil.GetTraceID(ctx),
+		"GetTeacherCoursePage",
+		"teacher course pages fetched successfully",
 		logger.HandlerOperationSuccess,
 	)
 

@@ -26,7 +26,7 @@ export default function CourseProgress({ items }: CourseProgressProps) {
               <li key={c.id}>
                 <div className={css.courseHeader}>
                   <h3>{c.name}</h3>
-                  <p className={accuracyClass}>{accuracy}%</p>
+                  <p className={`${accuracyClass} ${css.accuracyBadge}`} data-tooltip="Proportion of tasks completed correctly">{accuracy}%</p>
                 </div>
                 <div className={css.progressBar} aria-label={`${c.name} progress`}>
                   <div

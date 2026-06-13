@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getStudentCourses } from '../../services/courseService'
+import { getStudentCourses, getTeacherCourses } from '../../services/courseService'
+import { getAuthUser } from '../../utils/user'
 import CourseCard from '../CourseCard/CourseCard'
 import type { CourseCardData } from '../CourseCard/CourseCard'
 import Loader from '../Loader/Loader'
@@ -9,7 +10,7 @@ import css from './App.module.css'
 
 const COLORS = ['cardBlue', 'cardMint', 'cardRose'] as const
 
-function Courses() {
+function StudentCourses() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['student-courses'],
     queryFn: getStudentCourses,
@@ -53,6 +54,53 @@ function Courses() {
   )
 }
 
+function TeacherCourses() {
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['teacher-courses'],
+    queryFn: getTeacherCourses,
+  })
+
+  const cards: CourseCardData[] = useMemo(() => {
+    return (data ?? []).map((c, i) => ({
+      id: c.id,
+      title: c.name,
+      teacher: '',
+      description: c.description,
+      assignments: c.assignments_count,
+      students: c.student_count,
+      averageMark: 0,
+      nearestDeadline: undefined,
+      colorClass: COLORS[i % COLORS.length],
+      hideGrade: true,
+      hideDeadline: true,
+    }))
+  }, [data])
+
+  return (
+    <main className={css.page}>
+      <div className={css.header}>
+        <h1 className={css.title}>My Courses</h1>
+        <p className={css.subtitle}>Courses you teach</p>
+      </div>
+
+      {isLoading && <Loader label="Loading courses…" />}
+      {isError && <ErrorMessage onRetry={() => refetch()} />}
+      {data && cards.length === 0 && (
+        <p className={css.state}>You are not assigned to any courses yet.</p>
+      )}
+
+      {cards.length > 0 && (
+        <ul className={css.list}>
+          {cards.map((c) => (
+            <CourseCard key={c.id} course={c} />
+          ))}
+        </ul>
+      )}
+    </main>
+  )
+}
+
 export default function App() {
-  return <Courses />
+  const user = getAuthUser()
+  return user?.role === 'teacher' ? <TeacherCourses /> : <StudentCourses />
 }

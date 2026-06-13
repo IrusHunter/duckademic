@@ -14,3 +14,9 @@ export async function getCoursesProgress(): Promise<CourseProgress[]> {
   const res = await api.get('/api/course/get-courses-progress')
   return asArray<CourseProgress>(res.data)
 }
+
+// GET /api/course/courses/teacher
+export async function getTeacherCourses(): Promise<{ id: string }[]> {
+  const res = await api.get('/api/course/courses/teacher')
+  return asArray<{ id: string }>(res.data)
+}

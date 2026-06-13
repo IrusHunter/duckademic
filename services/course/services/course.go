@@ -19,11 +19,13 @@ import (
 type CourseService interface {
 	platform.BaseService[entities.Course]
 	GetStudentCoursePage(ctx context.Context, userID uuid.UUID) ([]StudentCoursePage, error)
+	GetTeacherCoursePage(ctx context.Context, teacherID uuid.UUID) ([]TeacherCoursePage, error)
 }
 
 func NewCourseService(
 	cr repositories.CourseRepository,
 	tr repositories.TeacherRepository,
+	taskRepository repositories.TaskRepository,
 	taskStudentRepository repositories.TaskStudentRepository,
 	studentCourseRepository repositories.StudentCourseRepository,
 	eb events.EventBus,
@@ -33,6 +35,7 @@ func NewCourseService(
 	res := &courseService{
 		repository:              cr,
 		teacherRepository:       tr,
+		taskRepository:          taskRepository,
 		taskStudentRepository:   taskStudentRepository,
 		studentCourseRepository: studentCourseRepository,
 	}
@@ -50,6 +53,7 @@ type courseService struct {
 	platform.BaseService[entities.Course]
 	repository              repositories.CourseRepository
 	teacherRepository       repositories.TeacherRepository
+	taskRepository          repositories.TaskRepository
 	taskStudentRepository   repositories.TaskStudentRepository
 	studentCourseRepository repositories.StudentCourseRepository
 	logger                  logger.Logger
@@ -248,4 +252,44 @@ func valueOrEmpty(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+type TeacherCoursePage struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+
+	StudentCount     int `json:"student_count"`
+	AssignmentsCount int `json:"assignments_count"`
+}
+
+func (s *courseService) GetTeacherCoursePage(ctx context.Context, teacherID uuid.UUID) ([]TeacherCoursePage, error) {
+	courses, err := s.repository.GetTeacherFullCourses(ctx, teacherID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]TeacherCoursePage, 0, len(courses))
+
+	for _, course := range courses {
+		students, err := s.studentCourseRepository.GetStudentsForCourse(ctx, course.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		tasks, err := s.taskRepository.GetTasksByCourseID(ctx, course.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, TeacherCoursePage{
+			ID:               course.ID,
+			Name:             course.Name,
+			Description:      valueOrEmpty(course.Description),
+			StudentCount:     len(students),
+			AssignmentsCount: len(tasks),
+		})
+	}
+
+	return result, nil
 }

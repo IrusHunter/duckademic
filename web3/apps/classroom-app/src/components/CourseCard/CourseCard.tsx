@@ -11,6 +11,8 @@ export interface CourseCardData {
   averageMark: number
   nearestDeadline?: string   // ISO або undefined
   colorClass: 'cardBlue' | 'cardMint' | 'cardRose'
+  hideGrade?: boolean
+  hideDeadline?: boolean
 }
 
 const DEADLINE_CLASS = {
@@ -27,11 +29,13 @@ export default function CourseCard({ course }: { course: CourseCardData }) {
       <div className={css.cardHeader}>
         <div>
           <h2 className={css.courseTitle}>{course.title}</h2>
-          <p className={css.teacher}>{course.teacher}</p>
+          {course.teacher && <p className={css.teacher}>{course.teacher}</p>}
         </div>
-        <span className={css.grade}>
-          {course.averageMark.toFixed(1)}
-        </span>
+        {!course.hideGrade && (
+          <span className={css.grade}>
+            {course.averageMark.toFixed(1)}
+          </span>
+        )}
       </div>
 
       <p className={css.description}>{course.description}</p>
@@ -51,7 +55,7 @@ export default function CourseCard({ course }: { course: CourseCardData }) {
         </li>
       </ul>
 
-      {level ? (
+      {!course.hideDeadline && (level ? (
         <div className={`${css.deadline} ${DEADLINE_CLASS[level]}`}>
           <svg className={css.metaIcon} width="16" height="16" aria-hidden="true" style={{ color: 'inherit' }}>
             <use href="/img/icons.svg#icon-SVG-11" />
@@ -65,7 +69,7 @@ export default function CourseCard({ course }: { course: CourseCardData }) {
           </svg>
           <p className={css.deadlineText}>No deadline</p>
         </div>
-      )}
+      ))}
 
       <div className={css.actions}>
         <button className={`${css.btn} ${css.btnPrimary}`} type="button">

@@ -18,6 +18,7 @@ type CourseRepository interface {
 	FindFirstByName(ctx context.Context, name string) *entities.Course
 	ExternalUpdate(context.Context, uuid.UUID, entities.Course) (entities.Course, error)
 	GetFullCourses(context.Context, uuid.UUID) ([]entities.Course, error)
+	GetTeacherFullCourses(context.Context, uuid.UUID) ([]entities.Course, error)
 }
 
 func NewCourseRepository(db *sqlx.DB) CourseRepository {
@@ -93,6 +94,54 @@ func (f *CourseFlat) Convert() entities.Course {
 	}
 
 	return course
+}
+
+func (r *courseRepository) GetTeacherFullCourses(ctx context.Context, teacherID uuid.UUID) ([]entities.Course, error) {
+	query := fmt.Sprintf(`
+		SELECT DISTINCT
+			c.id,
+			c.manager_id,
+			c.slug,
+			c.name,
+			c.description,
+			c.created_at,
+			c.updated_at,
+
+			t.id         AS teacher_id,
+			t.slug       AS teacher_slug,
+			t.name       AS teacher_name,
+			t.created_at AS teacher_created_at,
+			t.updated_at AS teacher_updated_at
+
+		FROM %s c
+		LEFT JOIN %s t  ON c.manager_id = t.id
+		LEFT JOIN %s tc ON tc.course_id  = c.id
+
+		WHERE tc.teacher_id = $1 OR c.manager_id = $1
+
+		ORDER BY c.name;
+	`,
+		entities.Course{}.TableName(),
+		entities.Teacher{}.TableName(),
+		entities.TeacherCourse{}.TableName(),
+	)
+
+	var flats []CourseFlat
+	if err := r.db.SelectContext(ctx, &flats, query, teacherID); err != nil {
+		return nil, r.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx),
+			"GetTeacherFullCourses",
+			err,
+			logger.RepositoryScanFailed,
+		)
+	}
+
+	result := make([]entities.Course, 0, len(flats))
+	for i := range flats {
+		result = append(result, flats[i].Convert())
+	}
+
+	return result, nil
 }
 
 func valueOrEmpty(s *string) string {

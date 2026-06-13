@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getUpcomingEvents, getCoursesProgress } from '../../services/courseService'
+import { getUpcomingEvents, getCoursesProgress, getTeacherCourses } from '../../services/courseService'
 import { getAuthUser, roleLabel } from '../../utils/user'
 import { nowISO } from '../../utils/datetime'
 import ProfileCard from '../ProfileCard/ProfileCard'
@@ -14,22 +14,32 @@ function Dashboard() {
   const user = useMemo(() => getAuthUser(), [])
   const startTime = useMemo(() => nowISO(), [])
 
+  const isTeacher = user?.role === 'teacher'
+
   const upcoming = useQuery({
     queryKey: ['upcoming', startTime],
     queryFn: () => getUpcomingEvents(5, startTime),
+    enabled: !isTeacher,
   })
 
   const progress = useQuery({
     queryKey: ['courses-progress'],
     queryFn: () => getCoursesProgress(),
+    enabled: !isTeacher,
   })
 
-  const isTeacher = user?.role === 'teacher'
+  const teacherCourses = useQuery({
+    queryKey: ['teacher-courses'],
+    queryFn: () => getTeacherCourses(),
+    enabled: isTeacher,
+  })
 
   const tasks = upcoming.data ?? []
   const courses = progress.data ?? []
 
-  const coursesCount = progress.isLoading ? '—' : courses.length
+  const coursesCount = isTeacher
+    ? (teacherCourses.isLoading ? '—' : (teacherCourses.data ?? []).length)
+    : (progress.isLoading ? '—' : courses.length)
   const assignmentsCount = upcoming.isLoading ? '—' : tasks.length
   const groupsCount = '—' // окремого ендпоінта "мої групи" в бекенді поки немає
 

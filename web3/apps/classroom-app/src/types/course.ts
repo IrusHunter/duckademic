@@ -8,3 +8,11 @@ export interface StudentCoursePage {
   student_count: number
   upcoming_deadline: string
 }
+
+export interface TeacherCoursePage {
+  id: string
+  name: string
+  description: string
+  student_count: number
+  assignments_count: number
+}
