@@ -24,6 +24,8 @@ function Dashboard() {
     queryFn: () => getCoursesProgress(),
   })
 
+  const isTeacher = user?.role === 'teacher'
+
   const tasks = upcoming.data ?? []
   const courses = progress.data ?? []
 
@@ -40,6 +42,7 @@ function Dashboard() {
           courses={coursesCount}
           assignments={assignmentsCount}
           groups={groupsCount}
+          hideAssignments={isTeacher}
         />
         <QuickActions />
       </div>
@@ -48,10 +51,12 @@ function Dashboard() {
         <Feed />
       </div>
 
-      <div className={css.right}>
-        <Upcoming tasks={tasks} />
-        <CourseProgress items={courses} />
-      </div>
+      {!isTeacher && (
+        <div className={css.right}>
+          <Upcoming tasks={tasks} />
+          <CourseProgress items={courses} />
+        </div>
+      )}
     </main>
   )
 }

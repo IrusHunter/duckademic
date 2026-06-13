@@ -8,10 +8,11 @@ interface ProfileCardProps {
   courses: number | string
   assignments: number | string
   groups: number | string
+  hideAssignments?: boolean
 }
 
 export default function ProfileCard({
-  name, role, courses, assignments, groups,
+  name, role, courses, assignments, groups, hideAssignments = false,
 }: ProfileCardProps) {
   return (
     <article className={css.profileCard}>
@@ -22,17 +23,19 @@ export default function ProfileCard({
       <h3 className={css.name}>{name}</h3>
       <p className={css.role}>{role}</p>
 
-      <div className={css.stats}>
+      <div className={`${css.stats}${hideAssignments ? ` ${css.statsPair}` : ''}`}>
         <div>
           <Icon id="icon-SVG-1" size={20} />
           <h4>{courses}</h4>
           <p className={css.paragraf}>Courses</p>
         </div>
-        <div>
-          <Icon id="icon-SVG-3" size={20} />
-          <h4>{assignments}</h4>
-          <p className={css.paragraf}>Assignments Due</p>
-        </div>
+        {!hideAssignments && (
+          <div>
+            <Icon id="icon-SVG-3" size={20} />
+            <h4>{assignments}</h4>
+            <p className={css.paragraf}>Assignments Due</p>
+          </div>
+        )}
         <div>
           <Icon id="icon-SVG-9" size={20} />
           <h4>{groups}</h4>

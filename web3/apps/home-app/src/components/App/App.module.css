@@ -104,6 +104,10 @@
     width: calc((100% - (16px * 2)) / 3);
 }
 
+.profileCard .statsPair>div {
+    width: calc((100% - 16px) / 2);
+}
+
 .profileCard .stats svg {
     margin-bottom: 4px;
     color: #2563eb;
