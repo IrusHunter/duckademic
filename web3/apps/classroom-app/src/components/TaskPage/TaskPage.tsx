@@ -1,40 +1,66 @@
 import { useState, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LuArrowLeft, LuPaperclip, LuLink, LuFileText, LuExternalLink } from 'react-icons/lu'
+import {
+  LuArrowLeft, LuPaperclip, LuLink, LuFileText,
+  LuExternalLink, LuClipboardList, LuMegaphone,
+  LuCalendar, LuStar, LuClock, LuChevronLeft, LuSend,
+} from 'react-icons/lu'
 import {
   getTask,
   getTaskSubmissions,
   getMySubmissionsForCourse,
   submitTask,
   unsubmitTask,
-  updateSubmission,
   gradeSubmission,
   uploadFile,
+  getTaskComments,
+  addTaskComment,
+  getPrivateComments,
+  addPrivateComment,
 } from '../../services/courseService'
 import { getAuthUser } from '../../utils/user'
 import type { CourseInfo, TaskStudent } from '../../types/course'
 import css from './TaskPage.module.css'
 
-// ── helpers ─────────────────────────────────────────────────────────────────
+// ── helpers ───────────────────────────────────────────────────────────────────
 
-function fmtDeadline(iso: string) {
+function fmtDate(iso: string) {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function fmtDateTime(iso: string) {
   const d = new Date(iso)
   if (isNaN(d.getTime())) return '—'
   return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-function isImageUrl(url: string) {
-  return /\.(png|jpe?g|gif|webp|svg)$/i.test(url)
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const h = Math.floor(diff / 3_600_000)
+  if (h < 1) return 'Just now'
+  if (h < 24) return `${h}h ago`
+  const d = Math.floor(h / 24)
+  return `${d} day${d > 1 ? 's' : ''} ago`
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+function isImageUrl(url: string) { return /\.(png|jpe?g|gif|webp|svg)$/i.test(url) }
+function isOverdue(iso: string)  { return new Date(iso) < new Date() }
 
-// ── File Preview Modal ───────────────────────────────────────────────────────
+function nameAbbr(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length < 2) return name
+  return parts[0] + ' ' + parts.slice(1).map(p => p.charAt(0).toUpperCase() + '.').join('')
+}
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+
+// ── File preview modal ────────────────────────────────────────────────────────
 
 function FileModal({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
   const fullUrl = url.startsWith('/uploads/') ? `/api/course${url}` : url
-
   return (
     <div className={css.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div className={css.modal}>
@@ -48,9 +74,9 @@ function FileModal({ url, name, onClose }: { url: string; name: string; onClose:
           ) : (
             <div className={css.previewFallback}>
               <LuFileText size={48} color="#9ca3af" />
-              <p>Перегляд недоступний для цього типу файлу</p>
+              <p>Preview not available for this file type</p>
               <a href={fullUrl} target="_blank" rel="noreferrer" className={css.btnDownload}>
-                <LuExternalLink size={14} /> Відкрити файл
+                <LuExternalLink size={14} /> Open file
               </a>
             </div>
           )}
@@ -60,22 +86,91 @@ function FileModal({ url, name, onClose }: { url: string; name: string; onClose:
   )
 }
 
-// ── Student Submission Panel ─────────────────────────────────────────────────
+// ── Comments section ──────────────────────────────────────────────────────────
 
-function StudentPanel({
+function Comments({
+  placeholder,
   taskId,
-  courseId,
+  isPrivate = false,
   studentId,
-  maxMark,
 }: {
+  placeholder: string
   taskId: string
-  courseId: string
-  studentId: string
-  maxMark: number
+  isPrivate?: boolean
+  studentId?: string
 }) {
   const qc = useQueryClient()
-  const [file, setFile] = useState<File | null>(null)
-  const [link, setLink] = useState('')
+  const [input, setInput] = useState('')
+
+  const queryKey = isPrivate
+    ? ['comments-private', taskId, studentId]
+    : ['comments-class', taskId]
+
+  const { data: comments = [] } = useQuery({
+    queryKey,
+    queryFn: () =>
+      isPrivate ? getPrivateComments(taskId, studentId) : getTaskComments(taskId),
+    enabled: !!taskId,
+  })
+
+  const addMutation = useMutation({
+    mutationFn: (body: string) =>
+      isPrivate
+        ? addPrivateComment(taskId, body, studentId)
+        : addTaskComment(taskId, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey })
+      setInput('')
+    },
+  })
+
+  function send() {
+    const trimmed = input.trim()
+    if (!trimmed || addMutation.isPending) return
+    addMutation.mutate(trimmed)
+  }
+
+  return (
+    <div>
+      {comments.map(c => (
+        <div key={c.id} className={css.commentItem}>
+          <span className={css.commentAuthor}>{c.author_name}</span>
+          <span className={css.commentBody}>{c.body}</span>
+        </div>
+      ))}
+      <div className={css.commentRow}>
+        <input
+          className={css.commentInput}
+          placeholder={placeholder}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && send()}
+        />
+        <button
+          className={css.commentSendBtn}
+          disabled={!input.trim() || addMutation.isPending}
+          onClick={send}
+        >
+          <LuSend size={13} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Student: My Work card ─────────────────────────────────────────────────────
+
+function MyWorkCard({
+  taskId, courseId, studentId, maxMark, deadline, onFilePreview,
+}: {
+  taskId: string; courseId: string; studentId: string
+  maxMark: number; deadline: string
+  onFilePreview: (url: string, name: string) => void
+}) {
+  const qc = useQueryClient()
+  const [file, setFile]           = useState<File | null>(null)
+  const [link, setLink]           = useState('')
+  const [showLink, setShowLink]   = useState(false)
   const [fileError, setFileError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -83,7 +178,6 @@ function StudentPanel({
     queryKey: ['my-submissions', courseId],
     queryFn: () => getMySubmissionsForCourse(courseId),
   })
-
   const submission = submissions.find(s => s.task_id === taskId)
 
   const invalidate = () => {
@@ -97,20 +191,7 @@ function StudentPanel({
       if (file) fileUrl = await uploadFile(file)
       return submitTask(taskId, studentId, fileUrl, link.trim() || undefined)
     },
-    onSuccess: invalidate,
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      if (!submission) return
-      let fileUrl = submission.file_url
-      if (file) fileUrl = await uploadFile(file)
-      return updateSubmission(submission.id, {
-        file_url: fileUrl,
-        link_url: link.trim() || submission.link_url,
-      })
-    },
-    onSuccess: invalidate,
+    onSuccess: () => { invalidate(); setFile(null); setLink(''); setShowLink(false) },
   })
 
   const unsubmitMutation = useMutation({
@@ -122,227 +203,298 @@ function StudentPanel({
     setFileError('')
     const f = e.target.files?.[0]
     if (!f) return
-    if (f.size > MAX_FILE_SIZE) {
-      setFileError('Файл перевищує 10 МБ')
-      return
-    }
+    if (f.size > MAX_FILE_SIZE) { setFileError('File exceeds 10 MB'); return }
     setFile(f)
   }
 
-  const isGraded = submission?.mark !== undefined && submission.mark !== null
+  const isGraded   = submission?.mark !== undefined && submission.mark !== null
   const isChecking = !!submission && !isGraded
-  const isPending = !submission
+  const isPending  = !submission
+  const overdue    = isOverdue(deadline)
+  const isLate     = !!submission?.submission_time && new Date(submission.submission_time) > new Date(deadline)
+  const locked     = isChecking || isGraded
 
   return (
-    <div className={css.panel}>
-      <div className={css.panelTitle}>Ваша здача</div>
-
-      <div className={css.statusRow}>
-        <span className={css.statusLabel}>Статус:</span>
-        {isPending  && <span className={css.badgePending}>Не здано</span>}
-        {isChecking && <span className={css.badgeChecking}>Перевіряється</span>}
-        {isGraded   && <span className={css.badgeGraded}>Оцінено</span>}
+    <div className={css.myWorkCard}>
+      {/* Header */}
+      <div className={css.mwHeader}>
+        <span className={css.mwTitle}>My work</span>
+        {isPending && overdue  && <span className={`${css.badge} ${css.badgeMissed}`}>Missing</span>}
+        {isPending && !overdue && <span className={`${css.badge} ${css.badgePending}`}>Not submitted</span>}
+        {isChecking            && <span className={`${css.badge} ${css.badgeChecking}`}>Submitted</span>}
+        {isGraded              && <span className={`${css.badge} ${css.badgeGraded}`}>Graded</span>}
       </div>
 
+      {/* Grade */}
       {isGraded && (
-        <>
-          <div className={css.score}>{submission!.mark} / {maxMark}</div>
-          <div className={css.scoreLabel}>балів</div>
-        </>
+        <div className={css.gradeDisplay}>
+          <span className={css.gradeScore}>{submission!.mark}</span>
+          <span className={css.gradeOf}>/{maxMark}</span>
+        </div>
       )}
 
-      {/* Show existing materials */}
+      {/* Submitted attachments */}
       {submission?.file_url && (
-        <div className={css.formGroup}>
-          <span className={css.formLabel}>Прикріплений файл</span>
-          <a
-            href={submission.file_url.startsWith('/uploads/') ? `/api/course${submission.file_url}` : submission.file_url}
-            target="_blank"
-            rel="noreferrer"
-            className={css.materialLink}
-          >
-            <LuPaperclip size={13} /> {submission.file_url.split('/').pop()}
-          </a>
-        </div>
+        <button
+          className={css.attachedItem}
+          onClick={() => onFilePreview(submission.file_url!, submission.file_url!.split('/').pop() ?? 'file')}
+        >
+          <LuPaperclip size={13} />
+          <span className={css.attachedItemName}>{submission.file_url.split('/').pop()}</span>
+          <LuExternalLink size={11} style={{ marginLeft: 'auto', opacity: 0.4 }} />
+        </button>
       )}
       {submission?.link_url && (
-        <div className={css.formGroup}>
-          <span className={css.formLabel}>Посилання</span>
-          <a href={submission.link_url} target="_blank" rel="noreferrer" className={css.materialLink}>
-            <LuLink size={13} /> {submission.link_url}
-          </a>
+        <a href={submission.link_url} target="_blank" rel="noreferrer" className={css.attachedItem}>
+          <LuLink size={13} />
+          <span className={css.attachedItemUrl}>{submission.link_url}</span>
+          <LuExternalLink size={11} style={{ marginLeft: 'auto', opacity: 0.4 }} />
+        </a>
+      )}
+
+      {/* Pending file chip */}
+      {isPending && file && (
+        <div className={css.fileChip}>
+          <LuPaperclip size={12} />
+          <span>{file.name}</span>
+          <button className={css.fileChipRemove} onClick={() => setFile(null)}>×</button>
         </div>
       )}
 
-      {/* Submission form */}
+      {/* Hidden file input */}
+      <input
+        ref={fileRef} type="file" style={{ display: 'none' }} onChange={handleFile}
+        accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif,.zip,.pptx,.xlsx"
+      />
+
+      {/* Attach buttons */}
+      {!locked && (
+        <div className={css.attachBtns}>
+          <button className={css.attachBtn} onClick={() => fileRef.current?.click()}>
+            <LuPaperclip size={14} />
+            {file ? 'Change file' : 'Attach file'}
+          </button>
+          <button
+            className={`${css.attachBtn} ${showLink ? css.attachBtnActive : ''}`}
+            onClick={() => setShowLink(v => !v)}
+          >
+            <LuLink size={14} /> Add link
+          </button>
+        </div>
+      )}
+
+      {/* Link input (toggled) */}
+      {!locked && showLink && (
+        <input
+          className={css.linkInput}
+          type="url"
+          placeholder="Paste link…"
+          value={link}
+          onChange={e => setLink(e.target.value)}
+          autoFocus
+        />
+      )}
+
+      {fileError && <p className={css.fileError}>{fileError}</p>}
+
+      {/* Action button */}
       {!isGraded && (
-        <>
-          {isChecking && <div className={css.panelTitle} style={{ marginTop: 12 }}>Оновити матеріали</div>}
-
-          <div className={css.formGroup}>
-            <label className={css.formLabel}>Файл</label>
-            <input
-              ref={fileRef}
-              type="file"
-              className={css.fileInput}
-              onChange={handleFile}
-              accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif,.zip,.pptx,.xlsx"
-            />
-            <button
-              className={`${css.fileBtn} ${file ? css.fileSelected : ''}`}
-              onClick={() => fileRef.current?.click()}
-              type="button"
-            >
-              <LuPaperclip size={14} />
-              {file ? file.name : 'Вибрати файл'}
-            </button>
-            {fileError && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{fileError}</div>}
-            <div className={css.fileSizeHint}>Макс. 10 МБ: PDF, DOC, PNG, JPG, ZIP…</div>
-          </div>
-
-          <div className={css.divider}>або</div>
-
-          <div className={css.formGroup}>
-            <label className={css.formLabel}>Посилання</label>
-            <input
-              className={css.linkInput}
-              type="url"
-              placeholder="https://..."
-              value={link}
-              onChange={e => setLink(e.target.value)}
-            />
-          </div>
-
+        <div className={css.submitRow}>
           {isPending ? (
             <button
               className={css.btnPrimary}
               disabled={submitMutation.isPending || (!file && !link.trim())}
               onClick={() => submitMutation.mutate()}
             >
-              {submitMutation.isPending ? 'Здаємо…' : 'Здати роботу'}
+              {submitMutation.isPending ? 'Submitting…' : overdue ? 'Turn in late' : 'Turn in'}
             </button>
           ) : (
-            <button
-              className={css.btnPrimary}
-              disabled={updateMutation.isPending || (!file && !link.trim())}
-              onClick={() => updateMutation.mutate()}
-            >
-              {updateMutation.isPending ? 'Зберігаємо…' : 'Оновити матеріали'}
-            </button>
-          )}
-
-          {isChecking && (
             <button
               className={css.btnSecondary}
               disabled={unsubmitMutation.isPending}
               onClick={() => unsubmitMutation.mutate()}
             >
-              {unsubmitMutation.isPending ? '…' : 'Скасувати здачу'}
+              {unsubmitMutation.isPending ? '…' : 'Cancel submission'}
             </button>
           )}
-        </>
+        </div>
       )}
+
+      {/* Status text */}
+      <div className={css.statusLine}>
+        {isPending && !overdue && (
+          <span className={css.statusPending}>Assignment pending · Due {fmtDate(deadline)}</span>
+        )}
+        {isPending && overdue && (
+          <span className={css.statusMissed}>Missed deadline · Was due {fmtDate(deadline)}</span>
+        )}
+        {(isChecking || isGraded) && !isLate && (
+          <span className={css.statusOk}>Submitted · {fmtDate(submission!.submission_time!)}</span>
+        )}
+        {(isChecking || isGraded) && isLate && (
+          <span className={css.statusLate}>Submitted late · {fmtDate(submission!.submission_time!)}</span>
+        )}
+      </div>
+
+      {/* Private comments */}
+      <div className={css.privateSep}>
+        <div className={css.commentsTitle}>Private comments</div>
+        <Comments
+          placeholder="Add private comment…"
+          taskId={taskId}
+          isPrivate
+          studentId={studentId}
+        />
+      </div>
     </div>
   )
 }
 
-// ── Teacher Submission Card ──────────────────────────────────────────────────
+// ── Teacher: Submission detail ────────────────────────────────────────────────
 
-function SubmissionCard({
-  submission,
-  maxMark,
-  onFilePreview,
+function SubmissionDetail({
+  submission, maxMark, deadline, onBack, onFilePreview,
 }: {
-  submission: TaskStudent
-  maxMark: number
+  submission: TaskStudent; maxMark: number; deadline: string
+  onBack: () => void
   onFilePreview: (url: string, name: string) => void
 }) {
   const qc = useQueryClient()
-  const [markInput, setMarkInput] = useState(String(submission.mark ?? ''))
+  const [markInput, setMarkInput]       = useState(String(submission.mark ?? ''))
+  const [returnComment, setReturnComment] = useState('')
 
   const gradeMutation = useMutation({
     mutationFn: (mark: number) => gradeSubmission(submission.id, mark),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['task-submissions', submission.task_id] }),
   })
 
-  const isGraded  = submission.mark !== undefined && submission.mark !== null
-  const submitted = !!submission.submission_time
+  const returnMutation = useMutation({
+    mutationFn: async () => {
+      if (returnComment.trim()) {
+        await addPrivateComment(submission.task_id, returnComment.trim(), submission.student_id)
+      }
+      await unsubmitTask(submission.id)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['task-submissions', submission.task_id] })
+      qc.invalidateQueries({ queryKey: ['comments-private', submission.task_id, submission.student_id] })
+      onBack()
+    },
+  })
+
+  const isGraded    = submission.mark !== undefined && submission.mark !== null
+  const submittedAt = submission.submission_time ? new Date(submission.submission_time) : null
+  const onTime      = submittedAt ? submittedAt <= new Date(deadline) : null
 
   return (
-    <div className={css.submissionCard}>
-      <div className={css.submissionHeader}>
-        <span className={css.studentName}>{submission.student_name ?? 'Студент'}</span>
-        <span className={`${css.submissionStatus} ${
-          isGraded  ? css.statusGraded :
-          submitted ? css.statusSubmitted :
-                      css.statusNotSubmitted
-        }`}>
-          {isGraded ? `Оцінено: ${submission.mark}/${maxMark}` : submitted ? 'Перевіряється' : 'Не здано'}
+    <div className={css.myWorkCard}>
+      <button className={css.backToList} onClick={onBack}>
+        <LuChevronLeft size={14} /> All submissions
+      </button>
+
+      <div className={css.detailHeader}>
+        <span className={css.studentName}>{submission.student_name ?? 'Student'}</span>
+        <span className={`${css.badge} ${isGraded ? css.badgeGraded : submission.submission_time ? css.badgeChecking : css.badgeMissed}`}>
+          {isGraded ? `${submission.mark}/${maxMark}` : submission.submission_time ? 'Submitted' : 'Missing'}
         </span>
       </div>
 
-      {/* Materials */}
+      {submittedAt && (
+        <div className={`${css.timeChip} ${onTime ? css.timeOnTime : css.timeLate}`}>
+          <LuClock size={12} />
+          {onTime ? 'On time' : 'Late'} · {fmtDateTime(submission.submission_time!)}
+        </div>
+      )}
+
       {(submission.file_url || submission.link_url) && (
-        <div className={css.submissionMaterials}>
+        <div className={css.detailAttachments}>
+          <div className={css.sectionLabel}>Attachments</div>
           {submission.file_url && (
             <button
-              className={css.materialLink}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              onClick={() => onFilePreview(
-                submission.file_url!,
-                submission.file_url!.split('/').pop() ?? 'file',
-              )}
+              className={css.attachedItem}
+              onClick={() => onFilePreview(submission.file_url!, submission.file_url!.split('/').pop() ?? 'file')}
             >
-              <LuPaperclip size={13} /> {submission.file_url.split('/').pop()}
+              <LuPaperclip size={13} />
+              <span className={css.attachedItemName}>{submission.file_url.split('/').pop()}</span>
+              <LuExternalLink size={11} style={{ marginLeft: 'auto', opacity: 0.4 }} />
             </button>
           )}
           {submission.link_url && (
-            <a href={submission.link_url} target="_blank" rel="noreferrer" className={css.materialLink}>
-              <LuLink size={13} /> Посилання
+            <a href={submission.link_url} target="_blank" rel="noreferrer" className={css.attachedItem}>
+              <LuLink size={13} />
+              <span className={css.attachedItemUrl}>{submission.link_url}</span>
+              <LuExternalLink size={11} style={{ marginLeft: 'auto', opacity: 0.4 }} />
             </a>
           )}
         </div>
       )}
 
-      {/* Grade row */}
-      {submitted && (
-        <div className={css.gradeRow}>
-          <input
-            className={css.gradeInput}
-            type="number"
-            min="0"
-            max={maxMark}
-            step="0.5"
-            value={markInput}
-            onChange={e => setMarkInput(e.target.value)}
-            placeholder="0"
-          />
-          <span className={css.gradeLabel}>/ {maxMark}</span>
-          <button
-            className={css.btnGrade}
-            disabled={gradeMutation.isPending || markInput === ''}
-            onClick={() => gradeMutation.mutate(parseFloat(markInput))}
-          >
-            {gradeMutation.isPending ? '…' : isGraded ? 'Змінити' : 'Оцінити'}
-          </button>
-        </div>
+      {submission.submission_time && (
+        <>
+          <div className={css.commentsTitle} style={{ marginTop: 14 }}>Grade</div>
+          <div className={css.gradeRow}>
+            <input
+              className={css.gradeInput}
+              type="number" min="0" max={maxMark} step="0.5"
+              value={markInput} onChange={e => setMarkInput(e.target.value)}
+              placeholder="0"
+            />
+            <span className={css.gradeSlash}>/ {maxMark}</span>
+            <button
+              className={css.btnPrimary}
+              style={{ flex: 1, padding: '7px 12px', fontSize: 13 }}
+              disabled={gradeMutation.isPending || markInput === ''}
+              onClick={() => gradeMutation.mutate(parseFloat(markInput))}
+            >
+              {gradeMutation.isPending ? '…' : isGraded ? 'Update' : 'Grade'}
+            </button>
+          </div>
+
+          <div className={css.returnSection}>
+            <div className={css.commentsTitle}>Return with comment</div>
+            <textarea
+              className={css.returnTextarea}
+              placeholder="Write a comment for the student…"
+              value={returnComment}
+              onChange={e => setReturnComment(e.target.value)}
+              rows={3}
+            />
+            <button
+              className={css.btnSecondary}
+              disabled={returnMutation.isPending}
+              onClick={() => returnMutation.mutate()}
+            >
+              {returnMutation.isPending ? '…' : 'Return assignment'}
+            </button>
+          </div>
+        </>
       )}
+
+      <div className={css.privateSep}>
+        <div className={css.commentsTitle}>Private comments</div>
+        <Comments
+          placeholder="Write a private comment…"
+          taskId={submission.task_id}
+          isPrivate
+          studentId={submission.student_id}
+        />
+      </div>
     </div>
   )
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function TaskPage() {
   const { courseId, taskId } = useParams<{ courseId: string; taskId: string }>()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const user = getAuthUser()
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const user      = getAuthUser()
   const isTeacher = user?.role === 'teacher'
-
-  const course = (location.state as CourseInfo | null)
+  const course    = location.state as CourseInfo | null
 
   const [fileModal, setFileModal] = useState<{ url: string; name: string } | null>(null)
+  const [selectedSub, setSelectedSub] = useState<TaskStudent | null>(null)
 
   const { data: task, isLoading } = useQuery({
     queryKey: ['task', taskId],
@@ -356,87 +508,151 @@ export default function TaskPage() {
     enabled: !!taskId && isTeacher,
   })
 
-  if (isLoading) return <div className={css.page} style={{ padding: 28, color: '#6b7280' }}>Завантаження…</div>
-  if (!task) return <div className={css.page} style={{ padding: 28, color: '#ef4444' }}>Завдання не знайдено</div>
+  const openPreview = (url: string, name: string) => setFileModal({ url, name })
+
+  if (isLoading) return <div className={css.page}><p className={css.stateMsg}>Loading…</p></div>
+  if (!task)     return <div className={css.page}><p className={css.stateMsg} style={{ color: '#ef4444' }}>Task not found</p></div>
+
+  const isAnnouncement = task.post_type === 'announcement'
+  const turnedIn = submissions.filter(s => !!s.submission_time).length
+  const graded   = submissions.filter(s => s.mark !== undefined && s.mark !== null).length
+  const hasRight = !isAnnouncement
 
   return (
     <div className={css.page}>
-      {/* Header */}
-      <div className={css.header}>
+      <div className={css.inner}>
+        {/* Back */}
         <button className={css.backBtn} onClick={() => navigate(-1)}>
-          <LuArrowLeft size={16} /> Назад
+          <LuArrowLeft size={14} />
+          {course?.name ?? 'Back'}
         </button>
-        <div className={css.headerInfo}>
-          <div className={css.taskTitle}>{task.title}</div>
-          <div className={css.taskMeta}>
-            {course && <span className={css.metaItem}>{course.name}</span>}
-            {task.post_type === 'assignment' && (
+
+        {/* Main card */}
+        <div className={`${css.mainCard} ${hasRight ? css.mainCardWithSidebar : ''}`}>
+          {/* ── Left column ── */}
+          <div className={css.mainLeft}>
+            {/* Task title */}
+            <div className={css.taskTitleRow}>
+              {isAnnouncement
+                ? <LuMegaphone size={18} className={css.taskIcon} />
+                : <LuClipboardList size={18} className={css.taskIcon} />
+              }
+              <h1 className={css.taskTitle}>{task.title}</h1>
+            </div>
+
+            {/* Meta */}
+            <div className={css.taskMeta}>
+              {course?.teacher_name && <span>{course.teacher_name}</span>}
+              <span>{timeAgo(task.created_at)}</span>
+              {!isAnnouncement && (
+                <>
+                  <span className={css.metaChip}><LuStar size={12} /> {task.max_mark} pts</span>
+                  <span className={css.metaChip}><LuCalendar size={12} /> Due {fmtDate(task.deadline)}</span>
+                </>
+              )}
+            </div>
+
+            {/* Teacher stats */}
+            {isTeacher && !isAnnouncement && (
+              <div className={css.statsRow}>
+                <div className={css.statItem}><b>{turnedIn}</b> submitted</div>
+                <div className={css.statItem}><b>{graded}</b> graded</div>
+                <div className={css.statItem}><b>{submissions.length}</b> total</div>
+              </div>
+            )}
+
+            <hr className={css.divider} />
+
+            {/* Description */}
+            {task.description ? (
+              <div className={css.descText}>{task.description}</div>
+            ) : (
+              <p className={css.emptyDesc}>No description provided.</p>
+            )}
+
+            {/* Teacher: submissions list */}
+            {isTeacher && !isAnnouncement && (
               <>
-                <span className={css.metaItem}>Дедлайн: {fmtDeadline(task.deadline)}</span>
-                <span className={css.metaItem}>{task.max_mark} балів</span>
+                <hr className={css.divider} />
+                <div className={css.subListHeader}>
+                  Student submissions
+                  {submissions.length > 0 && <span className={css.countPill}>{submissions.length}</span>}
+                </div>
+                {submissions.length === 0 ? (
+                  <p className={css.emptyDesc}>No submissions yet.</p>
+                ) : (
+                  <div className={css.subList}>
+                    {submissions.map(s => {
+                      const g = s.mark !== undefined && s.mark !== null
+                      const sub = !!s.submission_time
+                      return (
+                        <button
+                          key={s.id}
+                          className={`${css.subRow} ${selectedSub?.id === s.id ? css.subRowActive : ''}`}
+                          onClick={() => setSelectedSub(s)}
+                        >
+                          <div className={css.subInfo}>
+                            <span className={css.subName}>{nameAbbr(s.student_name ?? 'Student')}</span>
+                            {sub && <span className={css.subMeta}>{fmtDateTime(s.submission_time!)}</span>}
+                            <span className={css.subMeta}>
+                              {g ? `${s.mark} / ${task.max_mark} pts` : sub ? '—' : 'Not submitted'}
+                            </span>
+                          </div>
+                          {(s.file_url || s.link_url) && <LuPaperclip size={12} style={{ color: '#9ca3af', flexShrink: 0 }} />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </>
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* Body */}
-      <div className={css.body}>
-        {/* Left: description */}
-        <div>
-          {task.description && (
-            <div className={css.descCard}>
-              <div className={css.descTitle}>Опис завдання</div>
-              <div className={css.descText}>{task.description}</div>
+            <hr className={css.divider} />
+
+            {/* Class comments */}
+            <div className={css.commentsSection}>
+              <div className={css.commentsTitle}>Class comments</div>
+              <Comments placeholder="Add a class comment…" taskId={taskId!} />
             </div>
-          )}
+          </div>
 
-          {/* Teacher: submissions list */}
-          {isTeacher && (
-            <div style={{ marginTop: 16 }}>
-              <div className={css.descTitle} style={{ marginBottom: 12 }}>
-                Здачі студентів ({submissions.length})
-              </div>
-              {submissions.length === 0 ? (
-                <div className={css.descCard}>
-                  <span style={{ color: '#9ca3af', fontSize: 14 }}>Ніхто ще не здав це завдання</span>
-                </div>
-              ) : (
-                <div className={css.submissionsList}>
-                  {submissions.map(s => (
-                    <SubmissionCard
-                      key={s.id}
-                      submission={s}
-                      maxMark={task.max_mark}
-                      onFilePreview={(url, name) => setFileModal({ url, name })}
-                    />
-                  ))}
-                </div>
+          {/* ── Right column ── */}
+          {hasRight && (
+            <div className={css.mainRight}>
+              {!isTeacher && courseId && user && (
+                <MyWorkCard
+                  taskId={taskId!}
+                  courseId={courseId}
+                  studentId={user.id}
+                  maxMark={task.max_mark}
+                  deadline={task.deadline}
+                  onFilePreview={openPreview}
+                />
+              )}
+              {isTeacher && (
+                selectedSub ? (
+                  <SubmissionDetail
+                    submission={selectedSub}
+                    maxMark={task.max_mark}
+                    deadline={task.deadline}
+                    onBack={() => setSelectedSub(null)}
+                    onFilePreview={openPreview}
+                  />
+                ) : (
+                  <div className={css.myWorkCard} style={{ textAlign: 'center', padding: '28px 16px' }}>
+                    <p style={{ fontSize: 13, color: '#9ca3af', margin: 0 }}>
+                      Select a submission from the list to review it.
+                    </p>
+                  </div>
+                )
               )}
             </div>
           )}
         </div>
-
-        {/* Right: student panel */}
-        {!isTeacher && courseId && user && (
-          <div className={css.sidebar}>
-            <StudentPanel
-              taskId={taskId!}
-              courseId={courseId}
-              studentId={user.id}
-              maxMark={task.max_mark}
-            />
-          </div>
-        )}
       </div>
 
-      {/* File modal */}
       {fileModal && (
-        <FileModal
-          url={fileModal.url}
-          name={fileModal.name}
-          onClose={() => setFileModal(null)}
-        />
+        <FileModal url={fileModal.url} name={fileModal.name} onClose={() => setFileModal(null)} />
       )}
     </div>
   )

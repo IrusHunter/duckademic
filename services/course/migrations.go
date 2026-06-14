@@ -19,6 +19,7 @@ func Migrate(database *sqlx.DB) error {
 		taskStudentMigrations,
 		taskColumnsV2Migrations,
 		taskStudentColumnsV2Migrations,
+		taskCommentMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -384,6 +385,44 @@ func taskStudentMigrations(tx *sqlx.Tx) error {
 
 	if err := db.EnsureUpdatedAtTriggerTx(context.Background(), tx, "task_students"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for task_students: %w", err)
+	}
+
+	return nil
+}
+
+func taskCommentMigrations(tx *sqlx.Tx) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS task_comments (
+		id UUID PRIMARY KEY,
+		task_id UUID NOT NULL,
+		author_id UUID NOT NULL,
+		author_name TEXT NOT NULL,
+		body TEXT NOT NULL,
+		is_private BOOLEAN NOT NULL DEFAULT FALSE,
+		student_id UUID,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+
+	if _, err := tx.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create task_comments table: %w", err)
+	}
+
+	if err := db.EnsureForeignKeyTx(
+		context.Background(),
+		tx,
+		"fk_task_comments_task",
+		"task_comments",
+		"task_id",
+		"tasks",
+		"id",
+	); err != nil {
+		return fmt.Errorf("failed to create task_id foreign key for task_comments: %w", err)
+	}
+
+	if err := db.EnsureUpdatedAtTriggerTx(context.Background(), tx, "task_comments"); err != nil {
+		return fmt.Errorf("failed to create on update trigger for task_comments: %w", err)
 	}
 
 	return nil

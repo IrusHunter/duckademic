@@ -53,3 +53,15 @@ export interface TaskStudent {
   task?: Task
   student_name?: string
 }
+
+export interface TaskComment {
+  id: string
+  task_id: string
+  author_id: string
+  author_name: string
+  body: string
+  is_private: boolean
+  student_id?: string
+  created_at: string
+  updated_at: string
+}

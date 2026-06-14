@@ -1,5 +1,5 @@
 import { api, asArray } from './api'
-import type { StudentCoursePage, TeacherCoursePage, Task, TaskStudent } from '../types/course'
+import type { StudentCoursePage, TeacherCoursePage, Task, TaskStudent, TaskComment } from '../types/course'
 
 export async function getStudentCourses(): Promise<StudentCoursePage[]> {
   const res = await api.get('/api/course/courses/student')
@@ -71,10 +71,7 @@ export async function updateSubmission(
 }
 
 export async function gradeSubmission(submissionId: string, mark: number): Promise<TaskStudent> {
-  const res = await api.put(`/api/course/task-student/${submissionId}`, {
-    mark,
-    submission_time: new Date().toISOString(),
-  })
+  const res = await api.put(`/api/course/task-student/${submissionId}`, { mark })
   return res.data as TaskStudent
 }
 
@@ -93,4 +90,32 @@ export async function uploadFile(file: File): Promise<string> {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
   return (res.data as { url: string }).url
+}
+
+export async function getTaskComments(taskId: string): Promise<TaskComment[]> {
+  const res = await api.get(`/api/course/task/${taskId}/comments`)
+  return asArray<TaskComment>(res.data)
+}
+
+export async function addTaskComment(taskId: string, body: string): Promise<TaskComment> {
+  const res = await api.post(`/api/course/task/${taskId}/comments`, { body })
+  return res.data as TaskComment
+}
+
+export async function getPrivateComments(taskId: string, studentId?: string): Promise<TaskComment[]> {
+  const params = studentId ? `?student_id=${studentId}` : ''
+  const res = await api.get(`/api/course/task/${taskId}/comments/private${params}`)
+  return asArray<TaskComment>(res.data)
+}
+
+export async function addPrivateComment(
+  taskId: string,
+  body: string,
+  studentId?: string,
+): Promise<TaskComment> {
+  const res = await api.post(`/api/course/task/${taskId}/comments/private`, {
+    body,
+    student_id: studentId ?? undefined,
+  })
+  return res.data as TaskComment
 }

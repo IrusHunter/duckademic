@@ -26,7 +26,7 @@ func NewTaskStudentRepository(db *sqlx.DB) TaskStudentRepository {
 		entities.TaskStudent{}.TableName(),
 		entities.TaskStudent{}.EntityName(),
 		[]string{"id", "task_id", "student_id", "mark", "submission_time", "file_url", "link_url"},
-		[]string{"mark", "submission_time", "file_url", "link_url"},
+		[]string{"mark"},
 		[]string{"created_at", "updated_at"},
 	)
 
@@ -100,6 +100,8 @@ type TaskStudentFlat struct {
 	StudentID      uuid.UUID  `db:"student_id"`
 	Mark           *float64   `db:"mark"`
 	SubmissionTime *time.Time `db:"submission_time"`
+	FileURL        *string    `db:"file_url"`
+	LinkURL        *string    `db:"link_url"`
 	CreatedAt      time.Time  `db:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at"`
 
@@ -118,6 +120,8 @@ func (f *TaskStudentFlat) Convert() entities.TaskStudent {
 		StudentID:      f.StudentID,
 		Mark:           f.Mark,
 		SubmissionTime: f.SubmissionTime,
+		FileURL:        f.FileURL,
+		LinkURL:        f.LinkURL,
 		CreatedAt:      f.CreatedAt,
 		UpdatedAt:      f.UpdatedAt,
 		Task: &entities.Task{
@@ -187,12 +191,14 @@ func (r *taskStudentRepository) GetTasksForStudentInCourse(
 ) ([]entities.TaskStudent, error) {
 
 	query := fmt.Sprintf(`
-		SELECT 
+		SELECT
 			ts.id,
 			ts.task_id,
 			ts.student_id,
 			ts.mark,
 			ts.submission_time,
+			ts.file_url,
+			ts.link_url,
 			ts.created_at,
 			ts.updated_at,
 

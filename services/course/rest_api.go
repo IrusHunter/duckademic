@@ -31,6 +31,7 @@ func NewRESTAPI(
 	tch resthandlers.TeacherCourseHandler,
 	taskH resthandlers.TaskHandler,
 	tsh resthandlers.TaskStudentHandler,
+	tcomH resthandlers.TaskCommentHandler,
 	dh resthandlers.DatabaseHandler,
 	jwtSecret []byte,
 ) RESTAPI {
@@ -43,6 +44,7 @@ func NewRESTAPI(
 		teacherCourseHandler: tch,
 		taskHandler:          taskH,
 		taskStudentHandler:   tsh,
+		taskCommentHandler:   tcomH,
 		databaseHandler:      dh,
 	}
 }
@@ -56,6 +58,7 @@ type restapi struct {
 	teacherCourseHandler resthandlers.TeacherCourseHandler
 	taskHandler          resthandlers.TaskHandler
 	taskStudentHandler   resthandlers.TaskStudentHandler
+	taskCommentHandler   resthandlers.TaskCommentHandler
 	databaseHandler      resthandlers.DatabaseHandler
 }
 
@@ -133,6 +136,15 @@ func (ra *restapi) Run(port int) error {
 
 	ra.NewRoute("/get-upcoming-events", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.taskStudentHandler.GetUpcomingEvents, []string{}),
+	})
+
+	ra.NewRoute("/task/{id}/comments", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskCommentHandler.GetForTask, []string{}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.taskCommentHandler.AddComment, []string{}),
+	})
+	ra.NewRoute("/task/{id}/comments/private", map[string]platform.HandlerFunc{
+		http.MethodGet:  ra.NewDefaultHandlerWithAuth(ra.taskCommentHandler.GetPrivateComments, []string{}),
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.taskCommentHandler.AddPrivateComment, []string{}),
 	})
 	ra.NewRoute("/get-courses-progress", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.studentCourseHandler.GetCourseProgress, []string{}),

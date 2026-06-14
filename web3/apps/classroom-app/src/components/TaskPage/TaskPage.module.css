@@ -1,368 +1,594 @@
+/* ── Page shell ── */
 .page {
+  position: relative;
   display: flex;
   flex-direction: column;
-  flex: 1;
   background-color: #f3f4f6;
+  flex: 1;
   min-height: calc(100vh - 80px);
 }
 
-/* ===== Header ===== */
-.header {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e4e4e7;
-  padding: 20px 28px;
+.page::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -70px;
+  bottom: 0;
+  width: 70px;
+  background-color: #f3f4f6;
+  pointer-events: none;
+}
+
+.inner {
+  padding: 24px 0 24px 20px;
   display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.backBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 6px;
-  transition: background-color 0.15s, color 0.15s;
-  flex-shrink: 0;
-}
-.backBtn:hover { background-color: #f3f4f6; color: #111827; }
-
-.headerInfo { flex: 1; min-width: 0; }
-
-.taskTitle {
-  font-size: 22px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 4px;
-}
-
-.taskMeta {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.metaItem { display: inline-flex; align-items: center; gap: 4px; }
-
-/* ===== Body ===== */
-.body {
-  display: flex;
-  gap: 20px;
-  padding: 20px 28px;
-  align-items: flex-start;
+  flex-direction: column;
   flex: 1;
 }
 
-/* ===== Task description card ===== */
-.descCard {
-  background-color: #ffffff;
-  border-radius: 8px;
+.stateMsg {
+  padding: 40px 24px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* ── Back button (admin-app style) ── */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 16px;
+  color: #909090;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 16px;
+  padding: 0;
+  font-family: inherit;
+  width: fit-content;
+}
+.backBtn:hover { color: #61708c; }
+
+/* ── Main card (one big white rectangle) ── */
+.mainCard {
+  background: #ffffff;
   border: 1px solid #e4e4e7;
-  padding: 24px;
+  border-radius: 8px;
+  padding: 28px 28px 28px 28px;
+  flex: 1;
+}
+
+.mainCardWithSidebar {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── Left column ── */
+.mainLeft {
   flex: 1;
   min-width: 0;
 }
 
-.descTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 12px;
+/* ── Task header ── */
+.taskTitleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
+.taskIcon {
+  color: #374151;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.taskTitle {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.taskMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.metaSep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #d1d5db;
+  flex-shrink: 0;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f3f4f6;
+  border: 1px solid #e4e4e7;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* ── Teacher stats ── */
+.statsRow {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+  padding: 10px 0 0 0;
+}
+
+.statItem {
+  font-size: 13px;
+  color: #6b7280;
+}
+.statItem b { color: #111827; font-weight: 600; }
+
+/* ── Divider ── */
+.divider {
+  border: none;
+  border-top: 1px solid #f3f4f6;
+  margin: 20px 0;
+}
+
+/* ── Description ── */
 .descText {
   font-size: 14px;
-  color: #4b5563;
-  line-height: 1.6;
+  color: #374151;
+  line-height: 1.7;
+  white-space: pre-wrap;
 }
 
-/* ===== Sidebar submission panel ===== */
-.sidebar {
-  width: 320px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.emptyDesc {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
 }
 
-.panel {
-  background-color: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e4e4e7;
-  padding: 20px;
-}
-
-.panelTitle {
-  font-size: 14px;
+/* ── Teacher: submissions list ── */
+.subListHeader {
+  font-size: 13px;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.countPill {
+  background: #111827;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.subList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 6px;
+  background: #f9fafb;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.subRow:hover   { background: #f3f4f6; border-color: #9ca3af; }
+.subRowActive   { border-color: #111827 !important; background: #f3f4f6; }
+
+.subInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.subName { font-weight: 600; font-size: 13px; color: #111827; }
+.subMeta { font-size: 11px; color: #9ca3af; }
+
+/* ── Comments ── */
+.commentsSection { }
+
+.commentsTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.commentItem {
+  font-size: 13px;
+  color: #374151;
+  background: #f9fafb;
+  border: 1px solid #e4e4e7;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.commentAuthor {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.commentBody {
+  font-size: 13px;
+  color: #111827;
+}
+
+.commentRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  padding: 7px 7px 7px 14px;
+  transition: border-color 0.15s;
+}
+.commentRow:focus-within { border-color: #374151; }
+
+.commentInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #111827;
+  background: transparent;
+  font-family: inherit;
+}
+.commentInput::placeholder { color: #9ca3af; }
+
+.commentSendBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #111827;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.commentSendBtn:hover { background: #374151; }
+.commentSendBtn:disabled { background: #e4e4e7; color: #9ca3af; cursor: not-allowed; }
+
+/* ── Right column ── */
+.mainRight {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+/* ── My Work card (white rectangle inside the big white rectangle) ── */
+.myWorkCard {
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.mwHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid #f3f4f6;
 }
 
-/* ===== Status badge ===== */
-.statusRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.statusLabel { font-size: 13px; color: #6b7280; }
-
-.badgePending {
-  background-color: #fef9c3;
-  color: #854d0e;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.badgeChecking {
-  background-color: #dbeafe;
-  color: #1d4ed8;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.badgeGraded {
-  background-color: #dcfce7;
-  color: #166534;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-/* ===== Score ===== */
-.score {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
-  text-align: center;
-  margin-bottom: 4px;
-}
-.scoreLabel { font-size: 13px; color: #6b7280; text-align: center; margin-bottom: 16px; }
-
-/* ===== Form fields ===== */
-.formGroup { margin-bottom: 14px; }
-
-.formLabel {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 6px;
-}
-
-.fileInput { display: none; }
-
-.fileBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 14px;
-  border: 1.5px dashed #d1d5db;
-  border-radius: 8px;
-  background-color: #f9fafb;
+.mwTitle {
   font-size: 13px;
-  color: #6b7280;
-  cursor: pointer;
-  transition: border-color 0.15s, background-color 0.15s;
-}
-.fileBtn:hover { border-color: #2563eb; background-color: #eff6ff; color: #2563eb; }
-
-.fileSelected {
-  border-color: #2563eb;
-  background-color: #eff6ff;
-  color: #1d4ed8;
-  font-weight: 500;
+  font-weight: 600;
+  color: #111827;
 }
 
-.fileSizeHint {
+/* ── Badges ── */
+.badge {
   font-size: 11px;
-  color: #9ca3af;
-  margin-top: 4px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.badgePending  { background: #f3f4f6; color: #6b7280; }
+.badgeMissed   { background: #fee2e2; color: #991b1b; }
+.badgeChecking { background: #dbeafe; color: #1e40af; }
+.badgeGraded   { background: #dcfce7; color: #166534; }
+
+/* ── Grade display ── */
+.gradeDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+.gradeScore { font-size: 32px; font-weight: 700; color: #111827; }
+.gradeOf    { font-size: 15px; color: #6b7280; }
+
+/* ── Attached items ── */
+.attachedItem {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  font-size: 12px;
+  color: #374151;
+  text-decoration: none;
+  background: #f9fafb;
+  border: 1px solid #e4e4e7;
+  border-radius: 6px;
+  padding: 7px 9px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  overflow: hidden;
+}
+.attachedItem:hover { border-color: #9ca3af; color: #111827; }
+
+.attachedItemName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.attachedItemUrl {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  font-size: 11px;
 }
 
+/* ── Pending file chip ── */
+.fileChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+  background: #f3f4f6;
+  border: 1px solid #e4e4e7;
+  border-radius: 6px;
+  padding: 6px 9px;
+  margin-bottom: 8px;
+}
+.fileChipRemove {
+  background: none;
+  border: none;
+  font-size: 15px;
+  color: #9ca3af;
+  cursor: pointer;
+  margin-left: auto;
+  line-height: 1;
+  padding: 0;
+}
+.fileChipRemove:hover { color: #ef4444; }
+
+/* ── Attach buttons ── */
+.attachBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.attachBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid #e4e4e7;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: inherit;
+}
+.attachBtn:hover { border-color: #9ca3af; background: #f9fafb; }
+.attachBtnActive { border-color: #111827; background: #f3f4f6; color: #111827; }
+
+/* ── Link input ── */
 .linkInput {
   width: 100%;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e4e4e7;
   border-radius: 6px;
-  padding: 9px 12px;
-  font-size: 13px;
+  padding: 7px 11px;
+  font-size: 12px;
   color: #111827;
-  background-color: #ffffff;
+  background: #ffffff;
   box-sizing: border-box;
   font-family: inherit;
   transition: border-color 0.15s;
+  margin-bottom: 8px;
 }
-.linkInput:focus { outline: none; border-color: #2563eb; }
+.linkInput:focus { outline: none; border-color: #111827; }
 
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  font-size: 12px;
-  color: #9ca3af;
-}
-.divider::before, .divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background-color: #e5e7eb;
-}
+.fileError { font-size: 11px; color: #ef4444; margin: 0 0 8px; }
 
-/* ===== Buttons ===== */
+/* ── Buttons ── */
+.submitRow { margin-top: 8px; }
+
 .btnPrimary {
   width: 100%;
-  background-color: #111827;
+  background: #111827;
   color: #ffffff;
   border: none;
   border-radius: 6px;
-  padding: 10px 16px;
-  font-size: 14px;
+  padding: 9px 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 4px;
+  font-family: inherit;
+  transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
-.btnPrimary:hover { background-color: #374151; }
-.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btnPrimary:hover { background: #374151; }
+.btnPrimary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btnSecondary {
   width: 100%;
-  background-color: #ffffff;
+  background: #ffffff;
   color: #374151;
   border: 1px solid #e4e4e7;
   border-radius: 6px;
-  padding: 9px 16px;
-  font-size: 14px;
+  padding: 8px 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s;
-  margin-top: 8px;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
 }
-.btnSecondary:hover { background-color: #f9fafb; }
-.btnSecondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btnSecondary:hover { background: #f9fafb; border-color: #9ca3af; }
+.btnSecondary:disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* ===== Submitted materials ===== */
-.materialLink {
+/* ── Private comments separator ── */
+.privateSep {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+/* ── Teacher submission detail ── */
+.backToList {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #2563eb;
-  text-decoration: none;
-  font-weight: 500;
-  padding: 6px 0;
+  gap: 3px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+  font-family: inherit;
 }
-.materialLink:hover { text-decoration: underline; }
+.backToList:hover { color: #111827; }
 
-/* ===== Teacher: submissions list ===== */
-.submissionsList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.submissionCard {
-  background-color: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e4e4e7;
-  padding: 16px 20px;
-}
-
-.submissionHeader {
+.detailHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
 }
 
-.studentName {
-  font-size: 15px;
-  font-weight: 600;
-  color: #111827;
-}
+.studentName { font-size: 14px; font-weight: 600; color: #111827; }
 
-.submissionStatus {
+.timeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 12px;
   font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-
-.statusNotSubmitted { background-color: #f3f4f6; color: #6b7280; }
-.statusSubmitted    { background-color: #dbeafe; color: #1d4ed8; }
-.statusGraded       { background-color: #dcfce7; color: #166534; }
-
-.submissionMaterials {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  padding: 4px 10px;
+  border-radius: 6px;
   margin-bottom: 12px;
 }
+.timeOnTime { background: #dcfce7; color: #166534; }
+.timeLate   { background: #fee2e2; color: #991b1b; }
+
+.detailAttachments { margin-bottom: 4px; }
 
 .gradeRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .gradeInput {
-  width: 80px;
-  border: 1px solid #e5e7eb;
+  width: 60px;
+  border: 1px solid #e4e4e7;
   border-radius: 6px;
-  padding: 7px 10px;
-  font-size: 14px;
+  padding: 7px 9px;
+  font-size: 13px;
   color: #111827;
-  background-color: #ffffff;
+  background: #ffffff;
   font-family: inherit;
   transition: border-color 0.15s;
+  flex-shrink: 0;
 }
-.gradeInput:focus { outline: none; border-color: #2563eb; }
+.gradeInput:focus { outline: none; border-color: #111827; }
 
-.gradeLabel { font-size: 13px; color: #6b7280; }
+.gradeSlash { font-size: 12px; color: #6b7280; flex-shrink: 0; }
 
-.btnGrade {
-  background-color: #111827;
-  color: #ffffff;
-  border: none;
+.returnSection {
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.returnTextarea {
+  width: 100%;
+  border: 1px solid #e4e4e7;
   border-radius: 6px;
-  padding: 7px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  padding: 8px 11px;
+  font-size: 12px;
+  color: #111827;
+  background: #ffffff;
+  box-sizing: border-box;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 64px;
+  transition: border-color 0.15s;
 }
-.btnGrade:hover { background-color: #374151; }
-.btnGrade:disabled { opacity: 0.5; cursor: not-allowed; }
+.returnTextarea:focus { outline: none; border-color: #111827; }
 
-.currentGrade { font-size: 14px; font-weight: 600; color: #16a34a; }
-
-/* ===== File preview modal ===== */
+/* ── File modal ── */
 .overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background: rgba(0,0,0,0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -370,39 +596,32 @@
 }
 
 .modal {
-  background-color: #ffffff;
-  border-radius: 12px;
-  padding: 0;
+  background: #ffffff;
+  border-radius: 10px;
   width: 760px;
   max-width: 95vw;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.18);
 }
 
 .modalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 14px 18px;
   border-bottom: 1px solid #e4e4e7;
 }
-
-.modalTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-}
-
+.modalTitle { font-size: 14px; font-weight: 600; color: #111827; }
 .modalClose {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 22px;
   color: #6b7280;
   cursor: pointer;
-  padding: 4px;
+  padding: 2px 6px;
   line-height: 1;
 }
 .modalClose:hover { color: #111827; }
@@ -410,7 +629,7 @@
 .modalBody {
   flex: 1;
   overflow: auto;
-  padding: 20px;
+  padding: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -425,6 +644,10 @@
 
 .previewFallback {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   color: #6b7280;
   font-size: 14px;
 }
@@ -433,14 +656,27 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #111827;
+  background: #111827;
   color: #ffffff;
   border: none;
   border-radius: 6px;
-  padding: 9px 16px;
-  font-size: 14px;
+  padding: 8px 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  margin-top: 12px;
+  margin-top: 8px;
 }
+.btnDownload:hover { background: #374151; }
+
+/* ── Student status text ── */
+.statusLine {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #f3f4f6;
+  font-size: 12px;
+}
+.statusPending { color: #1d4ed8; }
+.statusMissed  { color: #dc2626; }
+.statusOk      { color: #6b7280; }
+.statusLate    { color: #6b7280; }
