@@ -48,7 +48,7 @@ func (r *taskRepository) FindFirstByTitle(ctx context.Context, title string) *en
 }
 func (r *taskRepository) GetTasksByCourseID(ctx context.Context, courseID uuid.UUID) ([]entities.Task, error) {
 	query := fmt.Sprintf(`
-		SELECT 
+		SELECT
 			id,
 			course_id,
 			slug,
@@ -56,6 +56,8 @@ func (r *taskRepository) GetTasksByCourseID(ctx context.Context, courseID uuid.U
 			description,
 			max_mark,
 			deadline,
+			post_type,
+			attachment_url,
 			created_at,
 			updated_at
 		FROM %s

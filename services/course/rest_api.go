@@ -32,6 +32,7 @@ func NewRESTAPI(
 	taskH resthandlers.TaskHandler,
 	tsh resthandlers.TaskStudentHandler,
 	tcomH resthandlers.TaskCommentHandler,
+	nh resthandlers.NotificationHandler,
 	dh resthandlers.DatabaseHandler,
 	jwtSecret []byte,
 ) RESTAPI {
@@ -45,6 +46,7 @@ func NewRESTAPI(
 		taskHandler:          taskH,
 		taskStudentHandler:   tsh,
 		taskCommentHandler:   tcomH,
+		notificationHandler:  nh,
 		databaseHandler:      dh,
 	}
 }
@@ -59,6 +61,7 @@ type restapi struct {
 	taskHandler          resthandlers.TaskHandler
 	taskStudentHandler   resthandlers.TaskStudentHandler
 	taskCommentHandler   resthandlers.TaskCommentHandler
+	notificationHandler  resthandlers.NotificationHandler
 	databaseHandler      resthandlers.DatabaseHandler
 }
 
@@ -148,6 +151,13 @@ func (ra *restapi) Run(port int) error {
 	})
 	ra.NewRoute("/get-courses-progress", map[string]platform.HandlerFunc{
 		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.studentCourseHandler.GetCourseProgress, []string{}),
+	})
+
+	ra.NewRoute("/notifications", map[string]platform.HandlerFunc{
+		http.MethodGet: ra.NewDefaultHandlerWithAuth(ra.notificationHandler.GetMyNotifications, []string{}),
+	})
+	ra.NewRoute("/notifications/read-all", map[string]platform.HandlerFunc{
+		http.MethodPost: ra.NewDefaultHandlerWithAuth(ra.notificationHandler.MarkAllRead, []string{}),
 	})
 
 	ra.NewRoute("/upload", map[string]platform.HandlerFunc{

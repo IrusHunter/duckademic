@@ -18,18 +18,41 @@ type TaskHandler interface {
 	GetByCourseID(context.Context, http.ResponseWriter, *http.Request)
 }
 
-func NewTaskHandler(ts services.TaskService) TaskHandler {
+func NewTaskHandler(ts services.TaskService, ns services.NotificationService) TaskHandler {
 	hc := platform.NewHandlerConfig("TaskHandler", entities.Task{}.EntityName())
 
 	return &taskHandler{
-		BaseHandler: platform.NewBaseHandler(hc, ts),
-		service:     ts,
+		BaseHandler:  platform.NewBaseHandler(hc, ts),
+		service:      ts,
+		notifService: ns,
 	}
 }
 
 type taskHandler struct {
 	platform.BaseHandler[entities.Task]
-	service services.TaskService
+	service      services.TaskService
+	notifService services.NotificationService
+}
+
+func (h *taskHandler) Add(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	entity, ok := h.DecodeEntity(ctx, w, r, "Add")
+	if !ok {
+		return
+	}
+
+	created, err := h.service.Add(ctx, entity)
+	if err != nil {
+		jsonutil.ResponseWithError(w, http.StatusBadRequest, h.GetLogger().LogAndReturnError(
+			contextutil.GetTraceID(ctx), "Add", err, logger.HandlerBadRequest,
+		))
+		return
+	}
+
+	go h.notifService.NotifyNewTask(contextutil.SetTraceID(context.Background()), created)
+
+	h.GetLogger().Log(contextutil.GetTraceID(ctx), "Add",
+		fmt.Sprintf("%s successfully added", created), logger.HandlerOperationSuccess)
+	jsonutil.ResponseWithJSON(w, http.StatusOK, created)
 }
 
 func (h *taskHandler) GetByCourseID(ctx context.Context, w http.ResponseWriter, r *http.Request) {

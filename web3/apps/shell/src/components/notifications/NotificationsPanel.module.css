@@ -1,0 +1,130 @@
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  z-index: 2000;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.headerTitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: #111827;
+}
+
+.markReadBtn {
+  font-size: 12px;
+  color: #4a6cf7;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.markReadBtn:hover {
+  text-decoration: underline;
+}
+
+.list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f9f9f9;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: background 120ms ease;
+}
+
+.item:hover {
+  background: #f5f5ff;
+}
+
+.itemUnread {
+  background: #f5f7ff;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.dotRead {
+  background-color: transparent;
+}
+
+.itemBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemMeta {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.typeBadge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badgeNewTask {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badgeSubmission {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badgeGrade {
+  background-color: #fef9c3;
+  color: #713f12;
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #9ca3af;
+}

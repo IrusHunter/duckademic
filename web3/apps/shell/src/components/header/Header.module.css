@@ -75,6 +75,10 @@
 }
 
 /* ── Дзвоник ── */
+.bellWrapper {
+    position: relative;
+}
+
 .notificationsBtn {
     position: relative;
     width: 36px;

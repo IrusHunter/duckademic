@@ -51,6 +51,7 @@ func main() {
 	taskRepository := repositories.NewTaskRepository(database)
 	taskStudentRepository := repositories.NewTaskStudentRepository(database)
 	taskCommentRepository := repositories.NewTaskCommentRepository(database)
+	notificationRepository := repositories.NewNotificationRepository(database)
 
 	studentService := services.NewStudentService(studentRepository, eventBus)
 	teacherService := services.NewTeacherService(teacherRepository, eventBus)
@@ -62,15 +63,18 @@ func main() {
 	taskService := services.NewTaskService(taskRepository, courseRepository)
 	taskStudentService := services.NewTaskStudentService(taskStudentRepository, taskRepository, studentRepository)
 	taskCommentService := services.NewTaskCommentService(taskCommentRepository, studentRepository, teacherRepository)
+	notificationService := services.NewNotificationService(notificationRepository, studentCourseRepository,
+		taskRepository, courseRepository, studentRepository)
 
 	studentHandler := resthandlers.NewStudentHandler(studentService)
 	teacherHandler := resthandlers.NewTeacherHandler(teacherService)
 	courseHandler := resthandlers.NewCourseHandler(courseService)
 	studentCourseHandler := resthandlers.NewStudentCourseHandler(studentCourseService)
 	teacherCourseHandler := resthandlers.NewTeacherCourseHandler(teacherCourseService)
-	taskHandler := resthandlers.NewTaskHandler(taskService)
-	taskStudentHandler := resthandlers.NewTaskStudentHandler(taskStudentService)
+	taskHandler := resthandlers.NewTaskHandler(taskService, notificationService)
+	taskStudentHandler := resthandlers.NewTaskStudentHandler(taskStudentService, notificationService)
 	taskCommentHandler := resthandlers.NewTaskCommentHandler(taskCommentService)
+	notificationHandler := resthandlers.NewNotificationHandler(notificationService)
 	databaseHandler := resthandlers.NewDatabaseHandler(studentService, teacherService, courseService, studentCourseService,
 		teacherCourseService, taskService, taskStudentService)
 
@@ -79,7 +83,7 @@ func main() {
 		log.Fatalf("JWT_SECRET not specified in the .env file")
 	}
 	restapi := NewRESTAPI(studentHandler, teacherHandler, courseHandler, studentCourseHandler, teacherCourseHandler,
-		taskHandler, taskStudentHandler, taskCommentHandler, databaseHandler, []byte(jwtSecret))
+		taskHandler, taskStudentHandler, taskCommentHandler, notificationHandler, databaseHandler, []byte(jwtSecret))
 
 	go func() {
 		time.Sleep(events.ExternalSeedCooldown)

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LuArrowLeft, LuStar, LuMegaphone } from "react-icons/lu";
+import { LuArrowLeft, LuStar, LuMegaphone, LuClipboardList } from "react-icons/lu";
 import {
   getTasksByCourse,
   getMySubmissionsForCourse,
@@ -331,7 +331,7 @@ export default function CoursePage() {
         ) : (
           // classwork card
           <>
-            <div className={css.classworkIcon}>📋</div>
+            <div className={css.classworkIcon}><LuClipboardList size={20} /></div>
             <div className={css.classworkInfo}>
               <div className={css.classworkTitle}>{task.title}</div>
               <div className={css.classworkMeta}>
@@ -410,7 +410,17 @@ export default function CoursePage() {
               )}
               {streamTasks.length === 0
                 ? <p className={css.empty}>No assignments yet.</p>
-                : streamTasks.map(t => renderTaskCard(t, 'stream'))
+                : (
+                  <>
+                    {streamTasks.map(t => renderTaskCard(t, 'stream'))}
+                    <button
+                      className={css.viewClassworkLink}
+                      onClick={() => setActiveTab('classwork')}
+                    >
+                      View all in Classwork →
+                    </button>
+                  </>
+                )
               }
             </>
           )}

@@ -20,6 +20,7 @@ func Migrate(database *sqlx.DB) error {
 		taskColumnsV2Migrations,
 		taskStudentColumnsV2Migrations,
 		taskCommentMigrations,
+		notificationMigrations,
 	}
 
 	for _, f := range migrationsF {
@@ -385,6 +386,32 @@ func taskStudentMigrations(tx *sqlx.Tx) error {
 
 	if err := db.EnsureUpdatedAtTriggerTx(context.Background(), tx, "task_students"); err != nil {
 		return fmt.Errorf("failed to create on update trigger for task_students: %w", err)
+	}
+
+	return nil
+}
+
+func notificationMigrations(tx *sqlx.Tx) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS notifications (
+		id UUID PRIMARY KEY,
+		recipient_id UUID NOT NULL,
+		type TEXT NOT NULL,
+		title TEXT NOT NULL,
+		task_id UUID NOT NULL,
+		course_id UUID NOT NULL,
+		task_student_id UUID,
+		is_read BOOLEAN NOT NULL DEFAULT FALSE,
+		created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+	);
+	`
+	if _, err := tx.Exec(schema); err != nil {
+		return fmt.Errorf("failed to create notifications table: %w", err)
+	}
+
+	idx := `CREATE INDEX IF NOT EXISTS idx_notifications_recipient_id ON notifications (recipient_id);`
+	if _, err := tx.Exec(idx); err != nil {
+		return fmt.Errorf("failed to create notifications recipient index: %w", err)
 	}
 
 	return nil
