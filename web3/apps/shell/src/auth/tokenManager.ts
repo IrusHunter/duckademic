@@ -2,24 +2,25 @@ import axios from 'axios'
 import { clearUserCookie } from '../utils/cookies'
 import { useAuthStore } from '../store/authStore'
 
-// refreshPromise і accessToken живуть у window — єдині на всю вкладку,
-// спільні між усіма MFE-бандлами. Без цього кожен MFE мав би свій
-// екземпляр змінної і шлав паралельні refresh-запити.
+// __refreshPromise живе у window — єдиний на всю вкладку, спільний між
+// усіма MFE-бандлами. Promise — жива JS-сутність, її не можна покласти в
+// localStorage, тому саме window гарантує, що всі MFE бачать один і той
+// самий «refresh у процесі» і не шлють паралельних запитів.
+// access_token зберігається в localStorage — він теж спільний для всього
+// origin і доступний будь-якому MFE без додаткової координації.
 declare global {
   interface Window {
     __refreshPromise?: Promise<string> | null
-    __accessToken?: string | null
   }
 }
 
 const getAccessToken = (): string | null => 
   localStorage.getItem('access_token') ?? null
-const setAccessToken = (token: string | null): void => { 
-  window.__accessToken = token
+const setAccessToken = (token: string | null): void => {
   if (token) {
     localStorage.setItem('access_token', token)
   } else {
-   localStorage.removeItem('access_token')
+    localStorage.removeItem('access_token')
   }
 }
 const getRefreshPromise = (): Promise<string> | null => window.__refreshPromise ?? null
